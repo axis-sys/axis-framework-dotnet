@@ -1,0 +1,44 @@
+id: style-project-naming
+title: Name projects {App}.{Layer}.{Role} and mirror the project name in its folder path
+tier: convention
+concern: style
+layer: build
+severity: should
+status: canonical
+description: >
+  Every project name starts with the solution prefix {App}. followed by its architectural position, so the
+  name alone states which side of the hexagon the code lives on. The directory path mirrors the project
+  name, repeating it as the leaf directory that holds the csproj. The rule fixes the name-to-path grammar,
+  not a specific folder layout.
+invariants:
+  - A project is named {App}.{Layer}[.{Role}], where {Layer} states its hexagonal position and {Role} disambiguates siblings within that layer.
+  - Core projects that are unique in their role may drop a redundant layer infix (for example {App}.SharedKernel, {App}.Domain, {App}.Application).
+  - Contract projects carry the port direction so driving and driven contracts are distinguishable from the name alone — {App}.Contracts.Driving[.{Role}] for the driving side (commands, queries, responses, sub-DTOs and the facade interfaces) and {App}.Contracts.Driven[.{Role}] for the driven side (outbound port interfaces).
+  - Adapter projects state their direction and role (for example {App}.Adapters.Driving.{Role} and {App}.Adapters.Driven.{Role}).
+  - Test projects are named {App}.{Kind}Tests, where {Kind} is the test layer (unit, integration, end-to-end, architecture).
+  - The folder path mirrors the project name and repeats it as the leaf directory ({App}.{Layer}.{Role}/{App}.{Layer}.{Role}.csproj).
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Scaffolds.ECommerce.Contracts.Driving.csproj:1 — {App}.Contracts.Driving, mirrored by its folder leaf"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Scaffolds.ECommerce.Contracts.Driven.csproj:1 — {App}.Contracts.Driven, the parallel driven side"
+examples:
+  correct:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Scaffolds.ECommerce.Adapters.Driving.Facade.csproj:1 — {App}.Adapters.Driving.{Role} worked example (Role = Facade)"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.AuthProviders/Scaffolds.ECommerce.Adapters.Driven.AuthProviders.csproj:1 — {App}.Adapters.Driven.{Role} worked example (Role = AuthProviders)"
+  incorrect: []
+exceptions:
+  - A project shipped as an external tool may keep the naming prefix while overriding its AssemblyName to the tool's published name.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The rule fixes the name-to-path correspondence and the layer/role grammar, not a specific directory
+  structure; a solution may group folders layer-first or feature-first as long as each project name states
+  its hexagonal position and the leaf directory repeats the project name.

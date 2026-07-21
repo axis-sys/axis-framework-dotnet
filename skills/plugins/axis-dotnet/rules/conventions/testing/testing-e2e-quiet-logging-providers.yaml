@@ -1,0 +1,44 @@
+id: testing-e2e-quiet-logging-providers
+title: Clear default logger providers in E2E test hosts so parallel host disposal cannot corrupt the run
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  On Windows, WebApplication.CreateBuilder registers the EventLog logger provider by default (filtered at
+  Warning). Its native EventLogInternal handle is disposed when a host is torn down. Under xUnit collection
+  parallelism, WebApplicationFactory hosts are created and disposed concurrently, so that disposal races with
+  in-flight request logging and surfaces as ObjectDisposedException (on TestServer or EventLogInternal),
+  wrapped by the DeveloperExceptionPage — masking the real result and making otherwise-correct tests flaky.
+  Tests consume no logger, so every test host clears the default providers.
+invariants:
+  - Every WebApplicationFactory<Program> test host calls builder.ConfigureLogging(l => l.ClearProviders()) so the default Windows EventLog provider is never registered.
+  - A factory that inspects emitted logs clears the providers first and then AddProvider only its own collecting provider, rather than keeping the framework defaults.
+  - Inline throwaway factories (built and disposed inside a single test) clear providers too, because they churn hosts concurrently with the rest of the suite.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/ECommerceWebAppFactory.cs:26 — ClearProviders() followed by AddProvider of the factory's own collecting provider"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/CollectingLoggerProvider.cs:8 — the collecting provider that replaces the framework defaults"
+  incorrect: []
+exceptions:
+  - A host that deliberately asserts on a specific provider's output may keep that one provider, added explicitly after ClearProviders — never the implicit framework defaults.
+derives_to:
+  skills:
+    - axis-e2e-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The load-bearing trap: the failure is flaky and only appears under full parallel load (most likely in the
+  VS Test Explorer), because a host must outlive a concurrent disposal for the race to land — the same suite
+  passes in isolation and in small parallel groups. The surfaced exception (ObjectDisposedException on
+  TestServer vs EventLogInternal) depends on timing; both share the one root — a host being disposed while it
+  still serves requests. Clearing providers removes the only process-global resource in the failure stacks and
+  unmasks any genuine error underneath. This is host hygiene, not a bug in the code under test.

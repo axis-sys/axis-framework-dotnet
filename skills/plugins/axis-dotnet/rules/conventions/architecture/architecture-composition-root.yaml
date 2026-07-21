@@ -1,0 +1,46 @@
+id: architecture-composition-root
+title: One shared host composes the monolith; a bounded context promoted to a microservice gets its own host
+tier: convention
+concern: architecture
+layer: build
+severity: must
+status: canonical
+description: >
+  A single composition root wires the running application: it is the only place that selects concrete
+  adapters, through AddAxis*/Add* DI extensions, so call sites depend only on abstractions. In a monolith one
+  shared web host serves every bounded context and hosts the controllers itself — there is no BFF per bounded
+  context, neither as a host nor as a class library composed in via Application Parts. When a bounded context
+  is promoted to a microservice it gets its own host (its own BFF), keeping its namespace.
+invariants:
+  - Exactly one composition root wires the application and is the only place that binds an IAxis* abstraction to a concrete adapter, through AddAxis*/Add* DI extensions.
+  - In a monolith a single shared web host serves all bounded contexts, with no per-bounded-context BFF host.
+  - Controllers live in the host project, one folder per bounded context — never in a per-bounded-context BFF class library composed into the host via Application Parts.
+  - The host exposes public partial class Program so the end-to-end test project can boot the real pipeline via WebApplicationFactory<Program>.
+  - A bounded context promoted to a microservice gains its own host and composition root while keeping its namespace unchanged.
+  - No call site outside the composition root names a concrete adapter or provider — handlers, facades and ports depend on abstractions only.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Program.cs:45 — the single composition root selecting concrete adapters via AddECommerce*/AddAxis* DI extensions"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Program.cs:106 — public partial class Program so the E2E project boots the real pipeline via WebApplicationFactory<Program>"
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:17 — controllers live in the host, one folder per bounded context"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-systems-architect
+    - axis-webapi-controllers
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 2b82174
+  reviewed_on: 2026-07-18
+notes: >
+  The composition root is where provider choice lives (architecture-di-registration,
+  process-provider-switches) and where startup performs no I/O (process-no-startup-io). The single-host
+  stance is a monolith default, not a ceiling — extracting a bounded context into its own deployable is the
+  promotion path in architecture-hexagonal-topology.

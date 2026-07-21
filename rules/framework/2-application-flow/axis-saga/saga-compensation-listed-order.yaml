@@ -1,0 +1,41 @@
+id: saga-compensation-listed-order
+title: The engine walks the compensation chain in the exact order RouteToOnError lists it — no automatic reversal
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  When a stage fails, the engine executes its RouteToOnError stages in a plain forward foreach — in the exact
+  order the names are listed. There is NO automatic reversal of the forward chain: the author is responsible for
+  listing compensations in the reverse order of the forward stages they undo. In the canonical OrderSaga,
+  ChargeCard's RouteToOnError("RefundStock", "CompensateOrder") lists RefundStock first because it undoes the
+  most recent successful effect. Expecting the engine to invert the forward order is the trap this rule catches.
+invariants:
+  - The engine runs RouteToOnError stages in the listed order (a forward iteration of the chain), not in reverse of the forward chain.
+  - The author must order the RouteToOnError names as the compensation sequence — typically the reverse of the forward stages they undo.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:151 — ExecuteCompensationChainAsync iterates the chain foreach in listed order"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md:113 — RouteToOnError(\"RefundStock\", \"CompensateOrder\") lists the undo steps in order"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Gotcha rule. Because each error stage is itself an idempotent handler, a compensation that has nothing to undo
+  (the forward effect never happened) simply returns Ok and the engine moves to the next.

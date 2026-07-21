@@ -1,0 +1,48 @@
+id: architecture-saga-stage-handlers
+title: Saga stage handlers are idempotent, evolve the payload with `with`, and separate business failure from stage error
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  Each stage is an internal sealed IAxisSagaStageHandler<TPayload> in the owning bounded context's
+  Sagas/{SagaName}/Handlers/ folder, keyed by SagaName/StageName consts. Stages re-run after crashes or
+  resumer pickup, so every stage first checks whether its work already happened. Expected business failures
+  travel inside the payload so the saga can route to a compensation stage; only unexpected or
+  infrastructure problems surface as an errored AxisResult.
+invariants:
+  - A stage handler is internal sealed, implements IAxisSagaStageHandler<TPayload>, and exposes SagaName/StageName as expression-bodied properties referencing the {Saga}Saga consts.
+  - ExecuteAsync(TPayload payload) returns Task<AxisResult<TPayload>>; the payload is immutable and evolved only via `with` expressions.
+  - Every stage is idempotent — it checks pre-existence (a payload flag, a GetBy lookup, or an already-applied read) before writing.
+  - A compensation stage guards on a payload flag recording what the saga actually did, so it never undoes work it did not perform.
+  - A business outcome the saga must route on is written into the payload (payload with { Succeeded = false, ErrorCode = ... }) and returned as Ok — not as an AxisResult error.
+  - Ambient context is not available to a resumed stage — the app-scoped context (for example a tenant) is re-established from the payload before any facade call.
+  - Stage handlers are discovered by the saga-handler assembly scan; there is no per-stage registration.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/Handlers/MarkEmailValidatedStageHandler.cs:7 — internal sealed IAxisSagaStageHandler with SagaName/StageName expression-bodied properties (StageName is nameof(itself))"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/Handlers/RevertEmailValidatedStageHandler.cs:19 — the compensation guard: undo only what this run actually did"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/Handlers/MarkEmailValidatedStageHandler.cs:21 — idempotency guard on a payload flag, short-circuiting Ok(payload)"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/Handlers/RevertEmailValidatedStageHandler.cs:25 — payload evolved only via a with-expression"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The split between an in-payload business outcome and an errored AxisResult is what lets the saga route to
+  compensation versus fail hard; errors-as-values is the framework rule result-errors-as-values. A resumed
+  stage re-establishes app-scoped context from the payload because the ambient context does not survive the
+  resume (architecture-ambient-context, architecture-mediator-user-context). A stage that reaches another
+  bounded context does so through the sanctioned saga channel (architecture-cross-bc-communication), and the
+  payload it evolves is architecture-saga-payloads.

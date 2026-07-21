@@ -1,0 +1,45 @@
+id: bus-outbox-terminal-failed
+title: A row becomes terminal Failed on exhausted attempts or an unusable payload
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: superseded
+superseded_by: bus-outbox-worker-backoff-alert
+description: >
+  A row is marked Failed (terminal) — lease released, DELETE_NOT_BEFORE set from RetainForSeconds — in three
+  cases: the incremented ATTEMPTS reaches MaxAttempts, the stored EventType cannot be resolved to a CLR type,
+  or the payload cannot be deserialized. An unresolvable type or bad payload fails terminally at once (no
+  point retrying a payload that will never parse); an exhausted retryable failure fails terminally after its
+  last attempt. A terminal row is never claimed again.
+invariants:
+  - When incremented ATTEMPTS reaches MaxAttempts the row is marked Failed (terminal), not rescheduled.
+  - An unresolvable EventType or an undeserializable payload marks the row Failed terminally immediately, without consuming retries.
+  - A terminal Failed row is never reclaimed by a later poll (it is no longer Pending).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:127 — attempts >= MaxAttempts -> MarkFailedTerminalAsync"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:64 — unresolvable event type -> terminal fail"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:85 — undeserializable payload -> terminal fail"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SUPERSEDED by bus-outbox-worker-backoff-alert. The atomic-outbox redesign removed the terminal Failed state,
+  the ATTEMPTS/MaxAttempts count and the retention sweep entirely: a poison row (unresolvable type or bad
+  payload) is never marked terminal or skipped — it keeps its place, the partition halts, and the worker raises
+  a critical alert and retries until the fault clears. Kept for history.

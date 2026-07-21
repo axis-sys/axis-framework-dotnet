@@ -1,0 +1,41 @@
+id: validator-derive-base
+title: An input validator derives from AxisValidatorBase<T> and declares its rules in the constructor
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A validator for a command, query or integration message is a class that inherits AxisValidatorBase<T>,
+  which is a FluentValidation AbstractValidator<T> implementing IAxisValidatorBase<T>. Rules are declared
+  in the constructor by calling the Axis helper methods; nothing else is required for the assembly scanner
+  to discover and register it. A plain AbstractValidator<T> is not registered as IAxisValidator<T>.
+invariants:
+  - A validator inherits AxisValidatorBase<T>, which is both AbstractValidator<T> and IAxisValidatorBase<T>.
+  - Validation rules are declared by calling helper methods inside the validator's constructor.
+  - A validator that inherits a plain FluentValidation AbstractValidator<T> instead of AxisValidatorBase<T> is not registered as IAxisValidator<T> and does not plug into the pipeline.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:9 — AxisValidatorBase<T> : AbstractValidator<T>, IAxisValidatorBase<T>"
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/IAxisValidator.cs:5 — the IAxisValidator<T> surface the base ultimately implements"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:20 — EmailValidator : AxisValidatorBase<TestCommand>, rules in the ctor"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Inheriting the base also gives full access to the underlying AbstractValidator surface (RuleFor, RuleSet,
+  When, Unless, async rules) for anything the Axis helpers do not cover.

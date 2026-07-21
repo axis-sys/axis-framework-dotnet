@@ -1,0 +1,45 @@
+id: saga-mediator-start
+title: IAxisSagaMediator.StartAsync persists the instance then fires the engine in the background
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  StartAsync is the application-facing way to launch a saga. It validates (sagaName before sagaId; both must
+  be non-empty), looks the definition up in the registry (unknown -> NotFound(SagaDefinitionNotFound)),
+  serializes the payload, inserts the instance as Pending / Version 1 / CurrentStage null, then fires the
+  engine in the background and returns Ok(sagaId) as soon as the row is committed. The caller gets the id
+  immediately — the orchestration runs asynchronously. Overloads let the caller supply their own id (else a
+  UUID v7 is generated) and/or a retention window.
+invariants:
+  - StartAsync validates sagaName before sagaId (empty sagaName -> ValidationRule("SAGA_NAME_REQUIRED"), empty sagaId -> ValidationRule("SAGA_ID_REQUIRED")).
+  - An unknown sagaName returns AxisError.NotFound(SagaDefinitionNotFound); a duplicate id surfaces the store's Conflict("SAGA_ID_ALREADY_EXISTS").
+  - On a successful insert (Pending, Version 1, CurrentStage null) it returns Ok(sagaId) immediately and fires the engine in the background — it does not await completion.
+  - The id is generated as a UUID v7 (Guid.CreateVersion7) unless the caller supplies one; overloads also accept a retention window.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:29 — StartAsync: validate, registry lookup, serialize, insert, FireAndForgetExecute, Ok(sagaId)"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/IAxisSagaMediator.cs:7 — StartAsync overloads (generated/supplied id, retention window)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaMediatorTests.cs:54 — StartAsync persists the instance"
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaMediatorTests.cs:45 — unknown saga name returns NotFound"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Sharp edge: Ok(sagaId) means "the row is in the database", not "the saga finished" — poll GetByIdAsync for a
+  terminal status, or react to the bus events. The engine runs via Task.Run in a fresh scope.

@@ -1,0 +1,45 @@
+id: bus-outbox-schema
+title: The outbox is one dialect-agnostic table applied by the framework runner
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The outbox schema is declared once: AXIS_OUTBOX.OUTBOX_EVENTS in BusEventsTable.Define(), a single
+  dialect-agnostic table. Each adapter renders it with its own IAxisSqlDialect and applies it idempotently
+  through the framework migration runner. There is NO status column — the presence of a row is the pending state
+  and delivery is its deletion (bus-outbox-lease-claim). Rows carry ORDERING_KEY + ENQUEUE_SEQ for FIFO
+  partitioning, AVAILABLE_AT for due-time, and CLAIMED_BY / CLAIMED_UNTIL for the execution lease; a dispatch
+  index over (ORDERING_KEY, CREATED_AT, ENQUEUE_SEQ) covers the head-of-partition claim query.
+invariants:
+  - The outbox is a single table AXIS_OUTBOX.OUTBOX_EVENTS, declared once in BusEventsTable and rendered per dialect.
+  - The table has no STATUS, ATTEMPTS, PROCESSED_AT, DELETE_NOT_BEFORE or retention column — a delivered row is deleted, a pending row simply exists.
+  - Ordering columns ORDERING_KEY + ENQUEUE_SEQ give FIFO within a partition; CLAIMED_BY / CLAIMED_UNTIL are the execution lease.
+  - The migration is applied idempotently by the framework runner (safe at every startup); IDX_OUTBOX_DISPATCH over (ORDERING_KEY, CREATED_AT, ENQUEUE_SEQ) covers the claim query.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Persistence/BusEventsTable.cs:39 — Define(): the columns, no STATUS, IDX_OUTBOX_DISPATCH(ORDERING_KEY, CREATED_AT, ENQUEUE_SEQ)"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Persistence/AxisBusSchema.cs:16 — the schema rendered per dialect"
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/Persistence/AxisBusMigrations.cs:10 — PostgresMigrationRunner applies the schema idempotently"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  In MySQL a SCHEMA is a database, so the runner issues CREATE SCHEMA IF NOT EXISTS for AXIS_OUTBOX. The
+  no-status, delete-on-dispatch shape is the core difference from the earlier design; the table keeps the
+  SAGA_INSTANCES lease columns but drops any retention window.

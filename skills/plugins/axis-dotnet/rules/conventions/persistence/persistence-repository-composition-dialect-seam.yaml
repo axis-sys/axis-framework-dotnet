@@ -1,0 +1,41 @@
+id: persistence-repository-composition-dialect-seam
+title: Compose repositories over IAxisDbRepository with a per-entity dialect seam, never a provider base class
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  A repository is a provider-agnostic internal sealed class that composes over the framework's
+  IAxisDbRepository by constructor injection — it never inherits a provider base class. SQL that differs
+  between providers is isolated behind a per-entity I{Entity}SqlDialect seam with exactly one implementation
+  per targeted provider, so the repository body stays provider-neutral.
+invariants:
+  - A repository is internal sealed and provider-agnostic, taking IAxisDbRepository and its dialect by constructor injection, and inherits no provider base class.
+  - Provider-divergent SQL lives behind a per-entity I{Entity}SqlDialect abstraction with exactly one implementation per targeted provider.
+  - Dialect members return SQL text only — they never open connections, execute commands or touch the reader.
+  - Parameters are named and bound through the builder — never positional placeholders or AddWithValue — and row mappers take the provider-neutral DbDataReader.
+  - Column projections come from the single-source {Entities}Columns.All, never an inline column list.
+  - The repository adapter references the domain project to consume I{Entity}EntityProperties, returns AxisResult and never throws.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A repository whose SQL is fully portable across every targeted provider takes no dialect seam.
+derives_to:
+  skills:
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Neighboring persistence rules already assume this composition — persistence-sql-parameterized-pure,
+  persistence-dbentity-fromreader-ordinal, persistence-di-registration, persistence-repo-no-try-catch and
+  persistence-columns-single-source. The dialect seam is what lets one repository serve multiple providers
+  without a base-class hierarchy.

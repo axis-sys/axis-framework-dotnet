@@ -1,0 +1,45 @@
+id: saga-transient-retry-in-place
+title: A transient stage failure is retried in place within the lease before routing to compensation
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  When a stage handler fails transiently (AxisError.IsTransient — deadlock, serialization, connection blip), the
+  engine re-invokes it in place, up to the stage's attempt cap, staying inside the current lease (the heartbeat
+  keeps it alive). The retry is invisible to the stage log — WriteStarted/MarkCompleted/MarkFailed still fire
+  once, around the final outcome. Backoff scales with the attempt number plus small jitter (to desynchronize
+  racing runners). A non-transient failure is NOT retried; an attempt cap of 1 disables retry. Only after the
+  cap is exhausted does the failure route to compensation.
+invariants:
+  - The engine re-invokes a stage in place while it fails transiently (AxisError.IsTransient), up to the attempt cap, within the same lease.
+  - The retry loop writes one Started/Completed/Failed log around the final outcome, not per attempt.
+  - A non-transient failure is returned immediately without retry; an attempt cap of 1 means a single attempt (retry disabled).
+  - Backoff scales with the attempt number and adds jitter so racing runners desynchronize.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:220 — InvokeWithTransientRetryAsync: retry on IsTransientFailure up to maxAttempts, backoff+jitter"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/AxisSagaSettings.cs:43 — global TransientRetryMaxAttempts / TransientRetryBaseDelay"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/SagaEngineTransientRetryTests.cs:84 — retries transient then completes; exhausts then fails; non-transient no retry; cap 1 disables"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The attempt cap and base delay come from AxisSagaSettings unless RetryOnTransient overrides them per stage
+  (saga-retry-on-transient-override). Handlers are idempotent by contract, so re-running a rolled-back stage is
+  safe.

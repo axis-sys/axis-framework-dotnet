@@ -1,0 +1,50 @@
+id: testing-e2e-controller-coverage-gate
+title: Every controller has E2E coverage — happy path plus 401, and 403 where permissions apply
+tier: convention
+concern: testing
+layer: tests
+lens: [security]
+severity: must
+status: canonical
+description: >
+  A new or changed controller requires end-to-end tests at the HTTP edge: the happy path, an anonymous
+  401, and — for permission-guarded endpoints — a 403 for an authenticated user who lacks the permission
+  plus the privileged bypass. A reflective production-composition test additionally proves every
+  controller activates from the production container. This is the canonical cross-cutting gate: a PR
+  touching a controller without the matching E2E journey is not done.
+invariants:
+  - Each controller's use cases have a matching {UseCase}Tests (or {Subject}Tests) file of plain static journey methods under UseCases/v1/{BC}/, fanned out as [Fact]s by a coverage class that holds the shared collection.
+  - E2E tests exercise the full production pipeline — real routing, auth and DI composition, against a real database container where the application has one (the in-memory driven adapter otherwise) — never by mocking the pipeline.
+  - At least one anonymous request per surface asserts 401.
+  - Permission-guarded endpoints assert a 403 for an authenticated user lacking the permission and a bypass for an admin/privileged user.
+  - A reflective production-composition test activates every ControllerBase subtype from the production registrations and stays green, catching missing DI registrations.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/PostgresCoverageTests.cs:15 — the coverage class fanning out the static use-case journeys under the pinned provider's collection (mirrored by MySqlCoverageTests.cs)"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/CompositionTests.cs:13 — the reflective production-composition test activating every controller"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/UseCases/v1/Catalog/CatalogTests.cs:92 — the anonymous 401 per surface"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/UseCases/v1/Catalog/CatalogTests.cs:111 — the authenticated-without-permission 403"
+  incorrect: []
+exceptions:
+  - Read-only endpoints with no permission attribute need only the happy path plus a 401.
+  - Tenant-isolation assertions (repeating a read under a foreign tenant header and expecting 404) apply only to multi-tenant applications.
+derives_to:
+  skills:
+    - axis-tests
+    - axis-e2e-tests
+    - axis-webapi-controllers
+    - axis-review
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The gate fixes the coverage contract, not the mechanism: whether E2E uses a shared collection fixture or
+  a per-class container, and how it authenticates, are application conventions that may vary. Authentication
+  and authorization are application concerns, not imposed by Axis packages; this rule only requires the
+  rejection paths (401 and, where permissions exist, 403) to be exercised.

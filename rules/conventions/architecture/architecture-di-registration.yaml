@@ -1,0 +1,60 @@
+id: architecture-di-registration
+title: A single composition entry scans handlers and registers every other seam explicitly
+tier: convention
+concern: architecture
+layer: any
+severity: must
+status: canonical
+description: >
+  Every project wires itself through one public registration extension — a class literally named
+  DependencyInjection at the project root. CQRS handlers, validators and saga stage handlers are
+  discovered by assembly scanning; everything else — factories, services, policies,
+  application-implemented ports, ambient accessors, saga definitions, per-BC repository ports — is
+  registered explicitly, with a rationale comment where the registration encodes a decision. A project
+  that spans several bounded contexts decomposes that single entry into one internal DependencyInjection
+  per BC/feature folder that registers services (architecture-one-folder-per-feature), each called only
+  by the root extension — the decomposition never adds a second PUBLIC door. This rule fixes the shape of
+  that composition entry, not the host that calls it.
+invariants:
+  - A project exposes exactly one public registration extension as its whole composition surface — a public static class DependencyInjection at the project root; nothing else in the project is public for wiring.
+  - A project spanning several bounded contexts may decompose its registration into one DependencyInjection per BC/feature folder that registers services, but every one of those nested classes is internal static, never public — only the root extension crosses the assembly boundary.
+  - The root extension orchestrates the per-BC ones (and any cross-cutting registration, such as a shared IUnitOfWork binding) by calling each internal Add{BC}... extension in turn.
+  - Handlers, validators and saga stage handlers are registered by assembly-scanning extensions (the mediator, validator and saga-handler scans), never one type at a time.
+  - Factories, policies, services, application-implemented ports and repository ports are registered as scoped with explicit interface-to-implementation pairs.
+  - A class implementing two interfaces is registered once, and both interfaces forward to that same scoped instance.
+  - Settings records are registered with a TryAdd so a host's earlier registration wins.
+  - Each saga contributes its own Add{Saga}Saga extension, invoked from the owning BC's registration (which is in turn invoked from the single project-level registration entry).
+  - A registration that encodes a decision (a lifetime, a provider choice, an interface forward) carries a rationale comment; a plain interface-to-impl pair needs none.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/DependencyInjection.cs:1 — the project's single public entry, orchestrating per-BC internal registration plus the cross-cutting assembly scans"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/DependencyInjection.cs:1 — an internal per-BC decomposition, called only by the root entry above"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/ValidateEmailSagaDependencyInjection.cs:5 — a saga's own internal Add{Saga}Saga extension, one level deeper still"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/DependencyInjection.cs:1 — the same shape in a driven adapter project: one public root orchestrating three internal per-BC extensions"
+examples:
+  correct:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/DependencyInjection.cs:1 — internal static class DependencyInjection, called only from the project's public root"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+    - axis-mediator
+    - axis-repository-postgres
+  hooks:
+    - AXIS0607
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The single public entry is the composition counterpart of architecture-access-modifiers: because
+  everything else is internal, that one extension is the only door the project opens — enforced by
+  AXIS0607, which flags a second public class named DependencyInjection in the same assembly. Swappable
+  infra adapters are chosen in composition too (architecture-swappable-infra-ports), so a provider choice
+  is a wiring change. This rule does not prescribe the host model — a web host, a worker host or a test
+  host all call the same extension. The per-BC decomposition itself is
+  architecture-one-folder-per-feature's "one DependencyInjection per registering folder" invariant; this
+  rule adds the accessibility half — internal below the root, public only at it.

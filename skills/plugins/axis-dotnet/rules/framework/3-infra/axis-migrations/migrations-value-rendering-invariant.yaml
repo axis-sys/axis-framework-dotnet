@@ -1,0 +1,46 @@
+id: migrations-value-rendering-invariant
+title: Seed values render culture-invariantly with numerics unquoted and strings escaped
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  RenderValue turns a seed cell into a SQL literal by kind, and the rules are safety-critical. Numeric literals
+  (int, long, decimal, double, float) are emitted UNQUOTED and ALWAYS with InvariantCulture, because a
+  culture-specific ToString would emit a decimal comma (e.g. "1,5" on de-DE) and silently corrupt the value or
+  break the INSERT. Strings are single-quoted with embedded quotes doubled; booleans go through the dialect's
+  bool literal; null goes through the overridable RenderNull hook; an IFormattable (Guid, DateOnly) is quoted
+  with an invariant ToString, and any other value falls through to a quoted ToString.
+invariants:
+  - Numeric literals are rendered unquoted and always with InvariantCulture, never a culture-specific ToString.
+  - A string is single-quoted with each embedded single quote doubled.
+  - null is rendered through the overridable RenderNull hook (default NULL) and a boolean through the dialect's RenderBoolLiteral.
+  - An IFormattable value is quoted with an invariant ToString; any other value falls through to a quoted ToString.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisSqlDialectBase.cs:91 — RenderValue switch: unquoted invariant numerics, quoted strings, RenderNull hook, IFormattable fallback"
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisSqlDialectBase.cs:45 — Quote doubles embedded single quotes"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:130 — RenderValueHandlesEveryScalarKind"
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:141 — RenderValueRendersNumericTypesUnquotedAndInvariant"
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:170 — RenderNullHookIsHonoured"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/ddl.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Seed rows are the one place the DDL model interpolates values into SQL rather than binding parameters, so the
+  invariant formatting and quote escaping are the safety guard.

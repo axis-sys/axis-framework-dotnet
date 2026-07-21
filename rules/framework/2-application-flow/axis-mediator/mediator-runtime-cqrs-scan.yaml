@@ -1,0 +1,44 @@
+id: mediator-runtime-cqrs-scan
+title: AddCqrsMediator scans an assembly and registers every handler implementation Transient
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  AddCqrsMediator(assembly) is the handler discovery point. It runs six RegisterHandlers passes — one per
+  handler or marker interface — and registers each non-abstract, non-generic class that implements a matching
+  interface as Transient against that interface. Internal types are included; open-generic handler types are
+  skipped. It is called once per assembly that owns handlers and is independent of AddAxisMediator.
+invariants:
+  - AddCqrsMediator(assembly) registers discovered handlers with a Transient lifetime, so there is one handler instance per dispatch.
+  - It scans six interface shapes — IAxisCommand of T, IAxisCommandHandler of T, IAxisCommandHandler of T and response, IAxisQueryHandler, IAxisStreamQueryHandler and IAxisEventHandler.
+  - Only non-abstract, non-generic classes are registered; internal classes are included and open-generic handlers are excluded.
+  - For a single-handler shape (command or query) the last registered implementation wins, while the event shape accepts many handlers per request type.
+  - It is called once per assembly that owns handlers and is separate from AddAxisMediator.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/DependencyInjection.cs:33 — AddCqrsMediator: six RegisterHandlers passes over the handler interfaces"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/DependencyInjection.cs:44 — RegisterHandlers scans non-abstract non-generic classes and AddTransient per matching interface"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/BaseUnitTest.cs:11 — AddCqrsMediator(assembly) discovers the test handlers by scan"
+  incorrect: []
+exceptions:
+  - Generic handler types and manual lifetime/registration are handled by an explicit AddTransient call; the scanner deliberately skips generic types.
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/registration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The last-registered-wins behavior follows from GetService returning the final registration for a
+  single-handler request shape; the registration doc tabulates it.

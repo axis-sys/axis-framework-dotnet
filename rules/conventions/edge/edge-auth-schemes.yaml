@@ -1,0 +1,49 @@
+id: edge-auth-schemes
+title: Named authentication schemes separate token exchange from resource access
+tier: convention
+concern: edge
+layer: driving
+lens:
+  - security
+severity: must
+status: canonical
+description: >
+  Authentication is a two-stage handshake wired in the composition root: one named scheme validates the
+  external identity provider's tokens and is accepted only by the token-exchange endpoint; the default
+  named scheme validates the API's own session token, which carries thin identity claims — fine-grained
+  memberships and permissions are resolved server-side per request, never minted into the token. Every
+  ordinary protected endpoint authenticates with the default scheme.
+invariants:
+  - Authentication registers at least two named schemes and defaults to the API's own session-token scheme.
+  - Only the token-exchange endpoint accepts the external-identity scheme (via an explicit AuthenticationSchemes on that one action); every other protected endpoint uses the default scheme.
+  - Token refresh, logout and any credential-body exchange are anonymous by design, because the access token is absent or already expired when they run.
+  - Both scheme option blocks bind from configuration with data-annotation validation and validate-on-start; signing keys come from secrets or environment, never from committed settings.
+  - The session token is thin — it carries identity claims and coarse flags only, leaving tenant and permission resolution to server-side lookups.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Auth/DependencyInjection.cs:19 — .AddAuthentication(AuthSchemes.ECommerce) defaulting to the API session scheme, plus MsEntra/Google JwtBearer schemes"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Auth/AuthController.cs:28 — only the token-exchange endpoint accepts an external scheme ([Authorize(AuthenticationSchemes = AuthSchemes.MsEntra)])"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/Services/AuthTokenIssuer/AuthTokenIssuerService.cs:27 — the session token is thin (identity claims plus a single coarse admin flag)"
+  incorrect: []
+exceptions:
+  - Tests may re-point the external-identity scheme's handler to a test handler while keeping the session-token scheme real, so session-token validation stays exercised.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The concrete external identity provider is an application choice and is never named by this rule — the
+  invariant is the two-stage split (external-token exchange vs. own-session resource access), not any
+  specific IdP or SDK. The thin-token stance is what edge-permission-authorization and
+  edge-tenant-scoping-middleware rely on: authorization and tenant are resolved per request, not read
+  from the token. Scheme names are shared with the OpenAPI security schemes (edge-openapi-doc-hub), and
+  the adapter that configures the external scheme's options is a swappable driven port
+  (architecture-swappable-infra-ports).

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>AxisBus.Repository</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\1-Observability\AxisLogger\AxisLogger\AxisLogger.csproj" />
+    <ProjectReference Include="..\..\..\..\3-Infra\AxisRepository\AxisRepository\AxisRepository.csproj" />
+    <ProjectReference Include="..\..\AxisBus\AxisBus.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisBus.Repository.UnitTests" />
+    <InternalsVisibleTo Include="AxisBus.Postgres" />
+    <InternalsVisibleTo Include="AxisBus.MySql" />
+    <InternalsVisibleTo Include="AxisBus.Postgres.IntegrationTests" />
+    <InternalsVisibleTo Include="AxisBus.MySql.IntegrationTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,41 @@
+id: process-comment-policy
+title: Zero inline comments; only edge-surface XML docs survive
+tier: convention
+concern: process
+layer: any
+severity: must
+status: canonical
+description: >
+  Code must be self-documenting. Inline comments (//) are forbidden across the whole codebase: the only
+  sanctioned comments are XML doc comments (///) on the public/edge surface that feeds the OpenAPI/reference
+  documentation — the driving contracts and the HTTP endpoints. Footgun knowledge does not live in code
+  either; it belongs in the rules and in project memory. A new comment is never introduced in delivered
+  code without asking first.
+invariants:
+  - No inline // comments anywhere in the source tree — not narration (what the next line does), not rationale (why), not footgun notes.
+  - No comment justifies a change to a reviewer; that rationale belongs in the pull request, never in the code.
+  - No banner comments, region markers, or commented-out code.
+  - XML doc comments (///) are allowed only where they render in the OpenAPI/reference documentation — the driving contracts and the HTTP endpoints.
+  - Authorial XML doc lives only at the root of an inheritance chain; implementations and overrides carry inheritdoc instead.
+  - A comment is never added to delivered code without asking the user first.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - inheritdoc on an implementation or override is mandatory (not optional) when the chain root is documented.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the aggressive-minimal stance: even a single "critical footgun" // note is disallowed — that
+  knowledge is durable and belongs in a rule or in project memory, not in a line of code. The companion
+  rule process-xml-doc-policy governs where the surviving /// docs are actually written.

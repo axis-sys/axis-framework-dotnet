@@ -1,0 +1,41 @@
+id: validator-di-registration
+title: AddAxisValidator wires the validators, the adapter and both pipeline behaviors
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A subdomain enables Axis validation by calling AddAxisValidator(assemblies) once. It scans the given
+  assemblies for FluentValidation validators (including internal types), registers the FluentValidatorAdapter
+  as the scoped IAxisValidator<> implementation, and registers both ValidationBehavior overloads as transient
+  IAxisPipelineBehavior. This is the single wiring point; validators are discovered by assembly scan, not
+  registered one by one.
+invariants:
+  - AddAxisValidator(params Assembly[]) registers FluentValidation validators from the given assemblies, including internal types.
+  - It registers FluentValidatorAdapter<> as IAxisValidator<> with a scoped lifetime.
+  - It registers ValidationBehavior<> and ValidationBehavior<,> as transient IAxisPipelineBehavior for both request shapes.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/DependencyInjection.cs:12 — AddAxisValidator: scan validators, adapter scoped, both behaviors transient"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:475 — services.AddAxisValidator(assembly) then resolve IAxisValidator<T>"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validation-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  includeInternalTypes:true lets validators be declared internal to the assembly that hosts them; the adapter
+  is scoped so it can depend on the request-scoped IAxisMediator for the ambient token.

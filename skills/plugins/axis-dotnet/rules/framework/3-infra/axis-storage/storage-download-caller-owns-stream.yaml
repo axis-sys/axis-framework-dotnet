@@ -1,0 +1,41 @@
+id: storage-download-caller-owns-stream
+title: DownloadAsync returns a caller-owned stream; a missing key is a failure
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  DownloadAsync hands back a forward-only Stream that the CALLER must dispose (wrap in await using, or pass
+  it into something that disposes it) or a connection leaks. A missing key is IsFailure — the backend's 404
+  surfaces as an exception that AxisResult.TryAsync converts — never an Ok carrying a null or empty stream.
+invariants:
+  - DownloadAsync returns a forward-only Stream owned by the caller, who is responsible for disposing it.
+  - A missing key yields IsFailure, not an Ok carrying a null or empty stream.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageAdapter.cs:26 — returns response.ResponseStream, owned by the caller"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageAdapter.cs:36 — returns the response content stream"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:100 — the stored stream is returned on success"
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:122 — a missing key returns a failed AxisResult"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/FileSystemStorageAdapterTests.cs:86 — the filesystem adapter fails on a missing key"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/upload-download.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Sharp edge — the returned stream is owned by the caller. ASP.NET Results.Stream disposes it when the
+  response finishes; a server-to-server copy must wrap it in await using.

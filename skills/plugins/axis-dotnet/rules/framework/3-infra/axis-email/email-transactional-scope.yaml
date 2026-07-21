@@ -1,0 +1,41 @@
+id: email-transactional-scope
+title: AxisEmail is for transactional and internal mail, not bulk or inbound
+tier: framework
+family: 3-infra
+package: AxisEmail
+concern: package-mechanics
+layer: driven
+severity: should
+status: canonical
+description: >
+  The port is sized for one transactional or internal message at a time — order confirmations, password
+  resets, alerts, admin pings. It is not a bulk-marketing engine (no bounce/click/reputation handling), not an
+  inbound-mail receiver, and not a chat transport. Reach for a dedicated ESP, an inbound webhook, or a chat
+  API for those.
+invariants:
+  - Use SendAsync for transactional and internal notifications (confirmations, resets, alerts, admin pings).
+  - Do not use it for bulk marketing — use a dedicated ESP that handles bounce/click/reputation.
+  - It sends only; it does not receive inbound mail and is not a chat/instant-message transport.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisEmail/AxisEmail/IAxisEmailService.cs:3 — the single transactional send port"
+examples:
+  correct:
+    - "docs/en-us/3-Infra/AxisEmail/iaxisemailservice.md:16 — when to use and when not to use"
+    - "docs/en-us/3-Infra/AxisEmail/why-axisemail.md:15 — versus bulk provider SDKs"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-email
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisEmail/iaxisemailservice.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A send is commonly wired as a bus event handler so the command that triggered it stays unaware of the email
+  (see the axis-bus cluster and email-send-returns-result-never-throws).

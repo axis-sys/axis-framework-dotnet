@@ -1,0 +1,47 @@
+id: result-errors-as-values
+title: Model expected failure as AxisError values, never thrown exceptions
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  AxisResult is errors-as-values: a success carries a value and an empty error set, a failure carries
+  a non-empty list of AxisError and no value. Expected failure (not found, validation, conflict,
+  business rule) is returned, never thrown, so the outcome travels through the pipeline as data. The
+  concrete result types are internal and are only ever created through the Ok and Error factories.
+invariants:
+  - A result is success when its error list is null or empty, and failure when it holds one or more AxisError.
+  - The concrete result types (AxisResultImpl and AxisResultImpl<TValue>) are internal sealed and are constructed only via AxisResult.Ok/Error.
+  - AxisError carries exactly two members, Code and Type, and has no Message field by design.
+  - AxisError is created only through its typed static factories (NotFound, ValidationRule, Conflict, and the rest); its constructor is private.
+  - Even a null, empty, or whitespace error code does not throw — it is replaced by the MissingCodeSentinel to preserve the errors-as-values invariant.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.cs:6 — base result holds the AxisError list; IsSuccess is empty-errors"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Generic.cs:3 — generic result adds the value alongside the errors"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisError.cs:6 — AxisError record is Code + Type only, private ctor, typed factories"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultImpl.cs:3 — concrete results are internal sealed, built via Ok/Error"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/errors-and-types.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The absence of a Message field is deliberate: Code is the stable key for logs, metrics and retry,
+  while human-facing text is resolved at the presentation edge (see errors-and-types.md). The
+  reference app documents the same principle in its rulebook as rop-errors-as-values; that rule
+  becomes an examples.correct anchor once the convention tier is migrated.

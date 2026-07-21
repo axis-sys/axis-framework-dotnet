@@ -1,0 +1,44 @@
+id: migrations-dialect-base-skeleton
+title: AxisSqlDialectBase fixes the CREATE TABLE assembly and forces every dialect token
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AxisSqlDialectBase implements the shared, database-free rendering skeleton — it assembles
+  CREATE TABLE IF NOT EXISTS with the body in a fixed order (columns, inline index lines, foreign keys, table
+  checks), then post-table statements, then the seed — and forces every adapter to decide the dialect-specific
+  tokens through abstract members (RenderType, RenderDefault, RenderCheck, RenderCollation, RenderBoolLiteral,
+  RenderSeedConflict, RenderInlineIndexLines, RenderPostTableStatements, RenderForeignKey,
+  RenderTimestampLiteral). A new adapter cannot compile until it has answered each one.
+invariants:
+  - RenderCreateTable emits CREATE TABLE IF NOT EXISTS {Name} with the body assembled in the fixed order columns, inline index lines, foreign keys, table checks.
+  - Every dialect-specific token is an abstract member the adapter must implement, so a new dialect cannot compile with a token left undecided.
+  - The base provides reusable helpers (ForeignKeyConstraint, RenderTableCheck, RenderNull, Quote, FormatUtcTimestamp) that adapters share instead of re-deriving.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisSqlDialectBase.cs:10 — the abstract token members every adapter must decide"
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisSqlDialectBase.cs:51 — RenderCreateTable assembles the body in fixed order"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:53 — RendersCreateTableHeaderAndClosing"
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:89 — the shared ForeignKeyConstraint helper is reused"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/ddl.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  RenderCreateTable, RenderColumn, RenderSeed, RenderValue, RenderTableCheck and RenderNull are virtual, so a
+  dialect can override a specific step while keeping the shared skeleton.

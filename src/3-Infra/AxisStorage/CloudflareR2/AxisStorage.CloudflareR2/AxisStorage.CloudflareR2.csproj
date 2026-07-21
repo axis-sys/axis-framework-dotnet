@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisStorage.CloudflareR2.UnitTests" />
+    <InternalsVisibleTo Include="AxisStorage.CloudflareR2.IntegrationTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\0-Foundations\AxisDependencyInjections\AxisDependencyInjections.Abstractions\AxisDependencyInjections.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\..\AxisStorage\AxisStorage.csproj" />
+  </ItemGroup>
+</Project>

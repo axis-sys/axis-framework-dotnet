@@ -1,0 +1,45 @@
+id: httpresponse-registration-reads-config-key
+title: AddAxisResultHttpResponse applies the type base URI from configuration and returns services unchanged
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  AddAxisResultHttpResponse is the composition-root hook that wires the ProblemDetails type base URI from
+  configuration. It reads the single key AxisResult:Http:ProblemTypeBaseUri and forwards it to
+  ConfigureProblemTypeBaseUri; because that method ignores null/blank, the call is a no-op when the key is
+  absent or empty (the framework default is kept). It registers no services and returns the same
+  IServiceCollection for chaining — the package needs no runtime services, only the one-time static override.
+invariants:
+  - AddAxisResultHttpResponse reads configuration["AxisResult:Http:ProblemTypeBaseUri"] and passes it to AxisProblemDetailsConfiguration.ConfigureProblemTypeBaseUri.
+  - When the config key is absent or blank the call is a no-op (ConfigureProblemTypeBaseUri ignores null/whitespace) and the default base URI is retained.
+  - AddAxisResultHttpResponse registers no services into the container; it only applies the static configuration override.
+  - AddAxisResultHttpResponse returns the same IServiceCollection it received, so registration can be chained.
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/DependencyInjection.cs:18 — AddAxisResultHttpResponse(this IServiceCollection, IConfiguration)"
+    - "src/4-Edge/AxisResult.HttpResponse/DependencyInjection.cs:21 — ConfigureProblemTypeBaseUri(configuration[\"AxisResult:Http:ProblemTypeBaseUri\"])"
+    - "src/4-Edge/AxisResult.HttpResponse/DependencyInjection.cs:23 — return services (unchanged, no registrations)"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResultHttpExtensionsTests.cs:184 — ConfigureProblemTypeBaseUri_ignores_null_or_blank_and_keeps_default (the no-op path the DI helper relies on)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The class name is AxisResultHttpResponseDependencyInjection but the public method is AddAxisResultHttpResponse.
+  Calling it is optional: without it the type URIs simply use the axis.dev default. The override it applies is the
+  static state described in httpresponse-problem-type-base-uri-config.

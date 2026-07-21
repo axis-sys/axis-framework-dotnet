@@ -1,0 +1,41 @@
+id: architecture-saga-payloads
+title: Saga payloads and protocol DTOs live under v1/Sagas/{SagaName} as primitive accumulator records
+tier: convention
+concern: architecture
+layer: contracts
+severity: should
+status: canonical
+description: >
+  A saga's payload is a serialized contract, so it lives in the driving contracts under
+  {BC}/{Aggregate}/v1/Sagas/{SagaName}/ together with the records and events that make up the saga
+  protocol. The payload is a sealed record of primitives that starts with the required inputs and
+  accumulates stage outputs (resolved ids, outcomes, counters) as init properties filled by successive
+  stages via with-expressions.
+invariants:
+  - The payload is public sealed record {SagaName}Payload with required init properties for stage-one inputs and optional or defaulted init properties for values produced by later stages.
+  - Every payload member is a primitive, a contract DTO or a list thereof; ids are strings, because the payload round-trips through the saga store as JSON.
+  - The initiating handler builds the initial payload through a dedicated static {SagaName}PayloadFactory before calling StartAsync — never assembled inline at the start site.
+  - Saga-scoped result and protocol records live in the same Sagas/{SagaName} folder as the payload.
+  - Completion and progress events of the saga live in the same folder and follow the event-record rule.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The payload lives in the driving contracts (architecture-contracts-location) inside the versioned tree
+  (architecture-contracts-versioned-layout), and its accumulator shape is what the stage handlers evolve
+  with `with` expressions (architecture-saga-stage-handlers). Saga-lifecycle events co-located here follow
+  architecture-bus-events. A payload may reference a use-case DTO from a sibling folder — reuse inside the
+  same contracts project is fine.

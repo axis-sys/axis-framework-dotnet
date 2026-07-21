@@ -1,0 +1,78 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="Core/Scaffolds.ECommerce.SharedKernel/Scaffolds.ECommerce.SharedKernel.csproj" />
+    <Project Path="Core/Scaffolds.ECommerce.Domain/Scaffolds.ECommerce.Domain.csproj" />
+    <Project Path="Core/Scaffolds.ECommerce.Application/Scaffolds.ECommerce.Application.csproj" />
+  </Folder>
+  <Folder Name="/Contracts/">
+    <Project Path="Contracts/Scaffolds.ECommerce.Contracts.Driving/Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <Project Path="Contracts/Scaffolds.ECommerce.Contracts.Driven/Scaffolds.ECommerce.Contracts.Driven.csproj" />
+  </Folder>
+  <Folder Name="/Adapters/" />
+  <Folder Name="/Host/">
+    <Project Path="Host/Scaffolds.ECommerce.Host/Scaffolds.ECommerce.Host.csproj" />
+  </Folder>
+  <Folder Name="/solution items/">
+    <File Path="../../Directory.Packages.props" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Scaffolds.ECommerce.UnitTests/Scaffolds.ECommerce.UnitTests.csproj" />
+    <Project Path="Tests/Scaffolds.ECommerce.E2ETests/Scaffolds.ECommerce.E2ETests.csproj" />
+    <Project Path="Tests/Scaffolds.ECommerce.ArchitectureTests/Scaffolds.ECommerce.ArchitectureTests.csproj" />
+    <Project Path="Tests/Scaffolds.ECommerce.IntegrationTests/Scaffolds.ECommerce.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/Adapters/Driven/">
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driven.AuthProviders/Scaffolds.ECommerce.Adapters.Driven.AuthProviders.csproj" />
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driven.InMemory/Scaffolds.ECommerce.Adapters.Driven.InMemory.csproj" />
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driven.MySql/Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driven.Postgres/Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Scaffolds.ECommerce.Adapters.Driven.Repository.csproj" />
+  </Folder>
+  <Folder Name="/Adapters/Driving/">
+    <Project Path="Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+  </Folder>
+  <Folder Name="/_AxisFramework/">
+    <Project Path="../0-Foundations/Axis.Testing/Axis.Testing.XUnit/Axis.Testing.XUnit.csproj" />
+    <Project Path="../0-Foundations/Axis.Testing/Axis.Testing/Axis.Testing.csproj" />
+    <Project Path="../0-Foundations/AxisDependencyInjections/AxisDependencyInjections.Abstractions/AxisDependencyInjections.Abstractions.csproj" />
+    <Project Path="../0-Foundations/AxisDependencyInjections/AxisDependencyInjections/AxisDependencyInjections.csproj" />
+    <Project Path="../0-Foundations/AxisMediator.Contracts.Analyzers/AxisMediator.Contracts.Analyzers.csproj" />
+    <Project Path="../0-Foundations/AxisMediator.Contracts/AxisMediator.Contracts.csproj" />
+    <Project Path="../0-Foundations/AxisResult/AxisResult.Analyzers/AxisResult.Analyzers.csproj" />
+    <Project Path="../0-Foundations/AxisResult/AxisResult/AxisResult.csproj" />
+    <Project Path="../0-Foundations/AxisTypes/AxisTypes.Analyzers/AxisTypes.Analyzers.csproj" />
+    <Project Path="../0-Foundations/AxisTypes/AxisTypes/AxisTypes.csproj" />
+    <Project Path="../1-Observability/AxisLogger/AxisLogger/AxisLogger.csproj" />
+    <Project Path="../1-Observability/AxisTelemetry/AxisTelemetry/AxisTelemetry.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisBus/AxisBus/AxisBus.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/AxisMemoryBus.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBus.Repository.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql/AxisBus.MySql.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/AxisBus.Postgres.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisSaga/AxisSaga/AxisSaga.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/AxisSaga.MySql.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/AxisSaga.Postgres.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisValidator/AxisValidator/AxisValidator.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidator.FluentValidation.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil/AxisValidator.Brazil.csproj" />
+    <Project Path="../2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa/AxisValidator.Usa.csproj" />
+    <Project Path="../3-Infra/AxisCache/AxisCache/AxisCache.csproj" />
+    <Project Path="../3-Infra/AxisCache/MemoryCache/AxisMemoryCache/AxisMemoryCache.csproj" />
+    <Project Path="../3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCache.Repository.csproj" />
+    <Project Path="../3-Infra/AxisCache/Repository/MySql/AxisCache.MySql/AxisCache.MySql.csproj" />
+    <Project Path="../3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres/AxisCache.Postgres.csproj" />
+    <Project Path="../3-Infra/AxisEmail/AxisEmail/AxisEmail.csproj" />
+    <Project Path="../3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit/AxisEmail.MimeKit.csproj" />
+    <Project Path="../3-Infra/AxisRepository/AxisRepository/AxisRepository.csproj" />
+    <Project Path="../3-Infra/AxisRepository/MySql/AxisRepository.MySql/AxisRepository.MySql.csproj" />
+    <Project Path="../3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/AxisRepository.Postgres.csproj" />
+    <Project Path="../3-Infra/AxisStorage/AxisStorage/AxisStorage.csproj" />
+    <Project Path="../3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AxisStorage.AzureBlob.csproj" />
+    <Project Path="../3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/AxisStorage.CloudflareR2.csproj" />
+    <Project Path="../3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/AxisStorage.FileSystem.csproj" />
+    <Project Path="../4-Edge/AxisResult.HttpResponse/AxisResult.HttpResponse.csproj" />
+    <Project Path="../Conventions/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj" />
+  </Folder>
+</Solution>

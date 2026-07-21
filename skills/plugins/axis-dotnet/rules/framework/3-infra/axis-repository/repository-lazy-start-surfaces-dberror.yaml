@@ -1,0 +1,45 @@
+id: repository-lazy-start-surfaces-dberror
+title: A failed lazy connection start surfaces as AxisDbException so the base maps it to a clean error
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  NewCommandAsync opens the connection and transaction lazily, but its Task<TCommand> signature cannot carry
+  an AxisResult. When the lazy StartAsync fails, the unit of work throws AxisDbException (a DbException
+  subclass carrying the start error code) instead of building a command on a null connection. Because it is a
+  DbException, the repository base catches it through the same provider-exception machinery and returns a
+  clean typed AxisError, rather than letting an unmapped null-connection error escape as a fatal throw.
+invariants:
+  - AxisDbException derives from DbException so the repository base's DbException handlers map it like any provider failure.
+  - When the lazy StartAsync inside NewCommandAsync fails, the unit of work throws AxisDbException carrying the start error code rather than returning a command over a null connection.
+  - The resulting failure lands on the AxisResult rail (a mapped execution error), not as an escaping exception.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisDbException.cs:11 — sealed AxisDbException(string message) : DbException(message)"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresUnitOfWork.cs:31 — throw new AxisDbException(start.Errors[0].Code) on a failed lazy start"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlUnitOfWork.cs:31 — the same AxisDbException path for MySQL"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresRepositoryBaseTests.cs:138 — an unreachable database is mapped to POSTGRES_EXECUTION_ERROR, not thrown"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlRepositoryBaseTests.cs:154 — MySQL maps the unreachable database to MYSQL_EXECUTION_ERROR"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/repository-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the one place a signature cannot carry AxisResult, so the code re-shapes the failure into the type
+  the boundary already handles. The mapped code is the generic execution error, because from the base's view
+  the AxisDbException is an unclassified DbException (not transient, duplicate or schema-missing).

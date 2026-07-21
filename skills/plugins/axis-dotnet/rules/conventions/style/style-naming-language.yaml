@@ -1,0 +1,40 @@
+id: style-naming-language
+title: Technical verbs stay English; domain terms follow the solution language; verb-first use cases; file name equals type name
+tier: convention
+concern: style
+layer: any
+severity: must
+status: canonical
+description: >
+  Naming follows a small, uniform grammar so a slice is predictable from its use-case name alone. Technical
+  and CRUD vocabulary is always English, while domain and business terms follow whichever human language the
+  solution declares in its README; the two are never mixed within one identifier. Consistency of language
+  and grammar — not a specific human language — is what this rule fixes.
+invariants:
+  - Technical and CRUD verbs are always English (Create/Update/Get/List/Search/Import/Cancel/Grant/Confirm/Deactivate and similar) whatever the domain language of their noun.
+  - The solution's domain language is chosen once and recorded in the README; every domain term across identifiers, comments, error codes and seed values then uses that one language consistently.
+  - Use-case names are verb-first imperative phrases and every artifact derives from them ({UseCase}Command/Query/Response/Handler/Validator).
+  - All I/O-returning methods end in the Async suffix, including private helpers inside handlers.
+  - Ports follow I{Entities}ReaderPort / I{Entities}WritePort; facades I{Entities}Facade (the plural of the aggregate entity; process-style facades keep the process name); events {Thing}{PastTenseVerb}Event; sagas {Verb}{Noun}Saga; stage handlers {Stage}Handler.
+  - Error codes are UPPER_SNAKE_CASE and bus topics are lower snake_case; both are stable contracts.
+  - The file name equals the single top-level type it declares, and namespaces mirror folders exactly with file-scoped namespace declarations.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This rule fixes only language choice and naming grammar; the comment policy is governed separately.
+  Choosing English as the domain language is a valid solution decision but not a framework mandate — the
+  mandate is that technical verbs stay English and that the chosen domain language is applied uniformly.

@@ -1,0 +1,42 @@
+id: edge-openapi-doc-hub
+title: OpenAPI document transformers make the docs UI the project's documentation hub
+tier: convention
+concern: edge
+layer: driving
+severity: should
+status: canonical
+description: >
+  The OpenAPI document is shaped by document and operation transformers registered when OpenAPI is
+  added: an info transformer whose description is the project's contextual guide (domain vocabulary, API
+  shape, auth handshake, bounded contexts, saga model, tooling), a security document transformer
+  declaring the named security schemes, and an operation transformer applying per-operation security.
+  The rendered documentation UI, together with the raw OpenAPI endpoint, is exposed only in development.
+invariants:
+  - Adding OpenAPI registers an info document transformer, a security document transformer and a per-operation security transformer.
+  - The info description is the single narrative document of the API (the README stays lean and links to it), held as a constant string in the info transformer.
+  - Security scheme names are constants declared once on the security transformer; the documentation UI's preferred schemes reference the same constants.
+  - The raw OpenAPI endpoint and the documentation UI are mapped only when the host runs in development; production exposes neither.
+  - Provider-specific OAuth-flow quirks of the docs UI are worked around in the flow configuration, not in controllers.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-webapi-controllers
+    - axis-docs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The concrete documentation UI is an application choice and only ever a non-exclusive example — the
+  invariant is that a single rendered UI over the transformer-shaped OpenAPI document is the hub, not
+  that any specific tool renders it. The security scheme names shared here are the same ones the edge
+  auth schemes are registered under (see edge-auth-schemes); the narrative-doc-over-lean-README split
+  ties to the docs method (axis-docs).

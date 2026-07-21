@@ -1,0 +1,40 @@
+id: validator-satisfies
+title: Satisfies asserts a custom predicate over the property or over the whole instance
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Satisfies is the general single-field predicate helper with two overloads: one takes Func<TProperty?, bool>
+  over just the property value, the other takes Func<T, TProperty?, bool> with access to the whole instance
+  for a cross-field check. The property value is passed as-is (including null), so the predicate must handle
+  null itself; a false result fails with the error code.
+invariants:
+  - The property-only overload runs Func<TProperty?, bool> over the property value and fails with the code when it returns false.
+  - The instance overload runs Func<T, TProperty?, bool> with the root instance and the property value for cross-field checks.
+  - The value is passed to the predicate unfiltered, including null, so the predicate must guard null itself.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:189 — property-only and instance overloads via Must"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:702 — predicate over the property; predicate over root+property with null-passing"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the value reaches the predicate unfiltered, a common idiom is `x is null || ...` to let a null
+  value pass a presence-agnostic rule.

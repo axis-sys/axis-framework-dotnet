@@ -1,0 +1,45 @@
+id: persistence-dual-provider-concurrency-traps
+title: Write concurrency code that is safe on every targeted provider — renew before read-then-act, seam the upserts, prove on each
+tier: convention
+concern: persistence
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  When an application targets more than one relational provider, the same repository SQL runs on engines
+  whose isolation and locking semantics differ (for example read-committed versus repeatable-read with gap
+  locks). Patterns that are safe on one engine silently break on another, so concurrent invariants must use
+  portable patterns and be proven against every targeted provider.
+invariants:
+  - A read-then-act under a row lock renews the transaction first (IUnitOfWork.RenewAsync) so a snapshot-pinning engine does not act on stale data that a read-committed engine would have refreshed.
+  - Row-level serialization uses a portable SELECT ... FOR UPDATE by key, never advisory locks or provider-specific lock syntax in shared code.
+  - An idempotent insert goes through the dialect seam (each provider's do-nothing-on-conflict form behind a dialect member), never a provider-specific upsert inlined in shared code.
+  - A cap is never gated by a COUNT inside a locking statement on a shared path; gate with a plain read and claim by primary key, because range locks under a repeatable-read engine deadlock otherwise.
+  - Timestamp columns are the UTC timestamp type and values are DateTimeOffset written on a UTC session; never write local times.
+  - Any concurrency-sensitive invariant gets a test against every targeted provider before it is considered done; a green run on one engine proves nothing about another.
+  - Row identity never relies on ORDER BY with ties; always add a deterministic tiebreaker column, because engines break ties differently.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - An application that targets a single relational provider is exempt from the dual-proof and dialect-seam invariants; the portability patterns still apply if it may add a provider later.
+derives_to:
+  skills:
+    - axis-repository-postgres
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is a conditional convention: dual-provider support is an application choice, not a framework
+  obligation. The transaction-renew primitive is the same RenewAsync declared on the single unit-of-work
+  contract (persistence-unit-of-work-contract); the retry of a transient deadlock lives inside the
+  framework's provider adapter, not in application or repository code. Proving parity across engines is the
+  discipline owned by persistence-dual-database-parity.

@@ -1,0 +1,45 @@
+id: saga-schema-declared-once-idempotent
+title: The AXIS_SAGA schema is declared once, rendered per dialect, and migrated idempotently
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The saga store schema (SAGA_INSTANCES, SAGA_STAGE_LOGS, SAGA_DEFINITIONS, SAGA_SETTINGS) is declared ONCE and
+  dialect-agnostically in AxisSagaSchema as AxisTable definitions; an injected IAxisSqlDialect (Postgres or
+  MySQL) renders the concrete DDL, so column names and structure have a single source of truth and the two
+  adapters differ only by the dialect they pass. Migrations are a single consolidated V1 and are applied
+  idempotently by the framework runner (applied versions are skipped), so the resumer worker can migrate on
+  startup and re-running it is a no-op. Table order matters: SAGA_INSTANCES first (SAGA_STAGE_LOGS FKs it).
+invariants:
+  - The AXIS_SAGA schema and its four tables are declared once in AxisSagaSchema and rendered per dialect via IAxisSqlDialect.
+  - Migration is a single consolidated V1 applied idempotently by the framework runner — an already-applied version is skipped, so re-running startup migration is a no-op.
+  - SAGA_INSTANCES is created before SAGA_STAGE_LOGS, which foreign-keys it (ON DELETE CASCADE).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Persistence/Scripts/AxisSagaSchema.cs:11 — schema + tables declared once; Migrations(dialect) renders V1"
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/Persistence/AxisSagaMigrations.cs:10 — Postgres renders the shared schema and the runner applies it"
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/Persistence/AxisSagaMySqlMigrations.cs:9 — MySQL renders the SAME schema with the MySQL dialect"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/AxisSagaMigrationsTests.cs:9 — migration is idempotent and creates all tables"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/postgres-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the hosted resumer worker runs the migration on startup, a fresh deployment self-migrates; a test
+  fixture that migrated first makes the worker's call a no-op.

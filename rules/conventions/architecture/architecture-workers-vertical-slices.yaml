@@ -1,0 +1,42 @@
+id: architecture-workers-vertical-slices
+title: Hosted background services live in a workers driving project as opt-in vertical slices
+tier: convention
+concern: architecture
+layer: driving
+severity: must
+status: canonical
+description: >
+  Background hosted services are a driving adapter of their own, organized in vertical slices mirroring
+  {BC}/{Aggregate}. Each slice ships three files — the worker, a settings record, and a DependencyInjection
+  with an opt-in Add{X}Worker(settings) extension — and the host chooses which workers to run. Workers are
+  thin timers: the reconciliation logic itself is an application service the worker resolves per pass.
+invariants:
+  - A worker slice lives under {BC}/{Aggregate}/ with {Name}Worker, {Name}WorkerSettings and a DependencyInjection.
+  - A worker is an internal sealed BackgroundService; registration is opt-in via a public Add{Name}Worker(this IServiceCollection, settings) that adds the settings singleton plus the hosted service.
+  - Settings are sealed records with an Enabled flag and a poll interval, bound by the host from configuration with a default.
+  - A disabled worker logs once and returns; each pass creates its own scope and resolves the application service — the worker owns no business logic.
+  - The loop catches per-pass exceptions (log and retry next poll) and treats cancellation as shutdown; no unhandled exception may kill the host.
+  - A pass that fails with only transient errors (for example schema-not-ready before migrations run) logs once and retries silently with backoff capped at the poll interval — never a warning per poll.
+  - The worker project references only the application plus hosting/DI/logging abstractions — never repositories or the web host.
+  - The saga resumer is not a worker here — it is hosted by the AxisSaga framework itself when its resumer setting is enabled.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The worker is only the schedule; the reconciliation logic is an application service with a RunOnceAsync
+  (architecture-services-and-policies), which takes an explicit CancellationToken because it runs outside
+  the mediator scope (architecture-ambient-context). Opt-in registration follows the composition discipline
+  of architecture-di-registration.

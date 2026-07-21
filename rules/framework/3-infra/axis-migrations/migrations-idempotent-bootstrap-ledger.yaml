@@ -1,0 +1,42 @@
+id: migrations-idempotent-bootstrap-ledger
+title: The runner bootstraps the schema and a MIGRATIONS ledger idempotently before applying
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  Before applying any version the runner bootstraps its target idempotently — CREATE SCHEMA IF NOT EXISTS for
+  the schema and CREATE TABLE IF NOT EXISTS for the {SCHEMA}.MIGRATIONS control table — so a first run creates
+  everything and later runs find it already there. The MIGRATIONS ledger is a single control table keyed by
+  VERSION VARCHAR(50) PRIMARY KEY with an APPLIED_AT timestamp defaulting to the server's now, and it is the
+  sole record of which versions have been applied.
+invariants:
+  - The runner creates the schema and the MIGRATIONS control table with IF NOT EXISTS before applying any version.
+  - MIGRATIONS is {SCHEMA}.MIGRATIONS with VERSION VARCHAR(50) PRIMARY KEY and APPLIED_AT defaulting to the server's now.
+  - The MIGRATIONS ledger is the single source of truth for which versions have been applied.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresMigrationRunner.cs:22 — CREATE SCHEMA/TABLE IF NOT EXISTS, VERSION VARCHAR(50) PK, APPLIED_AT DEFAULT NOW()"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlMigrationRunner.cs:51 — CREATE SCHEMA/TABLE IF NOT EXISTS, APPLIED_AT DEFAULT CURRENT_TIMESTAMP(6)"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlDdlBuilderIntegrationTests.cs:156 — bootstrap creates the schema and records VERSION in MIGRATIONS"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/migrations.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  On Postgres the bootstrap runs OUTSIDE the migration transaction; on MySQL it runs before the named lock is
+  taken. The ledger's per-version idempotency is migrations-versioned-idempotent-apply.

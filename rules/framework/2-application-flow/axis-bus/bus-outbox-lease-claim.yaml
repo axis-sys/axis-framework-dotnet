@@ -1,0 +1,48 @@
+id: bus-outbox-lease-claim
+title: Claim-by-lease gives at-least-once delivery with one runner per partition head
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  Each poll claims the HEAD of up to BatchSize due partitions (AVAILABLE_AT <= now, lease absent or expired) for
+  a unique per-pass runner token, stamping CLAIMED_BY / CLAIMED_UNTIL. On a successful delivery the head row is
+  DELETED (delete-after-dispatch); on a failed delivery the lease is RELEASED and the row kept in place. Every
+  delete/release re-checks CLAIMED_BY = @runner, so if another runner has reclaimed an expired lease the mutation
+  touches zero rows and is a silent no-op, not an error. There is no STATUS column and no retention window — the
+  presence of a row IS the pending state and delivery is its deletion. Concurrent dispatchers therefore process
+  each partition head exactly once per pass, and delivery is at-least-once (a crash after handling but before the
+  delete re-delivers).
+invariants:
+  - ClaimHeadsAsync claims the head of each due partition whose lease is absent or expired, stamping CLAIMED_BY and CLAIMED_UNTIL for a unique per-pass runner token.
+  - DeleteDispatchedAsync (success) and ReleaseAsync (failure) are each guarded by CLAIMED_BY = @runner; a lost lease makes the mutation a zero-row no-op, not a failure.
+  - A dispatched row is deleted, not marked or retained — there is no STATUS column and no retention window; a failed row keeps its place for re-claim on the next pass.
+  - Delivery is at-least-once and there is no lease-extension method — a handler is expected to finish within LeaseDuration.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Ports/IBusEventDispatchStore.cs:29 — delete on success / release on failure, each a no-op if the lease is no longer owned"
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/Adapters/PostgresBusDispatchStore.cs:26 — ClaimHeadsAsync: non-locking discover (DISTINCT ON) + per-PK claim UPDATE + read-back SELECT (mirrors MySqlBusDispatchStore; no RETURNING/SKIP LOCKED)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/ConcurrentClaimTests.cs:28 — two dispatchers race one batch; each partition head processed exactly once"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  The runner token is unique per poll pass (not per row), mirroring AxisSagaResumerWorker. At-least-once, not
+  exactly-once end-to-end: handlers must be idempotent. Only the partition head is ever claimed (FIFO per
+  ordering key), so a failing head halts its partition until it clears rather than advancing past it.

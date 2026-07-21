@@ -1,0 +1,42 @@
+id: saga-retry-on-transient-override
+title: RetryOnTransient overrides the transient-retry cap for a single stage
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: may
+status: canonical
+description: >
+  A stage may override the global transient-retry policy with RetryOnTransient(maxAttempts, baseDelay?).
+  maxAttempts is the total attempt count and must be >= 1 (1 disables retry); baseDelay defaults to the global
+  AxisSagaSettings value when null. Omitting the call inherits both global settings — the definition carries
+  nullable TransientRetryMaxAttempts / TransientRetryBaseDelay whose null means inherit. maxAttempts < 1 or a
+  negative delay throws ArgumentOutOfRangeException at configuration time.
+invariants:
+  - RetryOnTransient(maxAttempts, baseDelay?) sets the stage's TransientRetryMaxAttempts and TransientRetryBaseDelay overrides.
+  - maxAttempts must be >= 1; a value below 1 throws ArgumentOutOfRangeException, and a negative baseDelay throws ArgumentOutOfRangeException.
+  - Omitting RetryOnTransient (or passing baseDelay=null) leaves the override null, so the engine inherits the global AxisSagaSettings value.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaStageBuilder.cs:51 — RetryOnTransient validates and records the per-stage override"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/AxisSagaStageDefinition.cs:16 — nullable TransientRetryMaxAttempts / TransientRetryBaseDelay (null inherits)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:212 — records attempts+delay; omitting leaves null to inherit; below-one throws"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Only transient (AxisError.IsTransient) failures are retried; the engine's retry behaviour is in
+  saga-transient-retry-in-place. The global defaults live on AxisSagaSettings.

@@ -1,0 +1,47 @@
+id: httpresponse-problem-type-base-uri-config
+title: The ProblemDetails type base URI is a startup-configured static defaulting to axis.dev/problems/
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  The type member of every emitted ProblemDetails is ProblemTypeBaseUri + the kebab-cased error type. That base
+  URI lives on AxisProblemDetailsConfiguration, a static holder set once at startup with lock-free reads. Its
+  default is DefaultProblemTypeBaseUri ("https://axis.dev/problems/"). ConfigureProblemTypeBaseUri overrides it
+  but is defensive: a null-or-whitespace value is IGNORED (keeps the current value) and a missing trailing
+  slash is appended, so the concatenation with the kebab slug always yields a well-formed URI.
+invariants:
+  - AxisProblemDetailsConfiguration.ProblemTypeBaseUri defaults to DefaultProblemTypeBaseUri, the constant "https://axis.dev/problems/".
+  - ConfigureProblemTypeBaseUri ignores a null or whitespace-only argument and leaves ProblemTypeBaseUri unchanged.
+  - ConfigureProblemTypeBaseUri appends a trailing '/' when the supplied base URI does not already end with one.
+  - ProblemTypeBaseUri has a public getter and a private setter; it is mutated only through ConfigureProblemTypeBaseUri, intended to be called once at startup, and reads are lock-free.
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsConfiguration.cs:10 — DefaultProblemTypeBaseUri = \"https://axis.dev/problems/\""
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsConfiguration.cs:13 — ProblemTypeBaseUri get; private set = default"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsConfiguration.cs:20 — ConfigureProblemTypeBaseUri: ignore null/blank, append trailing slash"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsBuilder.cs:64 — Type = ProblemTypeBaseUri + ToKebabCase(maxType)"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResultHttpExtensionsTests.cs:189 — Failure_uses_configured_problem_type_base_uri_and_appends_trailing_slash"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResultHttpExtensionsTests.cs:184 — ConfigureProblemTypeBaseUri_ignores_null_or_blank_and_keeps_default"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The static holder is process-global mutable state, which is why the unit tests that override it restore the
+  default in a finally. Because reads are lock-free and writes are meant to happen once during startup, overriding
+  it per-request would race. Wiring the override from configuration is httpresponse-registration-reads-config-key.

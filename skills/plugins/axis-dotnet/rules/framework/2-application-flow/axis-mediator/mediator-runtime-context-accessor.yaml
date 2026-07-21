@@ -1,0 +1,44 @@
+id: mediator-runtime-context-accessor
+title: AxisMediatorContextAccessor stores the ambient context in static AsyncLocal fields
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  AxisMediatorContextAccessor is the runtime store for the ambient request context — OriginId, JourneyId,
+  AxisEntityId and the CancellationToken — each held in a static AsyncLocal field. Application middleware at
+  the request edge populates it; the mediator reads through it, delegating its OriginId, JourneyId,
+  AxisEntityId and CancellationToken properties to this accessor. Registered Singleton, it carries no
+  per-instance state; the AsyncLocal fields scope each value to the current async flow.
+invariants:
+  - AxisMediatorContextAccessor backs OriginId, JourneyId, AxisEntityId and CancellationToken with static AsyncLocal fields.
+  - The values are populated by application middleware at the request edge, not by the framework runtime.
+  - The IAxisMediator OriginId, JourneyId, AxisEntityId and CancellationToken read straight through this accessor rather than storing their own copies.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/MediatorContextAccessor.cs:8 — static AsyncLocal fields for OriginId, JourneyId, CancellationToken and AxisEntityId"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.cs:13 — mediator delegates its context properties to the context accessor"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:159 — OriginId, JourneyId, AxisEntityId and CancellationToken round-trip through the accessor"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorContextAndAccessorTests.cs:10 — the mediator exposes the context accessor values"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/mediator-and-accessors.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The file is named MediatorContextAccessor.cs but the class is AxisMediatorContextAccessor; the mediator is
+  a thin ambient facade over this accessor, which is why the values must be set at the edge before dispatch.

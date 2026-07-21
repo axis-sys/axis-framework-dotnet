@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisRepository.Postgres" />
+    <Using Include="AxisRepository.MySql" />
+    <Using Include="Moq" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.Repository" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.Postgres" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.MySql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.MySql" />
+    <PackageReference Include="Moq" />
+    <!-- Both provider adapters + the shared repository: the same journey test runs against each dialect. -->
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Repository\Scaffolds.ECommerce.Adapters.Driven.Repository.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Postgres\Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.MySql\Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <ProjectReference Include="..\..\..\1-Observability\AxisLogger\AxisLogger\AxisLogger.csproj" />
+    <ProjectReference Include="..\..\..\1-Observability\AxisTelemetry\AxisTelemetry\AxisTelemetry.csproj" />
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

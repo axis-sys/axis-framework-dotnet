@@ -1,0 +1,46 @@
+id: result-ensure-invariants
+title: Assert business invariants on the flowing value with Ensure
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Ensure checks an invariant on the current value and keeps that value on success, so the guard reads
+  as a step on the rail instead of a loose if with an early return. It comes in two forms: a predicate
+  plus an AxisError to raise when the predicate is false, or a delegated validation that returns an
+  AxisResult. It is for domain rules about the value, not for input validation of a command or query —
+  that belongs to the validator pipeline that runs before the handler.
+invariants:
+  - Ensure is defined only on AxisResult<TValue>; it requires a flowing value to check.
+  - The predicate form Ensure(predicate, error) returns the same result unchanged when the predicate is true and fails with the supplied AxisError when it is false.
+  - The delegated form Ensure(validation) runs a validation that returns AxisResult and, on validation failure, propagates that validation's errors as AxisResult<TValue>.
+  - On success Ensure preserves the upstream value rather than replacing it with a new one.
+  - Ensure short-circuits an already-failed upstream result: it passes through unchanged and the predicate or validation never runs.
+  - Async variants EnsureAsync exist for Task-returning predicates and delegated validations.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:92 — Ensure overloads: predicate+error and delegated AxisResult validation, plus their async forms"
+    - "docs/en-us/0-Foundations/AxisResult/ensure.md — Ensure usage and the when-not-to-use table pointing input validation to the validator pipeline"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/ensure.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The predicate overload fails with the caller-supplied AxisError while the delegated overload
+  propagates the errors of the inner AxisResult, so callers pick the form by whether the failure detail
+  comes from the guard site or from the delegated validation.

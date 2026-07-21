@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/1-Observability/AxisLogger/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <!-- Explicit (was already transitive via AxisMediator.Contracts) — AxisResultLoggingExtensions.cs
+         is fundamentally about combining AxisResult with IAxisLogger, so the dependency is direct here. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+  </ItemGroup>
+</Project>

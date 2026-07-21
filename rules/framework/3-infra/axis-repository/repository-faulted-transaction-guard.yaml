@@ -1,0 +1,44 @@
+id: repository-faulted-transaction-guard
+title: Once the unit of work is faulted every surface short-circuits before touching the connection
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  Some engines (Postgres, for example) abort the whole transaction on any error, so every later command would
+  fail and a commit would silently roll back. To surface that failure cleanly instead of cascading or losing
+  data, each core method checks uow.IsFaulted first and returns
+  AxisError.InternalServerError("{PREFIX}_TRANSACTION_FAULTED") before opening a command. The classification
+  paths that set the fault (duplicate, schema-missing, transient, generic) call uow.MarkFaulted(), which arms
+  this guard for the rest of the unit of work.
+invariants:
+  - Each core method returns AxisError.InternalServerError("{ErrorPrefix}_TRANSACTION_FAULTED") when uow.IsFaulted, before creating any command.
+  - The duplicate, schema-missing, transient and generic error paths each call uow.MarkFaulted().
+  - After any command error, all four surfaces short-circuit for the remainder of the unit of work.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:68 — if (uow.IsFaulted) return InternalServerError(_TRANSACTION_FAULTED) at the top of each core method"
+    - "src/3-Infra/AxisRepository/AxisRepository/IDbUnitOfWork.cs:22 — IsFaulted / MarkFaulted contract, documented for the whole-transaction-abort engines"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisRepositoryBaseTests.cs:62 — FaultedTransactionShortCircuitsEverySurface"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/repository-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SaveChangesAsync in the unit of work carries the same IsFaulted guard, so a commit on a faulted transaction
+  also fails fast rather than committing a partially-aborted transaction.

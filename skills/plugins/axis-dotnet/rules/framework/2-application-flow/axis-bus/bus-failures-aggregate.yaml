@@ -1,0 +1,42 @@
+id: bus-failures-aggregate
+title: Handler failures aggregate into one AxisResult via Combine
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The adapter awaits every handler and folds the results with AxisResult.Combine: the publish succeeds only
+  if every handler succeeded, and on failure the returned AxisResult carries the errors of exactly the
+  handlers that failed. A partial failure is not hidden — K failing handlers contribute K errors, while the
+  successful handlers still ran and still contribute nothing.
+invariants:
+  - The publish result is AxisResult.Combine over the handlers' results — success iff all succeeded.
+  - Only failed handlers contribute errors; a partial failure surfaces every failing handler's error in one AxisResult.
+  - A failing handler does not short-circuit the others; they all run before the results are combined.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:21 — return AxisResult.Combine(results)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:145 — two failing handlers produce two errors"
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:162 — one failure among successes yields exactly one error"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/publish.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  If a publisher wants to treat a partial fan-out failure as non-fatal, it recovers on the railway
+  (TapErrorAsync for telemetry then Recover(AxisResult.Ok())) rather than the adapter deciding for it.

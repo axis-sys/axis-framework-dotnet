@@ -1,0 +1,61 @@
+id: telemetry-azuremonitor-adapter
+title: AddAzureMonitorAxis pairs the OpenTelemetry adapter with the Azure Monitor distro in one call
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AxisTelemetry.AzureMonitor is the pairing package for Azure Monitor / Application Insights. Its single
+  extension AddAzureMonitorAxis(IServiceCollection, IConfiguration, Action<AzureMonitorAxisOptions>?)
+  composes AddOpenTelemetryAxis() (the OpenTelemetryAdapter singleton behind IAxisTelemetry + IAxisMetrics)
+  with the official distro Azure.Monitor.OpenTelemetry.AspNetCore via AddOpenTelemetry().UseAzureMonitor(...),
+  subscribing the "Axis.AxisMediator" ActivitySource and Meter so Axis spans and metrics flow to Application
+  Insights alongside the distro's ASP.NET Core / HttpClient instrumentation and ILogger export. Cost is
+  governed by AzureMonitorAxisOptions: trace sampling (SamplingRatio / TracesPerSecond) and the log-export
+  filters, which trim only what is ingested (billed), never local providers.
+invariants:
+  - AddAzureMonitorAxis applies the optional configure delegate to a new AzureMonitorAxisOptions and registers that same instance as a singleton.
+  - The connection string resolves with precedence AzureMonitorAxisOptions.ConnectionString, then the APPLICATIONINSIGHTS_CONNECTION_STRING configuration key, then ConnectionStrings:ApplicationInsights.
+  - With a connection string, it calls AddOpenTelemetryAxis() and then AddOpenTelemetry().UseAzureMonitor(...), so both ports resolve to the one OpenTelemetryAdapter and the distro exports what it emits.
+  - It subscribes OpenTelemetryAdapter.SourceName ("Axis.AxisMediator") on both the tracing (AddSource) and metrics (AddMeter) pipelines.
+  - It forwards options.SamplingRatio, options.TracesPerSecond and options.EnableLiveMetrics to the distro; TracesPerSecond null restores deterministic ratio-based sampling (since distro 1.5 the default is a 5-traces/s rate limiter that overrides SamplingRatio).
+  - ServiceName (with optional ServiceVersion) and ResourceAttributes are applied as OpenTelemetry resource attributes; ServiceVersion is ignored when ServiceName is not set.
+  - Log-export filters target only OpenTelemetryLoggerProvider — EnableLogExport false silences the whole export pipeline (LogLevel.None), otherwise MinimumLogLevel is the global floor and CategoryLogLevels are per-category overrides; local providers keep their own verbosity.
+  - IncludeScopes and IncludeFormattedMessage are applied to OpenTelemetryLoggerOptions (more context per exported entry, more bytes ingested).
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/DependencyInjection.cs:24 — AddAzureMonitorAxis signature and singleton options registration"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/DependencyInjection.cs:43 — composes AddOpenTelemetryAxis + UseAzureMonitor and subscribes the Axis source/meter"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/DependencyInjection.cs:69 — connection-string precedence options -> APPLICATIONINSIGHTS_CONNECTION_STRING -> ConnectionStrings:ApplicationInsights"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/DependencyInjection.cs:76 — log-export filters apply only to OpenTelemetryLoggerProvider"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/AzureMonitorAxisOptions.cs:5 — the 12-property options surface with cost-control defaults"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/DependencyInjectionTests.cs:121 — both ports bind to the same OpenTelemetryAdapter instance"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/DependencyInjectionTests.cs:139 — SamplingRatio applied with TracesPerSecond null so the ratio wins over the rate limiter"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/DependencyInjectionTests.cs:219 — EnableLogExport false filters everything from the export pipeline"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/AzureMonitorAxisOptionsTests.cs:8 — defaults export everything with Live Metrics on"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/AzureMonitorSpanTests.cs:32 — StartSpan emits from the Axis ActivitySource when the package is registered"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/azure-monitor.md"
+ledger:
+  reviewed_against: cc41921
+  reviewed_on: 2026-07-16
+notes: >
+  Application code keeps seeing only IAxisTelemetry/IAxisMetrics, so swapping Azure Monitor for an OTLP
+  collector (or turning telemetry off) is a one-line DI change. The distro attaches trace/log exporters when
+  the host starts its IHostedServices — a bare BuildServiceProvider() that never starts them exports metrics
+  only. Without a connection string the call degrades gracefully (see
+  telemetry-azuremonitor-disabled-fallback).

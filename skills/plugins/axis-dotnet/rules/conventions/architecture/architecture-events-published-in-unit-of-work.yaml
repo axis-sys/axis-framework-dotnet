@@ -1,0 +1,47 @@
+id: architecture-events-published-in-unit-of-work
+title: Publish an integration event from within the unit of work that persists its triggering state change
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  A domain or integration event always accompanies a state change, so publish it — enqueue it on IAxisBus —
+  inside the same handler or saga stage that persists that change, before the single SaveChangesAsync, so the
+  atomic outbox drains it into the very same transaction. There is no "publish-only" step: a use case, saga
+  stage or service that only emits an event with no persisted state change is the anti-pattern, because in the
+  atomic-outbox model an event enqueued outside a committing unit of work is never drained and is silently lost.
+  An event that crosses a bounded-context boundary is a shared-kernel type, published by the producing bounded
+  context and consumed off the bus by the others.
+invariants:
+  - An event is enqueued (IAxisBus.PublishAsync) inside the handler or saga stage that persists its triggering state change, before that unit of work's SaveChangesAsync.
+  - There is no publish-only use case or saga stage — an event is never emitted without an accompanying, persisted state change committed in the same unit of work.
+  - A cross-bounded-context event type lives in the shared kernel, not in one bounded context's contracts.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutHandler.cs:23 — PublishAsync enqueued in the same ROP chain as, and strictly before, the SaveChangesAsync at :26"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutHandler.cs:19 — the triggering state change (ReserveStockAsync) and the event publish are two steps of the same handler chain, committed together by the one SaveChangesAsync"
+  incorrect: []
+exceptions:
+  - The in-process AxisMemoryBus delivers synchronously and has no unit of work; this discipline governs the durable atomic outbox, where a publish outside a committing unit of work is lost rather than delivered inline.
+derives_to:
+  skills:
+    - axis-bus
+    - axis-use-case-cqrs
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The application-layer counterpart of the framework rule bus-outbox-enqueue-in-uow-transaction: that rule
+  fixes the mechanism (enqueue then drain in the unit of work's transaction), this convention fixes the
+  discipline (never publish without a persisted state change in a committing unit of work). A dedicated
+  publish-only saga stage is the concrete smell this rule forbids — fold the publish into the stage that
+  persists the change. Cross-BC event placement in the shared kernel keeps producer and consumer bounded
+  contexts decoupled through the bus (architecture-bus-events, architecture-cross-bc-communication).

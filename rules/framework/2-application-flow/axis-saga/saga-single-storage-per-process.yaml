@@ -1,0 +1,44 @@
+id: saga-single-storage-per-process
+title: The keyless storage adapter refuses a second registration — one saga storage per process
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  AxisSaga supports a single storage per process by design — all sagas across all BCs share the same AXIS_SAGA
+  schema. The keyless AddAxisSagaPostgres / AddAxisSagaMySql throws InvalidOperationException if an
+  AxisSagaSettings (i.e. another AxisSaga storage adapter) is already registered. Call it exactly once at
+  startup. To run several independent stores in one process (one per subdomain, each with its own database), use
+  the keyed overload instead.
+invariants:
+  - The keyless AddAxisSagaPostgres/AddAxisSagaMySql throws InvalidOperationException when an AxisSaga storage adapter is already registered (detected by an existing AxisSagaSettings registration).
+  - Exactly one keyless saga storage may be registered per process; all sagas share the single AXIS_SAGA schema.
+  - Running several stores in one process requires the keyed overload, not a second keyless call.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/DependencyInjection.cs:15 — AddAxisSagaPostgres throws on a second keyless registration"
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/DependencyInjection.cs:15 — AddAxisSagaMySql throws on a second keyless registration"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/AxisSagaPostgresDependencyInjectionTests.cs:9 — double registration throws"
+  incorrect: []
+exceptions:
+  - The keyed overload (AddAxisSagaPostgres(serviceKey, settings)) may be called once per key and coexists with the keyless overload and with other keys.
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/postgres-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The guard checks for an existing AxisSagaSettings service, so it catches both a duplicate call and mixing two
+  different storage adapters (Postgres + MySQL) in one process.

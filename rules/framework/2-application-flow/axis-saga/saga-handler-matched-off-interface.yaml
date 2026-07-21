@@ -1,0 +1,43 @@
+id: saga-handler-matched-off-interface
+title: The invoker matches a handler by SagaName + StageName read off the interface type
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A handler is selected by content, not by type: for the runtime payload type the invoker resolves every
+  registered IAxisSagaStageHandler<TPayload> and picks the one whose SagaName and StageName match the stage
+  being run. Those two properties are read off the INTERFACE type via the type's interface map, so a handler
+  that implements the contract explicitly (string IAxisSagaStageHandler<T>.SagaName => ...) still matches —
+  reading the concrete type would see only public members and miss explicit implementations. Two sagas can
+  share a payload type; the (SagaName, StageName) pair disambiguates.
+invariants:
+  - The invoker resolves all IAxisSagaStageHandler<TPayload> and matches by SagaName == sagaName && StageName == stageName.
+  - SagaName/StageName are read off the interface type (not the concrete class) so explicit interface implementations match.
+  - No matching handler yields AxisError.NotFound("SAGA_STAGE_HANDLER_NOT_FOUND_...") rather than an exception.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaStageHandlerInvoker.cs:82 — GetSagaName/GetStageName read off handlerInterface, not the concrete type"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaStageHandlerInvoker.cs:30 — MatchesHandler by (SagaName, StageName)"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md:19 — matched by content; explicit interface implementations still match"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because matching is by name, a StageName typo binds the wrong (or no) handler; the configurator's unique,
+  build-validated stage names keep the two sides in sync.

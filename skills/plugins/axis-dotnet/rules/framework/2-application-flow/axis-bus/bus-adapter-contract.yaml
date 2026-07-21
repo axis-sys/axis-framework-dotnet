@@ -1,0 +1,44 @@
+id: bus-adapter-contract
+title: A custom IAxisBus adapter must honour the port contract
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  Swapping the transport (in-process, outbox, Kafka, RabbitMQ, a test double) is implementing one method for
+  IAxisBus and registering the class. To keep application code identical across that swap, an adapter must
+  return Task<AxisResult> and never throw cooperatively, treat params topics as transport hints, aggregate
+  fan-out failures with AxisResult.Combine, honour the ambient cancellation token, and log via AxisLogger.
+invariants:
+  - The adapter returns Task<AxisResult> and never throws for an expected outcome (callers chain on the railway).
+  - The adapter interprets params string[] topics as transport hints, giving them meaning the in-box adapter leaves unused.
+  - When it fans out, the adapter aggregates handler/broker failures with AxisResult.Combine, matching the in-box adapter.
+  - The adapter honours cancellation from IAxisMediatorAccessor.AxisMediator?.CancellationToken rather than taking a token parameter.
+  - Swapping one AddAxis*Bus registration for another changes no publisher or handler code.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:9 — the one-method port every adapter implements"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md:44 — the contract a custom adapter must honour"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/RepositoryBusAdapter.cs:16 — the durable outbox adapter implementing the same one method"
+  incorrect: []
+exceptions:
+  - Aggregating with Combine and honouring ambient cancellation are recommended, not enforced by the compiler; an adapter with a single delivery target may have nothing to combine.
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The common swappable-infra-port pattern (IAxis* + AxisResult + AddAxis* swaps the adapter via DI) is
+  canonical in the axis-dotnet-architect hub; this rule states its bus-specific obligations.

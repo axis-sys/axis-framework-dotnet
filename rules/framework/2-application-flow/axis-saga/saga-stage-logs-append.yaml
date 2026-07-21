@@ -1,0 +1,43 @@
+id: saga-stage-logs-append
+title: The engine appends one stage-log row per stage attempt, and log write failures are swallowed
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The engine writes a forensic stage-attempt log through ISagaStageLogStore: WriteStarted when it picks a stage
+  up, then MarkCompleted on success or MarkFailed (with the first/joined error codes) on failure. This is the
+  Started -> Completed | Failed trail the resumer reads to skip stages that already succeeded after a crash.
+  Stage-log write failures are logged and swallowed by the implementation — a missing log line is recoverable
+  (the next run just re-executes the stage), so it is never propagated as a saga failure.
+invariants:
+  - The engine writes exactly one Started row per stage attempt, then one Completed (success) or Failed (failure, with error codes) row.
+  - The stage log is what saga-skip-completed-stage-on-resume consults (IsCompletedAsync) to avoid re-running a completed stage.
+  - Stage-log write failures are swallowed by the store, never surfaced as a saga failure, because a missing log is recoverable.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:182 — ExecuteStageAsync writes Started then MarkCompleted/MarkFailed"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaStageLogStore.cs:3 — write failures logged and swallowed; a missing log line is recoverable"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md:96 — the saga_stage_logs trail across a happy path and a compensation"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The transient-retry loop deliberately wraps the log so a retried stage still shows one Started/Completed|Failed
+  around the final outcome (saga-transient-retry-in-place).

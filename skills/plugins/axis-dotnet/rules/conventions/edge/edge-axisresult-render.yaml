@@ -1,0 +1,50 @@
+id: edge-axisresult-render
+title: Render AxisResult at the HTTP edge with the response extensions; never branch on the result in a controller
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  The AxisResult railway terminates at the HTTP edge through the framework HTTP-response extensions:
+  every action ends by handing its use case's result Task to a single render call that injects the request
+  trace identifier automatically and, optionally, takes a non-200 success status. The extension maps AxisErrorType to an
+  HTTP status and emits RFC 7807 ProblemDetails carrying the traceId; controllers contain no if/else or
+  Match on the result. Outside the MVC action pipeline (middleware, authorization filters), where an
+  IActionResult is meaningless, the same severity/status/ProblemDetails logic is reused through the
+  public AxisProblemDetailsBuilder instead of being reimplemented ad hoc.
+invariants:
+  - Every action's terminal call is the AxisResult HTTP-render extension (SendHttpResponseAsync or SendHttpResponse), always passing the request trace identifier.
+  - No controller inspects IsSuccess/IsFailure, calls Match, or hand-builds Ok/NotFound/Problem from a result.
+  - Non-200 success codes are declared by passing the HTTP status as a second argument (Accepted, Created, NoContent) and are mirrored in ProducesResponseType.
+  - Failures surface as application/problem+json (RFC 7807); domain error codes come from the {Aggregate}Errors classes in the core, never minted at the edge.
+  - Edge-computed values enter the railway via .Rop() before rendering.
+  - Middleware and authorization filters that reject a request before an AxisResult exists still render through the public AxisProblemDetailsBuilder, sourcing HTTP-edge-only codes from a small edge-owned {Concern}Errors const class rather than inline string literals.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:27 — every action terminates in HttpContext.SendAsync (the render extension injects the trace id); no branching on the result"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:39 — non-200 success via a status arg mirrored in ProducesResponseType (Status201Created)"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/CustomersErrors.cs:3 — failures carry domain codes from a core {Aggregate}Errors const, not minted at the edge"
+  incorrect: []
+exceptions:
+  - Middleware and filters run before the MVC pipeline and cannot return an IActionResult; they call AxisProblemDetailsBuilder.Build directly and write the status and body to the response, producing an identically shaped ProblemDetails (Type, Title, Status, Detail, errors, traceId).
+derives_to:
+  skills:
+    - axis-result
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The AxisErrorType-to-status map lives in the framework HTTP-response package, so the edge owns zero
+  mapping code; the render extension is a thin wrapper over the same AxisProblemDetailsBuilder that
+  middleware and filters call, so controllers and out-of-band checks cannot drift apart on status or
+  shape. The "never minted at the edge" invariant governs domain codes sourced from the core; HTTP-edge
+  concerns with no core equivalent are the only codes an edge {Concern}Errors class may own. Cross-links:
+  result-no-throw, result-try-boundary.

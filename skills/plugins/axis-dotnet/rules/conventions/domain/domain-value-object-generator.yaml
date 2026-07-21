@@ -1,0 +1,44 @@
+id: domain-value-object-generator
+title: Build value objects with [ValueObject] on a readonly partial record struct whose private ctor is the only throw site
+tier: convention
+concern: domain
+layer: kernel
+severity: must
+status: canonical
+description: >
+  Every value object in the kernel is a "[ValueObject] public readonly partial record struct" with a private
+  constructor that validates and throws ArgumentException, and a "private string Value { get; }". The
+  AxisTypes source generator emits the public surface — TryParse (which throws on null input),
+  implicit/explicit conversions (including lifted nullable conversions) and ToString. This constructor is the
+  only place in the core where throwing is allowed; everything else returns AxisResult.
+invariants:
+  - A value object is exactly "[ValueObject] public readonly partial record struct {Name}" with a "private {Name}(string? value)" constructor and a "private string Value { get; }".
+  - The private constructor throws ArgumentException on null/whitespace and on any format violation; no other domain or contract code throws.
+  - An id-style value object validates UUID v7 (rejecting a value whose parsed Guid version is not 7) and exposes "public static {Name} New => new(Guid.CreateVersion7().ToString())".
+  - Never pass a possibly-null value to a value-object conversion or TryParse — the generated TryParse throws on null; map an optional with "x is null ? null : (VO?)x".
+  - A known-good constant is turned into a value object through the generated cast rather than by re-parsing it.
+  - Value objects never reach driving contracts — DTOs stay string-typed and are parsed at the application boundary via {VO}.TryParse or the validator's RequiredTryParse.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A plain sealed record that groups values without a parsing rule is NOT a [ValueObject] type and takes no attribute.
+  - A closed discriminated union in a contract project (abstract record plus private ctor plus nested sealed records) is NOT a [ValueObject] type — it models a choice, not a parsed scalar.
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The no-throw rule everywhere else is the framework rule result-no-throw; this private constructor is its
+  single sanctioned exception inside the core. The AxisTypes source generator is referenced with
+  PrivateAssets set to all in the kernel project only, so every other project consumes the generated surface
+  through the compiled assembly. Because the generated TryParse throws on null, guarding optionals at the
+  application boundary keeps the no-throw discipline intact along the rest of the railway.

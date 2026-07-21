@@ -1,0 +1,49 @@
+id: architecture-hexagonal-topology
+title: Split the hexagon into role-grouped projects, vertical-sliced by bounded context inside
+tier: convention
+concern: architecture
+layer: any
+severity: must
+status: canonical
+description: >
+  The solution is organized by hexagonal role at the project level and by bounded context inside each
+  project. The kernel, domain and application, the port contracts (driving and driven) and the adapters
+  (driven and driving) are separate projects; every project is internally foldered by bounded context then
+  aggregate then feature. Because a namespace mirrors its folder path, a bounded-context folder can later be
+  promoted to its own project (a microservice) without renaming anything.
+invariants:
+  - Hexagonal roles are separated into projects — a kernel, a domain, an application, the driving and driven port contracts, the driven and driving adapters, and the test projects — not folders inside a single project.
+  - The solution groups the projects into five sibling folders at the same level — Core/ (kernel, domain, application), Contracts/ (the driving and driven contract projects), Adapters/ (the facade driving adapter and the driven adapters), Host/ (the composition root) and Tests/ (the four test projects); Contracts/ is a sibling of Core/, never nested inside it.
+  - Dependencies point inward only — adapters depend on contracts and core, core never references an adapter, and only the host composition root wires adapters — enforced by build-time architecture tests.
+  - Inside every project, folders are vertical slices ordered bounded context then aggregate then feature, and the namespace mirrors the folder path exactly.
+  - A namespace equals its folder path, so promoting a bounded-context folder to its own project keeps every namespace unchanged and the folder simply becomes a project.
+  - There is no separate ports project — driving ports are the Facades in the driving contracts, and driven ports live in the driven contracts projects.
+  - Entity property interfaces live in the domain project, and the provider-agnostic repository adapter references the domain project to consume them.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Scaffolds.slnx:1 — the five sibling solution folders: Core/, Contracts/, Adapters/, Host/, Tests/"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.ArchitectureTests/HexagonalBoundaryTests.cs:12 — the inward-only dependency direction, asserted by reflection"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Domain/Catalog/Products/IProductEntityProperties.cs:1 — a bounded-context/entity folder inside the domain project; the namespace mirrors it"
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Scaffolds.ECommerce.Host.csproj:19 — only the host composition root wires a driven adapter"
+  incorrect: []
+exceptions:
+  - A bounded context not yet promoted to a microservice stays a folder; promotion is optional and driven by deployment needs, not by the layout rule.
+derives_to:
+  skills:
+    - axis-systems-architect
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The five-sibling folder shape is a checked invariant above, not narrative; the vertical slice by bounded
+  context happens inside every project. The inward dependency direction is executable — architecture tests
+  assert the layer and bounded-context boundaries so a violation fails the build. This rule absorbs the
+  earlier solution-topology convention. The name grammar of each project ({App}.Contracts.Driving,
+  {App}.Adapters.Driving.{Role}, ...) is owned by style-project-naming, not by this rule.

@@ -1,0 +1,42 @@
+id: mediator-runtime-traceid-resolution
+title: TraceId is resolved once from the ambient Activity or a new Guid
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AxisMediator resolves its TraceId a single time, at construction, and caches it for the mediator's
+  lifetime. When an ambient Activity is present it uses that Activity's W3C TraceId, tying the mediator's
+  trace to the surrounding distributed trace; when there is no ambient Activity it falls back to a fresh Guid.
+  Unlike the context values, TraceId is not read from the context accessor — the mediator computes it itself.
+invariants:
+  - TraceId is computed once in the AxisMediator constructor and is stable for the mediator's lifetime.
+  - When Activity.Current is non-null the TraceId is that Activity's TraceId; otherwise it is a newly generated Guid string.
+  - TraceId is produced by the mediator itself, not delegated to the context accessor like OriginId, JourneyId and AxisEntityId.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.cs:30 — TraceId initialized once via ResolveTraceId (Activity.Current TraceId else new Guid)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:126 — TraceId is always available"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorContextAndAccessorTests.cs:28 — TraceId uses the ambient Activity when one is present"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/mediator-and-accessors.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the mediator is Scoped, the cached TraceId lives for the request; a background flow with no ambient
+  Activity gets a standalone Guid trace id rather than sharing one across requests.

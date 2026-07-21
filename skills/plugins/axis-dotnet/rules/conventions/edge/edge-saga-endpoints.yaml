@@ -1,0 +1,44 @@
+id: edge-saga-endpoints
+title: Saga endpoints answer 202 with a saga id, expose GET polling and POST cancel
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  A use case that crosses bounded contexts runs as a saga and is exposed with the accepted/poll pattern:
+  the start POST returns 202 Accepted carrying the saga id, the client polls a GET run resource until a
+  terminal status, and a graceful stop is a POST cancel on the same run resource. Single-bounded-context
+  use cases stay synchronous 200/201 and never fake asynchrony.
+invariants:
+  - Saga-starting actions render with the 202 Accepted status and declare a 202 ProducesResponseType.
+  - The 202 response body carries the saga id the client polls with.
+  - A GET on the run resource exposes the run status, per-item outcomes and pagination, and returns 404 for an unknown or cross-tenant saga id.
+  - Cancel is a POST on the run resource that stops gracefully (no rollback of finished work) and answers 200 with a cancelling/cancelled status.
+  - Drill-down reads hang off the run resource rather than a separate top-level route.
+  - Synchronous single-commit endpoints return 200/201 directly and never return a saga id.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Auth/AuthController.cs:64 — the saga-starting action renders 202 Accepted with the saga id in the body"
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Auth/AuthController.cs:74 — the GET on the run resource polls the status until terminal"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/EmailValidation/v1/Validate/ValidateEmailResponse.cs:4 — the 202 body carries SagaId + Status"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The 202/poll contract is also worth documenting for API consumers in the OpenAPI info description (see
+  edge-openapi-doc-hub). The saga orchestration itself lives in the core (axis-saga); this rule governs
+  only its HTTP edge, and rendering the 202 goes through the AxisResult HTTP-render extension
+  (edge-axisresult-render).

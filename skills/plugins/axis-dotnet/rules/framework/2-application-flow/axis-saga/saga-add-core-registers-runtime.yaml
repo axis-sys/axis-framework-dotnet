@@ -1,0 +1,42 @@
+id: saga-add-core-registers-runtime
+title: AddAxisSagaCore registers the dialect-agnostic runtime; the storage adapter calls it once
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  AddAxisSagaCore(settings) wires the whole dialect-agnostic runtime: the definition registry as a singleton;
+  the mediator, engine, stage-handler invoker, resumer, janitor and definition initializer as
+  scoped; and, when ResumerEnabled, the hosted resumer worker. A storage adapter (AddAxisSagaPostgres /
+  AddAxisSagaMySql) calls AddAxisSagaCore once and then supplies the four dialect store ports plus the
+  IAxisSagaStorageInitializer. Application code calls the storage-adapter method, not AddAxisSagaCore directly.
+invariants:
+  - AddAxisSagaCore registers the definition registry as singleton and the mediator/engine/invoker/resumer/janitor/definition-initializer as scoped.
+  - The hosted resumer worker is registered by AddAxisSagaCore only when AxisSagaSettings.ResumerEnabled is true.
+  - A storage adapter calls AddAxisSagaCore exactly once and supplies the dialect store ports + IAxisSagaStorageInitializer; consumers invoke the adapter method, not AddAxisSagaCore.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/DependencyInjection.cs:20 — AddAxisSagaCore registers the runtime and conditionally the worker"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/DependencyInjection.cs:25 — AddAxisSagaPostgres calls AddAxisSagaCore then adds the store ports"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/postgres-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The keyed overload AddAxisSagaCore(serviceKey, settings) registers the SAME runtime keyed per subdomain — see
+  saga-keyed-per-subdomain.

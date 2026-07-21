@@ -1,0 +1,41 @@
+id: telemetry-behavior-request-type
+title: RequestType is "query" only for IAxisQuery in the valued overload, else "command"
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  The axis.request_type tag distinguishes commands from queries, and the two TelemetryBehavior overloads set
+  it differently. The valueless TelemetryBehavior<TRequest> always tags RequestType = "command" (a request
+  with no typed response is a command). The valued TelemetryBehavior<TRequest, TResponse> computes it at run
+  time as `request is IAxisQuery ? "query" : "command"`, so a typed request is labelled a query only when it
+  implements IAxisQuery. That is the only behavioural difference between the two overloads' tagging.
+invariants:
+  - The valueless overload always tags RequestType with the literal "command".
+  - The valued overload tags RequestType as "query" when the request is an IAxisQuery, otherwise "command".
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:24 — valueless: RequestType tagged \"command\""
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:81 — valued: request is IAxisQuery ? \"query\" : \"command\""
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/telemetry-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A command that happens to carry a typed response still tags "command" via the valued overload's IAxisQuery
+  check; only IAxisQuery requests become "query".

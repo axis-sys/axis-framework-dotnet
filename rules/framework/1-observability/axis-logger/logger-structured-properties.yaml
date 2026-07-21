@@ -1,0 +1,44 @@
+id: logger-structured-properties
+title: Pass values as (Key, Value) property pairs, never interpolated into the message
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  Every IAxisLogger<T> method takes a trailing params (string Key, object? Value)[] properties. Those pairs
+  are written onto the entry's structured scope, side by side with the always-on correlation ids, so a sink
+  can filter and aggregate on them. Put the data in the property array and keep the message a stable,
+  low-cardinality string — do not interpolate values into $"...{x}...".
+invariants:
+  - Every log method accepts a trailing params (string Key, object? Value)[] for structured enrichment.
+  - Each supplied (Key, Value) pair is copied into the log entry's scope dictionary.
+  - Values belong in the property array, not interpolated into the message string, so the message stays a stable low-cardinality template.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/IAxisLogger.cs:11 — params (string Key, object? Value)[] on every method"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:61 — each pair is copied into the scope dictionary"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:62 — a (Key1, Value1) pair lands on the entry scope"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/categories.md"
+    - "docs/en-us/1-Observability/AxisLogger/iaxislogger.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The object? value type lets a sink destructure (e.g. Serilog renders ("Order", order) per its config). A
+  value passed under a key that collides with an always-on default (UtcTime/OriginId/TraceId/JourneyId)
+  overwrites it — see logger-ambient-scope-enrichment.

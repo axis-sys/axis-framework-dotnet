@@ -1,0 +1,42 @@
+id: style-access-modifiers
+title: Public across a project boundary means an interface or a dumb record; implementations stay internal
+tier: convention
+concern: style
+layer: any
+severity: must
+status: canonical
+description: >
+  Visibility encodes the hexagonal boundary. Anything another project consumes — property interfaces,
+  ports, facades, DTOs, code catalogs, kernel records — is public; anything that is an implementation detail
+  — concrete Properties records, factories, handlers, domain services, schema models — is internal,
+  reachable only through InternalsVisibleTo where a sibling layer genuinely needs construction rights.
+invariants:
+  - Domain publics are limited to I{X}Properties interfaces and {X}Codes catalogs; every concrete record and domain service is internal sealed.
+  - Shared-kernel types are public because the kernel is the shared leaf, and its records are sealed.
+  - Contract projects (driving and driven) contain only public interfaces and public sealed record DTOs — no behavior-bearing classes and no implementations.
+  - Implementations of ports and facades live in the application or in adapters, are internal sealed, and are registered via DI.
+  - Cross-project schema constants ({Entities}Table, {Entities}Columns, {BC}DbInit) and DI root classes are public static composition-root entry points.
+  - Test access to internals goes through InternalsVisibleTo entries in the csproj, never by widening a type's visibility.
+  - Each new InternalsVisibleTo grant requires justification and is kept to the minimum set of consuming projects.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Nested factory argument records may be internal sealed records inside an internal factory interface, a deliberate double-internal shape.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Driving DTO records (commands, queries, responses) are declared public record; event and saga records are
+  public sealed record. Whether to seal every DTO is a per-solution choice, not enforced here. This is the
+  type-visibility face of the swappable-port and facade patterns: interfaces and dumb records cross the
+  boundary, implementations never do.

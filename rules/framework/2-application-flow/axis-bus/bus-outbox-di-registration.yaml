@@ -1,0 +1,47 @@
+id: bus-outbox-di-registration
+title: The storage adapter wires the dialect seams and the dialect-agnostic core
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AddAxisBusPostgres / AddAxisBusMySql registers the per-provider seams — IAxisBusConnectionFactory (a pooled
+  data source, Singleton), IAxisBusSqlDialect (Singleton), IAxisBusStorageInitializer (Singleton) and the
+  dialect-specific IBusEventDispatchStore (Scoped) — then calls AddAxisBusRepositoryCore. The core registers the
+  settings (Singleton) and TimeProvider.System, then Scoped: the request-scoped IOutboxScopedQueue (publishing
+  enqueues here), IAxisBus (RepositoryBusAdapter, the write path), IAxisRepositoryOutbox (RepositoryOutboxDrain,
+  the bridge the unit of work drains at commit), and IBusDispatcher. All are Scoped because they inject
+  IAxisLogger<T>, which depends on the scoped ambient IAxisMediator.
+invariants:
+  - The storage adapter registers IAxisBusConnectionFactory, IAxisBusSqlDialect and IAxisBusStorageInitializer as Singletons and IBusEventDispatchStore as Scoped.
+  - AddAxisBusRepositoryCore registers the settings as a Singleton, TryAddSingleton TimeProvider.System, and the request-scoped IOutboxScopedQueue.
+  - IAxisBus (RepositoryBusAdapter), IAxisRepositoryOutbox (RepositoryOutboxDrain) and IBusDispatcher are Scoped, not Singleton, because they depend on the scoped ambient IAxisMediator through IAxisLogger<T>.
+  - The core RemoveAll<IAxisRepositoryOutbox> before adding RepositoryOutboxDrain, so the drain replaces the NullAxisRepositoryOutbox default regardless of the order the AddAxis… calls run in.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/DependencyInjection.cs:19 — AddAxisBusRepositoryCore: settings/TimeProvider singletons; scoped queue, adapter, drain, dispatcher; conditional hosted workers"
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/DependencyInjection.cs:23 — Postgres seams + AddAxisBusRepositoryCore"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/TestSupport.cs:39 — AddAxisBusPostgres(settings) resolves IAxisBus and IBusDispatcher"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  Scoped-because-ambient-logger is the same reason the AxisCache L2 store and the AxisSaga stores are scoped;
+  the poll worker resolves these scoped services from its own fresh per-pass scope, never the root scope. The
+  hosted initializer and dispatcher workers are registered here too, each behind a settings flag
+  (bus-outbox-hosted-workers).

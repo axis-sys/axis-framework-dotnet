@@ -1,0 +1,53 @@
+id: result-notfound-idempotency
+title: Express existence checks on the railway with RequireNotFound and OrElse-on-NotFound
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  Existence checks belong on the rail, not in an imperative if/throw. For create-must-not-exist,
+  run the reader Get, then RequireNotFound(conflict): a found value becomes the conflict failure, an
+  all-NotFound failure flips to success, and any other failure propagates unchanged. Because
+  RequireNotFound lives on the non-generic AxisResult and drops the upstream value, re-attach the
+  new instance with WithValueAsync before continuing. For get-or-create, recover the all-NotFound
+  branch instead so the miss produces the created value.
+invariants:
+  - RequireNotFound(errorIfFound) fails with errorIfFound when the upstream result is a success (the entity was found).
+  - RequireNotFound turns an all-NotFound failure into a valueless success and propagates any failure whose errors are not all NotFound.
+  - RequireNotFound is declared on the non-generic AxisResult, so its result carries no value and the downstream value must be supplied explicitly.
+  - WithValueAsync(value) promotes a Task<AxisResult> to Task<AxisResult<TNew>>, wrapping value on success and propagating the errors on failure.
+  - The canonical create-if-not-exists chain is Get -> RequireNotFound(conflict) -> WithValueAsync(new) -> Map/Then(create), so a duplicate short-circuits to the conflict before creation runs.
+  - Get-or-create must gate the fallback on an all-NotFound failure so unrelated errors are not silently swallowed by the create branch.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:50 — RequireNotFound on the non-generic AxisResult (found -> Error, all-NotFound -> Ok, else propagate)"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.cs:14 — WithValueAsync promotes a valueless Task<AxisResult> to Task<AxisResult<TNew>>"
+    - "docs/en-us/0-Foundations/AxisResult/ensure.md:49 — create-only-if-absent worked example (RequireNotFoundAsync -> WithValueAsync -> MapAsync)"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - create-product
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/ensure.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  RequireNotFound and WithValueAsync also expose Task-returning extension variants
+  (RequireNotFoundAsync, WithValueAsync) so the pattern composes over an async reader. The
+  get-or-create sibling that recovers to a value rather than switching branches is RecoverNotFound.
+  Its dual on the write side is RecoverConflict, guarding the create branch: a read-mostly ensure
+  reads first, creates on NotFound, and the loser of a concurrent first-sight race recovers from the
+  Conflict by re-reading the winner — idempotent from the caller's view, with the hot path a single read.
+  The reference app documents the same idempotency semantic in its rulebook; that rule becomes an
+  examples.correct anchor once the convention tier is migrated.

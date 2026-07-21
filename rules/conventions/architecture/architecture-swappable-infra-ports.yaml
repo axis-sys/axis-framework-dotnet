@@ -1,0 +1,49 @@
+id: architecture-swappable-infra-ports
+title: Model infrastructure as neutral AxisResult ports; the adapter owns every try/catch
+tier: convention
+concern: architecture
+layer: driven
+severity: must
+status: canonical
+description: >
+  Non-repository infrastructure (messaging, cache, object storage, e-mail, token issuing, external
+  identity, migrations) is expressed as small interfaces that see only kernel types and their own DTO
+  records. Adapters implement them, catch every SDK exception and translate it to an AxisError; callers
+  compose the AxisResult and never try/catch. Swapping the adapter is a DI change only.
+invariants:
+  - Handlers and application services depend only on the port interface, never on a concrete SDK type or a provider-specific package; the provider choice does not leak into the bounded context.
+  - Every port method returns AxisResult or AxisResult of a value and never throws to the caller; the try/catch that converts an SDK exception into an AxisError lives only inside the adapter.
+  - Adapter selection happens only in composition, via an Add* DI extension; swapping the provider never touches a call site.
+  - Port inputs and outputs are kernel types or sealed record DTOs declared alongside the port — never domain types.
+  - When an adapter must be parameterized per call, the port takes a descriptor and a single factory creates the configured instance; do not split the factory by caller role.
+  - Framework-owned ports come from the Axis packages and are consumed as-is; an application declares only the infra ports specific to it, optionally layering an app-owned port on top of a framework port when only the app can resolve the provider choice.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Auth/IExternalIdentityContext.cs:5 — an app-declared infra port whose method returns AxisResult and never throws"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/UseCases/RequestCode/v1/RequestEmailValidationHandler.cs:11 — the handler depends only on port interfaces (IValidationCodesPort, IAxisEmailService)"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Auth/ExternalUser.cs:3 — port I/O is a sealed record DTO declared beside the port"
+  incorrect: []
+exceptions:
+  - A port method may be synchronous when its adapter is purely in-memory and cannot fail with an I/O error.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+    - axis-bus
+    - axis-cache
+    - axis-storage
+    - axis-email
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the application-facing face of the swappable infra-port concept: a contract is an IAxis* (or an
+  app-owned I{X}Port) interface, every method returns AxisResult, try/catch lives only in the adapter, and
+  an Add* registration swaps the adapter by DI. The set of concrete adapters is open-ended — a real
+  adapter is only ever a non-exclusive example, never an exhaustive catalogue; further standard adapters
+  are expected to be built over time.

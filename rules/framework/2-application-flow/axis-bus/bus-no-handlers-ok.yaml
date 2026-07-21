@@ -1,0 +1,41 @@
+id: bus-no-handlers-ok
+title: Publishing an event with no registered handler is a trivial success
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  When no IAxisEventHandler<TEvent> is registered for the published event type, the adapter returns
+  AxisResult.Ok() immediately without doing any work. A missing consumer is not an error — the emitter does
+  not know or care whether anyone is listening, which is what makes publish fire-and-topology.
+invariants:
+  - A publish for an event type with zero registered handlers returns AxisResult.Ok() and invokes nothing.
+  - A missing consumer is never reported as a failure on the AxisResult.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:14 — handlers.Count == 0 returns AxisResult.Ok()"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:84 — handlers.Count == 0 returns true (row deleted, not marked), the durable-outbox twin of MemoryBusAdapter's rule"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:56 — no handlers registered still succeeds"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/BusDispatcherTests.cs:113 — outbox DELETES the row with no handler registered, invoking nothing (no STATUS column, delete-on-dispatch)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/publish.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The durable outbox dispatcher applies the same rule: a claimed row whose event type has no handler is
+  DELETED (the trivial Ok, the same outcome as a successful delivery), not retried, failed, or marked with a
+  status — there is no STATUS column in the outbox schema (see bus-outbox-schema, bus-outbox-lease-claim).

@@ -1,0 +1,43 @@
+id: saga-stage-handler-returns-result-not-throw
+title: A stage reports failure by returning AxisResult; a thrown exception is caught and treated as failure
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  A stage handler signals failure by returning a failed AxisResult<TPayload>, not by throwing. If it does
+  throw, the invoker catches at the boundary, logs the exception and synthesises
+  AxisError.InternalServerError("STAGE_HANDLER_THREW_{ExceptionName}"); the engine then treats that exactly
+  like any returned failure (it walks RouteToOnError when routes exist, else fails the saga). A throw is not a
+  distinct code path — but prefer a typed failure: wrap risky infra with AxisResult.TryAsync inside the handler
+  so a thrown DbException becomes a meaningful code instead of the generic synthesised one.
+invariants:
+  - A stage returns a failed AxisResult to trigger routing/compensation; it does not throw to signal a business failure.
+  - A thrown exception is caught by the invoker and converted to AxisError.InternalServerError("STAGE_HANDLER_THREW_...") — the engine treats it identically to a returned failure.
+  - Risky infra calls inside a handler should be wrapped with AxisResult.TryAsync so the failure carries a meaningful typed code rather than the generic synthesised one.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaStageHandlerInvoker.cs:67 — catch converts a throw into AxisError.InternalServerError(STAGE_HANDLER_THREW_...)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/MySqlSagaLifecycleTests.cs:33 — FailingForwardHandler returns AxisError.InternalServerError, not a throw"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md:62 — throw is caught at the boundary and turned into a failure result"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the AxisResult no-throw discipline applied at the saga boundary: failures are values, and even an
+  escaped exception is normalised onto the failure rail rather than crashing the engine run.

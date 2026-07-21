@@ -1,0 +1,42 @@
+id: domain-status-code-constants
+title: Express seeded lookup values as public static {X}Codes classes of const strings, never enums
+tier: convention
+concern: domain
+layer: domain
+severity: should
+status: canonical
+description: >
+  Seeded and workflow lookup values (statuses, event types, item types, data types, permission codes) are
+  const-string catalogs in a "public static class {X}Codes" (or {X}Types / {X}Kinds), never enums. Each
+  catalog lives in the lowest layer that needs it — the domain project when only the bounded context uses it,
+  the kernel when contracts or other layers share it, and the driven infra contracts when it describes an
+  infra concept.
+invariants:
+  - Each catalog is a public static class holding public const string members only.
+  - No enum is used for a seeded, lookup or status value anywhere in the domain, kernel or contracts.
+  - A code used only inside one bounded context lives in the domain project next to its aggregate ({BC}/{Aggregate}/{X}Codes.cs).
+  - A code shared across layers lives in the kernel so contracts and adapters can reference it without depending on the domain project.
+  - A code that classifies an infra concept lives in the driven infra contracts, next to the descriptor it classifies.
+  - Code values are stable, English contract strings; an existing value is never renamed.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Error codes are a sibling convention ({Aggregate}Errors, UPPER_SNAKE_CASE constants in the application
+  layer); this rule covers lookup and status catalogs only. A catalog may additionally expose a
+  value-object-typed accessor over one of its constants, but the members themselves stay plain const strings.
+  Choosing the lowest layer that needs the catalog keeps the domain project off the reference path of
+  contracts and adapters that only need to name a value.

@@ -1,0 +1,38 @@
+id: validator-required-guid7
+title: RequiredGuid7 requires a present string that parses as a UUID version 7
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  RequiredGuid7 validates an identifier string. When the value is null it fails with the presence check;
+  when present it must parse via Guid.TryParse AND have Version == 7. A well-formed GUID of any other version
+  (e.g. v4) fails, because Axis entity ids are UUID v7.
+invariants:
+  - A null value fails RequiredGuid7 with the presence check.
+  - A present value must satisfy Guid.TryParse and have Version == 7.
+  - A syntactically valid GUID of a version other than 7 fails.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:73 — When null presence; when present TryParse + Version == 7"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:63 — v7 passes; null, non-guid, v4 and empty fail"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The v7 constraint aligns validated ids with AxisEntityId (UUID v7) from the mediator ambient context.

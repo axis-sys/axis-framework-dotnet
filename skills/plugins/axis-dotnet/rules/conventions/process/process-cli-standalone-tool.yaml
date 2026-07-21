@@ -1,0 +1,40 @@
+id: process-cli-standalone-tool
+title: The developer CLI is a standalone tool that drives the API purely over HTTP
+tier: convention
+concern: process
+layer: build
+severity: should
+status: canonical
+description: >
+  The developer CLI is a pure HTTP client for the Web API. It references no product project, lives outside
+  the product source tree so it escapes the shared build props and central package management (its
+  dependency versions are pinned locally, on purpose), and is packaged as a standalone command-line tool.
+  It keeps a miniature hexagonal layout and declares every callable API route in a single declarative
+  catalog.
+invariants:
+  - The CLI project sits outside the product source tree, opts out of central package management, and is packaged as a standalone tool whose command name matches the tool.
+  - It has zero project reference to product assemblies; every interaction with the API goes through HTTP, using the application's own auth flow.
+  - A single declarative route catalog is the source of truth for callable routes (group, verb, method, path template, auth mode, tenancy requirement, sample body); generic and generated commands all read from it.
+  - Route paths carry the same version prefix the controllers expose; adding an endpoint to the API implies adding its descriptor to the catalog.
+  - The CLI has its own README (install, commands, configuration, troubleshooting) linked from the root README, and it is exercised end-to-end against the in-memory host.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A developer tool may pin preview or locally-fixed dependency versions that product code may not use.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the catalog is hand-maintained it can drift from the controllers; a periodic diff of the catalog
+  against the OpenAPI document is the cheap consistency check. Living outside the product source tree also
+  keeps the CLI out of the product build and image, so it can never leak into what ships.

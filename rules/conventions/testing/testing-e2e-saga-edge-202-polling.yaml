@@ -1,0 +1,44 @@
+id: testing-e2e-saga-edge-202-polling
+title: Test sagas at the HTTP edge as 202 Accepted plus status polling, deserializing the production contracts
+tier: convention
+concern: testing
+layer: tests
+severity: should
+status: canonical
+description: >
+  Saga-backed endpoints are tested exactly as clients consume them: POST returns 202 Accepted with a saga
+  id, the test polls the status endpoint via a bounded WaitForTerminalStatus-style helper until a terminal
+  status, then asserts the terminal payload (status, counts, per-item outcomes, typed error codes). Response
+  shapes deserialize into the production driving-contract records — the E2E suite pins the wire
+  contract with the same records clients compile against.
+invariants:
+  - The accept assertion checks 202 Accepted and a pending-status body before any polling.
+  - Polling runs in a bounded WaitForTerminalStatus-style helper; no bare Task.Delay loops are scattered through test bodies.
+  - Terminal assertions verify the terminal status, counts and per-item outcomes; failed items are matched against the Application's {Aggregate}Errors constants, not string literals.
+  - Response wire DTOs deserialize into the production driving-contract records; the end-to-end project references the driving contracts precisely so the wire is pinned by the same types clients compile against.
+  - On an unexpected non-202, the test fails with the response body and the collected server logs for diagnosability.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Http/SagaPolling.cs:7 — the bounded WaitForTerminal-style polling helper (404 = not visible yet)"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/UseCases/v1/Auth/EmailValidation/EmailValidationTests.cs:40 — 202 asserted before polling; deserialization into the production contracts"
+  incorrect: []
+exceptions:
+  - A test that deliberately pins raw bytes to detect a contract divergence may declare a local record for that single assertion.
+derives_to:
+  skills:
+    - axis-e2e-tests
+    - axis-saga
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The saga edge is the 202 + GET status-polling pair; the accepted response, the polling endpoint and the
+  terminal payload shape are owned by the saga and controller rules, which this test merely exercises from
+  the outside. Typed error codes come from the Application constants so the wire contract stays literal-free.

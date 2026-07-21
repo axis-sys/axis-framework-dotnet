@@ -1,0 +1,45 @@
+id: bus-publish-not-mediator
+title: Route by intent — publish a domain event through IAxisBus, not the mediator
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Before wiring one component to call another, route the interaction to the right channel. A past-tense fact
+  that other code may want to react to is a bus publish; it is not a mediator dispatch, not a saga, and not a
+  direct Facade call. This is the discovery entry point for the bus: each smell below maps to exactly one
+  channel so the fire-and-topology decoupling happens before any coupling is written.
+invariants:
+  - A fact others may react to (something happened, publisher wants nothing back) routes to IAxisBus.PublishAsync, never a mediator call.
+  - Asking for a single action with a typed response routes to a command via IAxisMediator (ExecuteAsync), not a published event.
+  - Asking a question to get data back routes to a query via IAxisMediator (QueryAsync), not a published event.
+  - A process spanning 2+ bounded contexts that needs rollback/compensation routes to IAxisSaga, not a fire-and-forget publish.
+  - A synchronous point-to-point call to another bounded context that needs an answer now routes to that context's Facade, not the bus.
+  - A single in-process side effect owned entirely by the caller is a direct method call — an event there is over-engineering.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:9 — the publish channel"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/events-and-handlers.md:18 — when to use an event vs a command/query"
+    - "docs/en-us/2-ApplicationFlow/AxisBus/iaxisbus.md:16 — when NOT to use the bus (command / single side effect / consuming)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/why-axisbus.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the routing/discovery rule for the cluster, the bus analogue of result-operator-selection. The
+  distinction from axis-saga is compensation and persisted state; the distinction from the Facade is
+  synchrony and a return value.

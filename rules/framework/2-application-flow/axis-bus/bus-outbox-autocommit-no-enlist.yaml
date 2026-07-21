@@ -1,0 +1,42 @@
+id: bus-outbox-autocommit-no-enlist
+title: Outbox writes are autocommit and do not enlist in the business transaction
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: should
+status: superseded
+superseded_by: bus-outbox-enqueue-in-uow-transaction
+description: >
+  The durable adapter owns its own pooled data source through IAxisBusConnectionFactory, separate from the
+  application's request-scoped unit of work. Each outbox INSERT runs autocommit on its own connection and
+  never enlists in the caller's business transaction. So the adapter's guarantee is durability and
+  at-least-once delivery — not single-transaction atomicity between the triggering state change and the
+  publish. A row can be written whose business change later rolls back, or vice versa.
+invariants:
+  - The connection factory owns a pooled data source outside the request-scoped unit of work.
+  - An outbox write is autocommit on its own connection and does not join the caller's business transaction.
+  - The adapter provides durability/at-least-once delivery, not atomic dual-write with the business state change.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Ports/IAxisBusConnectionFactory.cs:5 — pooled data source outside the unit of work; outbox writes are autocommit and never enlist"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A subtle divergence from the textbook transactional outbox (which shares the business transaction for atomic
+  dual-write). Here the emphasis is surviving a crash between the state write and the publish, plus retry —
+  handlers must be idempotent because delivery is at-least-once.

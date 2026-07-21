@@ -1,0 +1,43 @@
+id: telemetry-record-exception
+title: RecordException adds an "exception" event AND marks the span Error
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  RecordException(ex) is not a plain event. On the Activity-backed span it adds an ActivityEvent named
+  "exception" carrying three attributes — exception.type (the full type name), exception.message and
+  exception.stacktrace — and THEN calls SetStatus(Error, ex.Message), so a recorded exception always also
+  flips the span status to Error. It returns the span so it still chains. Use it in a catch block; pair it
+  with a rethrow or a returned AxisError so the failure is not silently swallowed.
+invariants:
+  - RecordException adds an event named exactly "exception" with exception.type, exception.message and exception.stacktrace attributes.
+  - RecordException also sets the span status to Error with the exception message as the description.
+  - RecordException returns the span so it remains chainable.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/ActivityAxisSpan.cs:22 — adds the exception event, then SetStatus(Error, ex.Message)"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisSpan.cs:10 — the contract member"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:57 — the exception event carries type/message and status becomes Error"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/spans.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The dual effect (event + Error status) is why call sites do not need a separate SetStatus after
+  RecordException. TelemetryBehavior relies on it in its catch block.

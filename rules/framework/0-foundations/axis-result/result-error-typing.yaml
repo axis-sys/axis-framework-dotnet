@@ -1,0 +1,49 @@
+id: result-error-typing
+title: AxisError is a code plus one of 12 typed categories with a fixed HTTP map
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  An AxisError is a value carrying exactly two things — a stable Code and an AxisErrorType category —
+  never a message or an exception. There are exactly 12 categories; the mapping from category to HTTP
+  status lives at the edge (the docs table and the AxisResult.HttpResponse package), not inside the
+  enum. IsTransient is derived from the category, so retry policies pivot on the type instead of parsing
+  strings.
+invariants:
+  - An AxisError exposes only Code (string) and Type (AxisErrorType); there is no Message field.
+  - AxisErrorType has exactly 12 categories and carries no HTTP status information.
+  - The category-to-HTTP-status map lives at the presentation edge, not in the AxisErrorType enum.
+  - IsTransient is derived from Type and is true only for ServiceUnavailable, Timeout, TooManyRequests and GatewayTimeout.
+  - An error Code is a stable UPPER_SNAKE_CASE constant, never an exception message or parsed prose.
+  - A null, empty or whitespace code falls back to MissingCodeSentinel rather than throwing from the factory.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisErrorType.cs:3 — the 12 typed categories, ordinals 1-12"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisError.cs:24 — IsTransient derived from Type; Code + Type only, MissingCodeSentinel fallback"
+    - "docs/en-us/0-Foundations/AxisResult/errors-and-types.md:17 — Factory to Type to HTTP status table lives in docs"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0005
+  scaffolds:
+    - checkout
+    - register-product
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/errors-and-types.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The reference app documents the same convention in its rulebook (one typed error category per
+  factory, UPPER_SNAKE_CASE codes, no inline literals); that rule becomes an examples.correct anchor
+  once the convention tier is migrated.

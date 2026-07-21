@@ -1,0 +1,43 @@
+id: architecture-access-modifiers
+title: Application types are internal sealed by default; public only for the composition entry and host-facing seams
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  The application layer exposes almost nothing. Handlers, validators, factories, saga classes, event
+  handlers, cache components and error classes are all internal (sealed unless static); reachability
+  comes from assembly scanning and the public facades in the driving contracts, not from visibility.
+  Public is reserved for the DI composition entry point and the few seams that a host driving project
+  (workers, web host) or the edge must resolve directly.
+invariants:
+  - The default declaration for an application type is internal sealed class (or internal static class for helpers, or internal interface); a type is public only when it has an explicit reachability reason.
+  - public is allowed only for the single DI composition entry point and for the service interfaces plus settings records a host driving project must resolve, plus any parser/seam consumed at the edge.
+  - A public seam interface may be implemented by an internal sealed class in the same file, so the contract is visible while the implementation stays internal.
+  - Handlers are never public — unit tests reach them through the facade and hosts through the mediator, so visibility is never the reachability mechanism.
+  - Concrete classes are sealed unless they are static; an internal-but-unsealed class is a defect to fix, not a valid variant.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/Services/AuthTokenIssuer/AuthTokenIssuerService.cs:15 — internal sealed impl behind the public seam interface declared at :10 in the same file"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/RegisterProduct/v1/RegisterProductHandler.cs:6 — handler is internal sealed, never public; reachable via facade + assembly scan, not visibility"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/DependencyInjection.cs:8 — the single public composition entry point"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 2b82174
+  reviewed_on: 2026-07-18
+notes: >
+  Reachability is engineered, not granted by visibility: the public facade plus assembly scanning is what
+  makes internal handlers reachable (see architecture-facade-pattern), and the single public composition
+  extension is the only registration surface (see architecture-di-registration). Everything else stays
+  behind the assembly wall.

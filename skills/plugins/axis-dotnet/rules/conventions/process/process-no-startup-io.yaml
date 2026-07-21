@@ -1,0 +1,38 @@
+id: process-no-startup-io
+title: The composition root performs no I/O; migrations run through a dedicated endpoint or command
+tier: convention
+concern: process
+layer: build
+severity: must
+status: canonical
+description: >
+  The composition root only composes: it never opens a connection, runs a migration or touches storage
+  while the host is being built or torn down. Schema migration is an explicit, idempotent operation
+  triggered on demand through a dedicated admin-only endpoint or command (or the framework's own background
+  machinery). Startup-time decisions come from configuration, read lazily, so a test host can override them
+  purely through configuration sources instead of eager I/O.
+invariants:
+  - No awaited or blocking I/O runs in the composition root; once the host is built, only pipeline wiring happens before it runs.
+  - Schema migration is an explicit, idempotent operation exposed as an admin-only endpoint or command routed to a migration use case, never something the host performs on startup.
+  - A test host steers startup behavior exclusively through configuration (in-memory settings, environment variables), which works only because the composition root reads configuration lazily rather than doing eager I/O.
+  - Long-running background behavior (resumers, reconcilers) is toggled by configuration so a test or a constrained environment can switch it off without code changes.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A recurring trap this prevents: running a migration before the host is built ignores the test host's
+  configuration overrides. The fix is to remove startup-time I/O entirely rather than to reorder it. This
+  rule constrains what the composition root may DO, not which host model it uses.

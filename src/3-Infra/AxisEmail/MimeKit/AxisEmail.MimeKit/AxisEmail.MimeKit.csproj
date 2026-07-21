@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="MimeKit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\1-Observability\AxisLogger\AxisLogger\AxisLogger.csproj" />
+    <ProjectReference Include="..\..\AxisEmail\AxisEmail.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <!-- ControllerBase (AXIS0602) vem do shared framework do ASP.NET Core. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced by the types (instantiate the analyzer + reference Axis in the snippets), not as an analyzer. -->
+    <ProjectReference Include="..\Axis.Conventions.Analyzers\Axis.Conventions.Analyzers.csproj" />
+    <ProjectReference Include="..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+    <ProjectReference Include="..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\..\2-ApplicationFlow\AxisValidator\FluentValidation\AxisValidator.FluentValidation\AxisValidator.FluentValidation.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,43 @@
+id: validator-async-ambient-cancellation
+title: ValidateAsync flows the ambient CancellationToken from the mediator
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  The async adapter obtains the CancellationToken from IAxisMediator and passes it into
+  FluentValidation's ValidateAsync; the token is ambient and is never accepted as a method parameter on
+  IAxisValidator. The pipeline invokes ValidateAsync (not the sync Validate), so validation participates in
+  cooperative cancellation without any token plumbing at the call site.
+invariants:
+  - The async adapter reads mediator.CancellationToken and passes it to the underlying validator's ValidateAsync.
+  - IAxisValidator.Validate and ValidateAsync take only the instance; the CancellationToken is never a parameter.
+  - The ValidationBehavior calls ValidateAsync, so validation runs on the async path with the ambient token.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/FluentValidatorAdapter.cs:32 — ValidateAsync(instance, mediator.CancellationToken)"
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/IAxisValidator.cs:7 — ValidateAsync(T instance) has no token parameter"
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/ValidationBehavior.cs:17 — the pipeline calls ValidateAsync"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:469 — the mediator supplies CancellationToken.None through DI"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/iaxisvalidator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Reinforces mediator-cancellation-is-ambient at the validation boundary; the sync Validate overload exists
+  for tests and direct calls but resolves no token.

@@ -1,0 +1,40 @@
+id: bus-event-handler-shape
+title: A consumer implements IAxisEventHandler<TEvent> returning AxisResult
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A consumer reacts to an event by implementing IAxisEventHandler<in TEvent> (TEvent : IAxisEvent) with a
+  single Task<AxisResult> HandleAsync(TEvent @event) method. The type parameter is contravariant (in), and
+  any number of handlers may be registered for the same event — the adapter fans out to all of them.
+invariants:
+  - A consumer implements IAxisEventHandler<in TEvent> where TEvent : IAxisEvent with one method Task<AxisResult> HandleAsync(TEvent @event).
+  - Many handlers may be registered for one event type; every registered handler runs on publish.
+  - The handler reports its outcome as the returned AxisResult, not by mutating shared publisher state.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEventHandler.cs:5 — IAxisEventHandler<in TEvent> where TEvent : IAxisEvent"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEventHandler.cs:7 — Task<AxisResult> HandleAsync(TEvent @event)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:14 — SuccessHandler : IAxisEventHandler<TestEvent>"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/events-and-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Contravariance (in TEvent) lets a handler declared for a base event type also receive derived events; the
+  in-memory adapter still resolves by the exact closed generic requested at the publish call site.

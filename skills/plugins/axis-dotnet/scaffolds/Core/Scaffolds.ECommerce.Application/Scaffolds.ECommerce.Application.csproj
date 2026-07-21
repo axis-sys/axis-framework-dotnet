@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="AxisMediator" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisMediator.Contracts.CQRS" />
+    <Using Include="AxisMediator.Contracts.CQRS.Commands" />
+    <Using Include="AxisMediator.Contracts.CQRS.Events" />
+    <Using Include="AxisMediator.Contracts.CQRS.Queries" />
+    <Using Include="AxisMediator.Contracts.Pipelines" />
+    <Using Include="AxisValidator" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1._Shared" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <!-- Token-writing types only (no ASP.NET dependency): the bootstrap-token issuer signs its own JWTs. -->
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <!-- The IAxisEmailService port consumed by the email-validation use case. -->
+    <ProjectReference Include="../../../3-Infra/AxisEmail/AxisEmail/AxisEmail.csproj" />
+    <!-- IAxisBus + IAxisEvent: the durable outbox contracts consumed by Checkout's integration event. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisBus\AxisBus\AxisBus.csproj" />
+    <!-- The application composition extension scans its own handlers and wires the mediator runtime. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisMediator\AxisMediator\AxisMediator.csproj" />
+    <!-- The saga runtime contracts and DSL: definitions, stage handlers and the saga mediator port. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisSaga\AxisSaga\AxisSaga.csproj" />
+    <!-- Declarative input validation: AxisValidatorBase<T> and the ValidationBehavior wired below. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisValidator\FluentValidation\AxisValidator.FluentValidation\AxisValidator.FluentValidation.csproj" />
+    <!-- Simulates the consumer of the AxisResult package: applies the ROP analyzers at build for this project. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Applies the mediator analyzers (AXIS0400-0403): proves the handlers/facade/behavior pass. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts.Analyzers\AxisMediator.Contracts.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.UnitTests" />
+  </ItemGroup>
+
+</Project>

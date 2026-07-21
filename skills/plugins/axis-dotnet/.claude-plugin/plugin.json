@@ -1,0 +1,8 @@
+{
+  "name": "axis-dotnet",
+  "description": "C#/.NET backend engineering the Axis way (Hexagonal + DDD + CQRS + Vertical Slices + AxisResult). The skills map to the canonical rule base (rules/); start from the axis-dotnet-architect hub.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/axis-sys/axis-framework-dotnet",
+  "repository": "https://github.com/axis-sys/axis-framework-dotnet",
+  "author": { "name": "axis-sys" }
+}

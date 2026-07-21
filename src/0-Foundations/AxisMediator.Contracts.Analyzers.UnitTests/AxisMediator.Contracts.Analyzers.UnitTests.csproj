@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced by the types (to instantiate the analyzers), not applied as an analyzer here. -->
+    <ProjectReference Include="..\AxisMediator.Contracts.Analyzers\AxisMediator.Contracts.Analyzers.csproj" />
+    <ProjectReference Include="..\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\AxisResult\AxisResult\AxisResult.csproj" />
+  </ItemGroup>
+
+</Project>

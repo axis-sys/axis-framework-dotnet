@@ -1,0 +1,44 @@
+id: architecture-external-sdk-retry-edge
+title: The SDK exception and retry boundary belongs to the framework provider package, not the application's adapter
+tier: convention
+concern: architecture
+layer: driven
+severity: must
+status: canonical
+description: >
+  When infrastructure is delivered by a framework provider package that already owns the SDK exception and
+  retry boundary, the application's own driven adapter over that port adds no try/catch and no retry — it
+  only selects a provider and composes AxisResult. The provider catches, retries transient faults and maps
+  exhaustion to a typed AxisError. What the application still owns is the operational contract: which
+  failures must surface rather than be retried, and which edge results are domain errors.
+invariants:
+  - The application's driven adapter over a framework-provided infra port holds no try/catch and no AxisResult.Try; if an SDK exception needs mapping, the fix belongs in the provider package, not the adapter.
+  - A configuration or authorization fault — a valid credential still denied because it lacks the required access role — must surface immediately and is never retried, because it is not a transient fault.
+  - Transient faults (network, timeout, throttling, 5xx) are retried inside the provider with capped exponential backoff; the application never wraps the port in its own retry loop.
+  - A failure reaches the caller as an AxisResult error with a const code from the area's {Aggregate}Errors class — never a raw SDK exception and never the exception message as the code.
+  - A domain-shaped failure is decided by the application, not the provider — an empty or edge result that only the application knows to treat as an error is mapped to an {Aggregate}Errors const at the application boundary.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Customers/Customers/CustomersRepository.cs:9 — an app driven adapter over the framework IAxisDbRepository holds no try/catch; the provider package owns the exception boundary"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutHandler.cs:18 — a domain-shaped failure is mapped to a {Aggregate}Errors const at the application boundary"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the case of architecture-swappable-infra-ports where a framework provider package already owns
+  the SDK boundary: the application's thin adapter shrinks to provider selection plus AxisResult
+  composition. No-throw and the try boundary are the framework rules result-no-throw and result-try-boundary;
+  transient classification is result-transient-failure-classification and typed codes are result-error-typing.
+  Any concrete provider is only ever a non-exclusive example, never an exhaustive catalogue.

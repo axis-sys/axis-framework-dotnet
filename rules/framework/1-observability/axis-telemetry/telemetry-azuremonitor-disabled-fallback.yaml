@@ -1,0 +1,49 @@
+id: telemetry-azuremonitor-disabled-fallback
+title: Without a connection string AddAzureMonitorAxis degrades to the Null sink and warns at startup
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AddAzureMonitorAxis never throws for a missing connection string. When none resolves (options,
+  APPLICATIONINSIGHTS_CONNECTION_STRING, ConnectionStrings:ApplicationInsights) it registers
+  NullAxisTelemetry.Instance behind both ports, adds the AzureMonitorDisabledWarning hosted service that
+  logs one startup warning naming the three probed locations, and wires no OpenTelemetry pipeline at all.
+  The app boots and runs normally — dev machines, CI and E2E tests use the real Program with no App
+  Insights around, exporting nothing.
+invariants:
+  - When no connection string resolves, IAxisTelemetry and IAxisMetrics are BOTH registered as NullAxisTelemetry.Instance.
+  - The fallback registers the AzureMonitorDisabledWarning hosted service, whose StartAsync logs a single warning citing AzureMonitorAxisOptions.ConnectionString, APPLICATIONINSIGHTS_CONNECTION_STRING and ConnectionStrings:ApplicationInsights.
+  - The fallback path wires no OpenTelemetry pipeline and no Azure Monitor distro — nothing is exported.
+  - Registration and resolution never throw without a connection string; StartSpan returns NullAxisSpan.Instance and the app runs normally.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/DependencyInjection.cs:34 — the no-connection-string branch registers the Null ports and the warning hosted service"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/AzureMonitorDisabledWarning.cs:6 — the hosted service logs the warning once in StartAsync"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/DependencyInjectionTests.cs:24 — both ports resolve to NullAxisTelemetry.Instance"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/DependencyInjectionTests.cs:59 — the AzureMonitorDisabledWarning hosted service is registered"
+    - "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/AzureMonitorSpanTests.cs:51 — StartSpan is a silent no-op returning NullAxisSpan.Instance"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/azure-monitor.md"
+ledger:
+  reviewed_against: cc41921
+  reviewed_on: 2026-07-16
+notes: >
+  This is the same graceful-degradation idiom as telemetry-null-default-noop, applied at the exporter edge:
+  the Null sink — not a conditional call site and not an exception — is how telemetry turns off. The warning
+  hosted service exists so the silence is observable in the startup log instead of being a mystery in the
+  portal.

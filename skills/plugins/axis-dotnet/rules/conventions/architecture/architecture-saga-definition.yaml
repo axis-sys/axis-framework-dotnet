@@ -1,0 +1,44 @@
+id: architecture-saga-definition
+title: Declare a saga with the AxisSaga DSL and let the framework host the resumer by configuration
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  A cross-bounded-context process is declared with the AxisSaga DSL — Define<TPayload>(Name, Configure) with
+  a static Configure and nameof stage constants — registered by a per-saga DI extension, started through the
+  saga mediator, and surfaced as a 202 plus a polling GET. The resumer that advances pending sagas is hosted
+  by the framework and driven by configuration; the application ships no resumer worker.
+invariants:
+  - A saga is declared with Define<TPayload>(Name, Configure) where Configure is a static method and each stage name is a nameof constant.
+  - Each saga is registered through its own Add{Saga}Saga DI extension and started via the saga mediator's StartAsync.
+  - A started saga still pending returns 202 with a polling GET for its status, and a stage failure runs its declared compensation chain — the RouteToOnError stages in listed (undo) order, which the author lists as the reverse of the forward stages.
+  - The saga resumer is hosted by the framework and toggled by configuration; the application never hosts a resumer worker.
+  - Every saga-persistence adapter honors the resumer contract — it self-hosts the resumer per configuration and recovers orphaned pending sagas.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/ValidateEmailSaga.cs:10 — static Configure over the DSL, stage names as nameof(HandlerType) expressions"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/ValidateEmailSagaDependencyInjection.cs:9 — the Add{Saga}Saga extension registering Define<TPayload>(Name, Configure)"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/ValidateEmailSaga.cs:19 — compensation declared as an error stage targeted by RouteToOnError"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/UseCases/Validate/v1/ValidateEmailHandler.cs:18 — the use case starts the run via the saga mediator's StartAsync"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Stage handlers and payloads have their own rules (architecture-saga-stage-handlers,
+  architecture-saga-payloads); this rule owns the definition DSL, the DI/start surface and the
+  framework-hosted resumer. Resumer configuration covers whether it runs, its poll interval, the age after
+  which a pending saga resumes and the resume batch size.

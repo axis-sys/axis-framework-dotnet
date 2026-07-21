@@ -1,0 +1,41 @@
+id: bus-fanout-parallel
+title: Publish fans out to every handler in parallel
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  On publish, the adapter resolves every registered IAxisEventHandler<TEvent>, starts them all before
+  awaiting any (Select then Task.WhenAll), and awaits the set concurrently. One slow or failing handler
+  therefore never blocks the others, and there is no ordering guarantee across handlers — a handler must not
+  assume another handler ran first.
+invariants:
+  - Every registered handler is started before any is awaited (handlers.Select(...).ToList() then Task.WhenAll).
+  - Handlers run concurrently, so no cross-handler execution order is guaranteed.
+  - A slow or failing handler does not prevent the other handlers from running.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:17 — Select projects tasks, then Task.WhenAll awaits them together"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:106 — two 50ms handlers finish well under 300ms, proving parallelism"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/publish.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The durable outbox dispatcher reproduces this exact fan-out via reflection (bus-outbox-dispatch-mirrors-fanout);
+  only the outbox drains rows sequentially between events, while handlers of one event still fan out in parallel.

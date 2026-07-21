@@ -1,0 +1,43 @@
+id: validator-result-not-throw
+title: Validation returns AxisResult and never throws for a validation failure
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  IAxisValidator<T> exposes Validate and ValidateAsync returning AxisResult; a validation failure is a value
+  on the failure rail, never a thrown ValidationException. The adapter runs the underlying FluentValidation
+  validator, returns AxisResult.Ok() when the instance is valid, and maps each failure to
+  AxisError.ValidationRule(code). When no IValidator<T> is registered for the type, the adapter treats the
+  input as valid and returns AxisResult.Ok().
+invariants:
+  - IAxisValidator<T> returns AxisResult (sync) or Task<AxisResult> (async) and encodes failures as AxisError values, not thrown exceptions.
+  - A valid instance yields AxisResult.Ok().
+  - Each FluentValidation failure is projected to AxisError.ValidationRule(failure.ErrorCode) and collected into an errored AxisResult.
+  - When no IValidator<T> is resolved from the container, the adapter returns AxisResult.Ok() (absence of a validator means valid).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/IAxisValidator.cs:5 — Validate/ValidateAsync return AxisResult"
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/FluentValidatorAdapter.cs:10 — Ok on valid, Ok on no validator, ValidationRule projection on failure"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:479 — adapter returns Ok on valid and a coded failure on invalid"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/iaxisvalidator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the AxisValidator face of result-no-throw: FluentValidation would throw via ValidateAndThrow, but
+  the adapter projects failures into AxisResult so no wrapper is needed at the call site.

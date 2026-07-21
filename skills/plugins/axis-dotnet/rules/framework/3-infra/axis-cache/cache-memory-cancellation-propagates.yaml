@@ -1,0 +1,46 @@
+id: cache-memory-cancellation-propagates
+title: In the memory adapter a cancelled token throws, except inside GetOrCreateAsync
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  The memory adapter wraps GetAsync/SetAsync/RemoveAsync/ExistsAsync in AxisResult.TryAsync, whose exception
+  filter treats OperationCanceledException as CRITICAL and rethrows it — so a cancelled token surfaces as a
+  thrown OperationCanceledException, not a failed AxisResult. GetOrCreateAsync is the exception: it uses a
+  plain try/catch (Exception) that catches the cancellation and returns AxisError.InternalServerError. Know
+  which path you are on before you assume cancellation lands on the failure rail.
+invariants:
+  - GetAsync/SetAsync/RemoveAsync/ExistsAsync run under AxisResult.TryAsync, which rethrows OperationCanceledException rather than converting it to a failure.
+  - GetOrCreateAsync catches the cancellation in its own try/catch and returns a failed AxisResult (InternalServerError).
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache/MemoryCacheAdapter.cs:12 — TryAsync-wrapped GetAsync, token checked first"
+    - "src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache/MemoryCacheAdapter.cs:54 — GetOrCreateAsync catch (Exception) -> InternalServerError"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:104 — IsCritical includes OperationCanceledException, so TryAsync rethrows it"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache.UnitTests/Memory/MemoryCacheAdapterTests.cs:185 — GetAsync THROWS OperationCanceledException when cancelled"
+    - "src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache.UnitTests/Memory/MemoryCacheAdapterTests.cs:283 — GetOrCreateAsync returns a failed AxisResult when cancelled"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/memory-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The docs (iaxiscache.md, memory-adapter.md) now state this split explicitly — the TryAsync methods rethrow
+  the cancellation, only GetOrCreateAsync surfaces it as a failed AxisResult. That GetOrCreateAsync maps the
+  cancellation to InternalServerError(ex.Message) is itself a coarse mapping — a candidate for a typed
+  cancelled code rather than a 500-shaped error.
