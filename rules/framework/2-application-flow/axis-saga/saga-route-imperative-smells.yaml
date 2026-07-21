@@ -1,0 +1,50 @@
+id: saga-route-imperative-smells
+title: Route saga intent to the primitive; do not hand-roll orchestration, recovery or the engine
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Before writing imperative orchestration code, route the intent to the canonical AxisSaga mechanism. Every
+  recurring saga smell maps to one built-in: reaching for a hand-rolled state machine, a bespoke
+  BackgroundService, a direct engine call, a CancellationToken parameter, or manual compensation ordering is the
+  defect this rule catches. This is the discovery entry point into the AxisSaga surface — the mapping below is
+  the smell-to-mechanism routing for the common cases.
+invariants:
+  - Hand-rolling a state machine (forward steps, undo steps, routing) routes to AxisSagaDefinitions.Define + the configurator, not bespoke code.
+  - Writing a BackgroundService to re-fire stuck sagas routes to the framework-hosted resumer (ResumerEnabled), never a hand-rolled loop.
+  - Calling SagaEngine (or wanting to "drive the saga") routes to IAxisSagaMediator.StartAsync / ResumeAsync — the engine is internal.
+  - Passing a CancellationToken into a stage handler routes to the ambient execution lease; ExecuteAsync has no token parameter.
+  - Reversing the forward chain in a handler to undo it routes to listing compensations in the intended order in RouteToOnError; the engine walks them as listed with no auto-reversal.
+  - Branching inside a stage on IsSuccess to trigger cleanup routes to returning a failed AxisResult and configuring RouteToOnError; the engine does the routing.
+  - Modelling a single-BC transactional operation as a saga routes to a command handler + unit of work; a saga is for a process crossing 2+ BCs where one ACID transaction is impossible.
+  - A fire-and-forget fan-out with nothing to undo routes to IAxisBus events, not a saga.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/AxisSagaDefinitions.cs:5 — Define, the declarative entry every hand-rolled-orchestration smell routes into"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/AxisSagaResumerWorker.cs:15 — the hosted resumer the hand-rolled-BackgroundService smell routes into"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md:26 — when NOT to use the configurator (conditional branch, single stage, external events)"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/why-axissaga.md:19 — vs a hand-rolled state machine"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/why-axissaga.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the discovery rule for the AxisSaga cluster: each invariant is one row of the smell-to-mechanism
+  mapping, and every named mechanism is a sibling rule (saga-define-entrypoint, saga-resumer-hosted-by-framework,
+  saga-engine-internal, saga-stage-handler-shape, saga-compensation-listed-order, saga-route-to-on-error).

@@ -1,0 +1,45 @@
+id: saga-keyed-per-subdomain
+title: The keyed overload runs one saga store per subdomain, keyed by a service key
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  AddAxisSagaPostgres(serviceKey, settings) / AddAxisSagaMySql(serviceKey, settings) register the SAME
+  dialect-agnostic runtime, but every service is keyed by the service key so several per-subdomain saga stores
+  coexist in one process — mirroring AxisRepository's keyed AddPostgresUnitOfWork. Each keyed service resolves
+  its keyed dependencies by the same key, and the definition registry sees only the definitions registered under
+  that key. Stage handlers stay UNKEYED (matched by content). Each key gets its own resumer worker, registered
+  as AddSingleton<IHostedService> (NOT AddHostedService<T>, which dedups by type and would drop the second key's
+  worker). Registering the same key twice throws.
+invariants:
+  - The keyed overload registers the same runtime keyed by serviceKey; each keyed service resolves its keyed dependencies and its keyed definition registry.
+  - Stage handlers remain unkeyed under the keyed registration; the invoker matches them by (payload type, saga name, stage name).
+  - Each key's resumer worker is registered as AddSingleton<IHostedService> so per-key workers are not deduplicated by implementation type.
+  - Registering the same service key twice throws InvalidOperationException.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/DependencyInjection.cs:53 — AddAxisSagaCore(serviceKey) keys the whole runtime; per-key IHostedService"
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/DependencyInjection.cs:46 — AddAxisSagaPostgres(serviceKey) keyed store ports; same-key guard"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/AxisSagaPostgresKeyedTests.cs:50 — two keys coexist; same key twice throws; definitions are isolated per key"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/postgres-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The AddSingleton<IHostedService> vs AddHostedService<T> distinction is load-bearing: AddHostedService uses
+  TryAddEnumerable, which would silently drop a second key's worker and collide with the keyless one.

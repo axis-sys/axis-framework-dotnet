@@ -1,0 +1,44 @@
+id: result-then-value-preservation
+title: A valueless Then preserves the original value
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Then has four forms distinguished by what the delegate returns and takes. The valueless form
+  (delegate returns AxisResult, not AxisResult<T>) runs a step for its success/failure outcome but
+  PASSES THROUGH the upstream value, so the next operator still sees the original T. Missing this is
+  the most common ROP mistake — people reach for a variable to "hold" the value across a side effect.
+invariants:
+  - A Then whose delegate returns AxisResult (valueless) preserves the upstream value for later operators.
+  - A Then whose delegate returns AxisResult<U> replaces the value with U.
+  - The value-taking and valueless forms both short-circuit on the first failure.
+  - On a tuple-valued track (after Zip), ThenAsync offers spread overloads that pass the tuple elements as separate delegate parameters; the valueless spread form preserves the whole tuple, the value-returning spread form replaces it. Available for 2-, 3- and 4-tuples on Task pipelines.
+reference:
+  kind: framework-test
+  at:
+    - "src/0-Foundations/AxisResult/AxisUnitTests/AxisResultFunctionalSyncTests.cs — Then forms, sync surface"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs — Then implementation"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.cs — tuple-spread ThenAsync overloads (Tuple2/Tuple3/Tuple4 sections)"
+    - "src/0-Foundations/AxisResult/AxisUnitTests/AxisResultExtensionsTaskTests.cs — T_Tuple2_ThenAsync_* / T_Tuple3_ThenAsync_* / T_Tuple4_ThenAsync_*"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/then.md"
+ledger:
+  reviewed_against: cc41921
+  reviewed_on: 2026-07-16
+notes: >
+  The reference app documents the same semantic in its rulebook as rop-then-forms-value-preservation;
+  that rule becomes an examples.correct anchor once the convention tier is migrated.

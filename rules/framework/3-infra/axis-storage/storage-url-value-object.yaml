@@ -1,0 +1,40 @@
+id: storage-url-value-object
+title: AxisStorageUrl carries the URL, its public flag and its expiry together
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: should
+status: canonical
+description: >
+  AxisStorageUrl is a sealed record with exactly three members — string Url, bool IsPublic, DateTimeOffset?
+  ExpiresAt. GetServableUrlAsync returns it so the caller need not re-derive whether the URL is public or when
+  it expires; all three travel together. A public URL has IsPublic true and ExpiresAt null; a signed URL has
+  IsPublic false and ExpiresAt set to now + expiration.
+invariants:
+  - AxisStorageUrl is a sealed record with exactly three members, Url, IsPublic and ExpiresAt.
+  - ExpiresAt is null for a public URL and set to now + expiration for a signed URL.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/AxisStorage/AxisStorageUrl.cs:3 — sealed record AxisStorageUrl(string Url, bool IsPublic, DateTimeOffset? ExpiresAt)"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:362 — asserts Url, IsPublic and ExpiresAt on the returned value object"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/AzureBlobStorageAdapterTests.cs:313 — a signed result has IsPublic false and a set ExpiresAt"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/iaxisstorage.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  It is the return type of IAxisStorageUrlResolver.GetServableUrlAsync and the only shared value object the
+  optional capabilities introduce.

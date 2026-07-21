@@ -1,0 +1,42 @@
+id: saga-handlers-di-registration
+title: AddAxisSagaHandlers scans an assembly and registers each stage handler as scoped
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Stage handlers are wired by AddAxisSagaHandlers(assembly): it finds every non-abstract, non-generic class
+  implementing IAxisSagaStageHandler<> and registers it as scoped against each implementing interface variant.
+  Handlers are discovered by scan, not registered one by one, and they stay UNKEYED even under the keyed
+  (per-subdomain) saga registration — the invoker matches them by (payload type, saga name, stage name), so a
+  single set of handlers serves every keyed store.
+invariants:
+  - AddAxisSagaHandlers(assembly) registers every non-abstract, non-generic IAxisSagaStageHandler<> implementation as scoped, once per implementing interface variant.
+  - Handlers are discovered by assembly scan, not registered individually.
+  - Stage handlers stay unkeyed by design, even alongside the keyed per-subdomain saga stores; the invoker matches by content.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/DependencyInjection.cs:112 — AddAxisSagaHandlers scans and registers scoped per interface variant"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md:125 — services.AddAxisSagaHandlers(Assembly.GetExecutingAssembly())"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The keyed registration comment is explicit that handlers stay unkeyed — see saga-keyed-per-subdomain; only
+  the runtime and store ports are keyed.

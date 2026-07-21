@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Moq" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisMediator.Contracts.Pipelines" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1._Shared" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.Checkout" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.CreateProduct" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.Events" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.GetProduct" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.RegisterProduct" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1.SubmitOrder" />
+    <Using Include="Scaffolds.ECommerce.Application.Pipelines" />
+    <Using Include="Scaffolds.ECommerce.Application.Samples" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <!-- Unit tests reference the core (application/domain/contracts) plus the facade driving adapter — the
+         zero-logic doorway they drive the core through (testing-unit-serviceprovider-mocks). Driven adapters
+         and the host are still off-limits (testing-pyramid-four-projects). -->
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driving.Facade\Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <!-- Applies the ROP analyzers to the test project too, to measure the impact on this kind of project. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

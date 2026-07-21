@@ -1,0 +1,44 @@
+id: bus-handler-returns-result
+title: The port and its handlers return AxisResult and never throw for control flow
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Both sides of the bus speak AxisResult. A handler encodes an expected failure as an AxisError on the
+  failure rail (return AxisError.BusinessRule(code)), and PublishAsync returns an AxisResult the caller can
+  chain on the railway — a bus publish is just another step in a ThenAsync pipeline. Throwing an exception
+  for an expected outcome is a defect; a handler that must call code that throws wraps it in AxisResult.Try.
+invariants:
+  - A handler returns its expected failure as an AxisError on the failure rail, not a thrown exception.
+  - PublishAsync returns an AxisResult that composes on the railway (ThenAsync/MapAsync/TapErrorAsync).
+  - A handler that calls exception-throwing code converts it with AxisResult.TryAsync rather than letting it escape.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEventHandler.cs:7 — HandleAsync returns Task<AxisResult>"
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:11 — PublishAsync returns Task<AxisResult>"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:25 — FailureHandler returns AxisError.BusinessRule on the rail"
+    - "docs/en-us/2-ApplicationFlow/AxisBus/iaxisbus.md:52 — publish as a normal ThenAsync step in a pipeline"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/publish.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the AxisResult no-throw rule (result-no-throw) applied at the bus edge. The in-memory adapter does
+  NOT catch a handler that throws anyway (bus-memory-no-exception-isolation) — one more reason the handler,
+  not the adapter, owns the Try boundary.

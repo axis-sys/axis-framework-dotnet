@@ -1,0 +1,44 @@
+id: mediator-events-out-of-band
+title: Domain events are published out-of-band through the bus, not the mediator
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  The mediator handles request/response only. Events are a separate channel — IAxisEvent is not a
+  request, and the dispatch surface has no publish method. Reaching for the mediator to raise a domain
+  event is a dead end; the canonical path is the bus, which is fire-and-topology and decouples the
+  emitter from its consumers.
+invariants:
+  - IAxisEvent is not an IAxisRequest and cannot be dispatched through IAxisMediator.Cqrs, which exposes no publish method.
+  - An IAxisEventHandler<TEvent> is a reaction to a published event, not a use case invoked through the mediator.
+  - Raising a domain event uses the bus (IAxisBus); the mediator is reserved for command, query and stream dispatch.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEvent.cs:3 — IAxisEvent is outside the request hierarchy"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Handlers/IAxisMediatorHandler.cs:7 — the dispatch surface has no publish method"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEventHandler.cs:5 — an event handler reacts to a published event"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Publish/subscribe is owned by axis-bus. AddCqrsMediator does register IAxisEventHandler implementations,
+  but they are driven by the bus, not the mediator — a disjoint registration surfaced in the AxisMediator
+  runtime cluster. The compiler already blocks routing an event through Cqrs, so this rule is guidance
+  about the boundary rather than a mechanically enforced constraint.

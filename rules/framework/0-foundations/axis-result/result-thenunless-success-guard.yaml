@@ -1,0 +1,51 @@
+id: result-thenunless-success-guard
+title: Skip a fallible step when the desired state already holds with ThenUnless
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  ThenUnless is the success guard: it runs the fallible next step only when the predicate over the
+  flowing value is false, and passes the success through untouched when the predicate is true — the
+  state you want already holds, so there is nothing to do. It replaces the manual ternary
+  cond ? Ok() : Step() and the guard if (!cond) return Ok() that break out of the rail. It guards
+  ONE step, not the rest of the chain: the success it returns keeps flowing, and a sub-chain that
+  should be skipped as a whole is composed inside next.
+invariants:
+  - ThenUnless is defined only on AxisResult<TValue>; the predicate reads the flowing value.
+  - When the predicate is true, the result passes through unchanged (value preserved) and next never runs.
+  - When the predicate is false, the fallible next runs; on next success the original value is preserved, on next failure the next's errors propagate as AxisResult<TValue>.
+  - An already-failed upstream result short-circuits — neither the predicate nor next runs.
+  - The predicate is always synchronous (Func<TValue, bool>); async variants (Task, ValueTask and CancellationToken-aware) exist only for next.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:108 — ThenUnless and ThenUnlessAsync, the success-guard pair on the generic result"
+    - "docs/en-us/0-Foundations/AxisResult/then-unless.md — usage, the one-step scope caveat and the sub-chain composition pattern"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/then-unless.md"
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  Three surface decisions are deliberate and should not be reopened casually: (1) no valueless form —
+  like Ensure, the operator needs a flowing value for the predicate, and a bare-bool overload would
+  invite condition-outside-the-rail usage; (2) no transforming variant to a DIFFERENT type (next
+  returning AxisResult<TNew>) — the pass-through branch returns this, so the return type could not
+  be consistent; a SAME-type conditional transformation routes to the sibling ThenWhen
+  (result-thenwhen-conditional-step), and a type-changing one still routes to Then with the branch
+  inside the lambda; (3) the predicate is synchronous by design — an async check that can fail is a
+  validation and routes to Ensure or Then. This operator is the canonical destination for the
+  success-side branch smell that result-no-if-else-flow flags.

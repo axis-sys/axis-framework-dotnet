@@ -1,0 +1,64 @@
+id: httpresponse-send-success-shapes
+title: HttpContext.SendAsync renders a successful AxisResult as a bodyless status or a value ObjectResult
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  The two HttpContext.SendAsync extension members (C# 14 extension members on HttpContext) are the package's
+  single public entry point: they await a Task<AxisResult> / Task<AxisResult<TData>> and collapse it into an
+  ASP.NET Core IActionResult at the controller edge, injecting the traceId from HttpContext.TraceIdentifier
+  automatically — the caller never passes it. On the SUCCESS rail a valueless AxisResult becomes a bodyless
+  StatusCodeResult and an AxisResult<T> becomes an ObjectResult carrying the value, both stamped with
+  statusCode (default 200 OK). On the FAILURE rail both overloads delegate to the same internal render path
+  (over AxisProblemDetailsBuilder.Build), so a controller never branches on IsSuccess by hand. This rule owns
+  the success shapes and the delegation; the failure body itself is shaped by
+  httpresponse-problem-details-builder, and the NoContent value-drop special-case is
+  httpresponse-no-content-drops-value.
+invariants:
+  - context.SendAsync(Task<AxisResult> resultTask, statusCode = OK) awaits the task and returns a bodyless StatusCodeResult((int)statusCode) when the result is a success; statusCode defaults to HttpStatusCode.OK (200).
+  - context.SendAsync<TData>(Task<AxisResult<TData>> resultTask, statusCode = OK) awaits the task and returns an ObjectResult(result.Value) with StatusCode = (int)statusCode when the result is a success and statusCode is not NoContent.
+  - On failure both overloads return the ObjectResult(ProblemDetails) produced by the internal render path over AxisProblemDetailsBuilder.Build(result.Errors, context.TraceIdentifier); the controller never inspects IsSuccess/IsFailure itself.
+  - statusCode governs only the success rail; on failure the status comes from the errors (via the builder) and statusCode is ignored.
+  - The traceId is never a caller parameter — SendAsync reads HttpContext.TraceIdentifier and threads it to the builder on failure; on the success rail it is not surfaced in the response.
+  - Both overloads throw ArgumentNullException on a null context or a null resultTask; there is no synchronous public overload — an already-materialized result is sent as HttpContext.SendAsync(Task.FromResult(result)).
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisHttpContextExtensions.cs:11 — SendAsync(Task<AxisResult>): awaits, success -> StatusCodeResult(statusCode), else the ProblemDetails render path with context.TraceIdentifier"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisHttpContextExtensions.cs:19 — SendAsync<TData>(Task<AxisResult<TData>>): awaits, failure -> builder, NoContent -> NoContentResult, else ObjectResult(Value){StatusCode}"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisResultHttpExtensions.cs:8 — the internal per-result render helpers both overloads delegate to (implementation detail, not public API)"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisResultHttpExtensions.cs:27 — BuildProblemDetailsResult wraps AxisProblemDetailsBuilder.Build in an ObjectResult, shared by both failure paths"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:12 — SendAsync_HttpContext_nongeneric_success_default_200"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:25 — SendAsync_HttpContext_nongeneric_success_custom_status"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:54 — SendAsync_HttpContext_generic_success_default_200"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:96 — SendAsync_HttpContext_generic_failure_returns_problem_details"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:111 — SendAsync_HttpContext_uses_trace_identifier"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:166 — SendAsync_HttpContext_awaits_pending_task"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/send-http-response.md"
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the sibling gap the httpresponse-problem-details-builder rule flagged: the builder had a rule but
+  the render entry point did not. The public surface is deliberately one pair of HttpContext.SendAsync
+  extension members: the older per-result sync extensions became internal implementation detail and the
+  Task-based per-result extensions were deleted, so user code has exactly one way in and the traceId can
+  never be forgotten or faked. The success rail is intentionally minimal — a StatusCodeResult
+  or an ObjectResult — because all the failure richness is delegated to the one builder, keeping a single
+  source of the severity/suppression logic. There is no minimal-API IResult overload; the package targets MVC
+  IActionResult only.

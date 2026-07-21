@@ -1,0 +1,48 @@
+id: mediator-request-response-markers
+title: The mediator request and response types form a fixed marker hierarchy with a command-versus-query asymmetry
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Every message the mediator dispatches is tagged by an empty marker interface, and those markers form a
+  fixed hierarchy that gates the generic constraints and the DI scan. The command and query branches are
+  deliberately asymmetric — a valued command is a sibling of the valueless one, while a valued query is a
+  subtype of the valueless one — and events sit entirely outside the request hierarchy.
+invariants:
+  - IAxisRequest and IAxisResponse are empty root marker interfaces with no members.
+  - IAxisCommand and the generic IAxisCommand<TResponse> each extend IAxisRequest directly, so a valued command is not assignable to the non-generic IAxisCommand.
+  - IAxisQuery<TResponse> extends the non-generic IAxisQuery, so a valued query is assignable to IAxisQuery (the opposite of the command branch).
+  - IAxisStreamQuery<out TItem> extends IAxisRequest directly rather than IAxisQuery and is covariant in TItem, whose item type is a raw DTO with no response-marker constraint.
+  - IAxisCommand<TResponse> constrains TResponse to IAxisCommandResponse and IAxisQuery<TResponse> constrains TResponse to IAxisQueryResponse, and both response markers extend IAxisResponse.
+  - IAxisEvent stands outside the request hierarchy — it does not extend IAxisRequest and is never carried by IAxisMediatorHandler.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/IAxisRequest.cs:3 — empty root request marker"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Commands/IAxisCommand.cs:3 — IAxisCommand and IAxisCommand<TResponse> both extend IAxisRequest (sibling asymmetry)"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Queries/IAxisQuery.cs:5 — IAxisQuery<TResponse> extends the non-generic IAxisQuery"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Queries/IAxisStreamQuery.cs:3 — IAxisStreamQuery<out TItem> extends IAxisRequest, covariant TItem"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEvent.cs:3 — IAxisEvent is outside the request hierarchy"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The asymmetry is a real footgun — code that reaches for the non-generic IAxisCommand to mean "any
+  command" silently excludes every valued command, whereas the same trick works for queries. Events are
+  dispatched out-of-band through IAxisBus, not the mediator (see mediator-events-out-of-band).

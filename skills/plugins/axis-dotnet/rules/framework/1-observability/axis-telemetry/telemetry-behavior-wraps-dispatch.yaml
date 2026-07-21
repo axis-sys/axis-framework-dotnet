@@ -1,0 +1,48 @@
+id: telemetry-behavior-wraps-dispatch
+title: TelemetryBehavior wraps every mediator request in an AxisMediator.{RequestName} span
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  TelemetryBehavior is the opt-in IAxisPipelineBehavior that auto-instruments the mediator. It comes in the
+  two overloads that mirror the pipeline contract — TelemetryBehavior<TRequest> and
+  TelemetryBehavior<TRequest, TResponse>. Each opens a span named $"AxisMediator.{typeof(TRequest).Name}"
+  around the call to next(), writes that span into the pipeline context under AxisPipelineContextKeys.Span so
+  downstream behaviors can read it, and tags it with the mediator's TraceId, JourneyId, RequestType,
+  AxisEntityId and RequestName before invoking the handler.
+invariants:
+  - TelemetryBehavior has two overloads, <TRequest> and <TRequest,TResponse>, matching the two IAxisPipelineBehavior shapes.
+  - Each opens a span named "AxisMediator." + typeof(TRequest).Name via IAxisTelemetry.StartSpan around next().
+  - The opened span is written into the pipeline context under AxisPipelineContextKeys.Span.
+  - Before calling next() it tags the span with TraceId, JourneyId, RequestType, AxisEntityId and RequestName from the mediator.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:19 — valueless overload opens AxisMediator.{name} and sets the standard tags"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:20 — context.Set(AxisPipelineContextKeys.Span, span)"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:76 — valued overload does the same around a typed next()"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:58 — the behavior returns the handler's success result unchanged"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:92 — the valued overload passes a successful typed result through"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/telemetry-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Opt-in gotcha — AddOpenTelemetryAxis does NOT register this behavior; you add it separately as
+  IAxisPipelineBehavior<> / <,>. The span uses the default Internal kind. AxisPipelineContextKeys.Span lives
+  in AxisMediator.Contracts (src/0-Foundations/.../Pipelines/AxisPipelineContextKeys.cs:7).

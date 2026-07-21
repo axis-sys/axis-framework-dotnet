@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Asp.Versioning" />
+    <Using Include="Microsoft.AspNetCore.Authorization" />
+    <Using Include="Microsoft.AspNetCore.Mvc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The one composition root: core + edge + the facade driving adapter + the chosen driven adapter, wired here and only here. -->
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driving.Facade\Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <!-- The email outbox is the only adapter left in-memory: a test double capturing sent mail, not
+         business state (Products/Orders/Customers/CartItems/ValidationCodes/the saga runtime are all real). -->
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.InMemory\Scaffolds.ECommerce.Adapters.Driven.InMemory.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.AuthProviders\Scaffolds.ECommerce.Adapters.Driven.AuthProviders.csproj" />
+    <!-- The real repository provider, both dialects: Products/Orders/Customers/CartItems/ValidationCodes +
+         the unit of work that drains the bus outbox. Database:Provider picks one at boot (architecture-swappable-infra-ports). -->
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Postgres\Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.MySql\Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <!-- The durable outbox binding: drains events enqueued by IAxisBus.PublishAsync in the same transaction as SaveChangesAsync. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisBus\Repository\Postgres\AxisBus.Postgres\AxisBus.Postgres.csproj" />
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisBus\Repository\MySql\AxisBus.MySql\AxisBus.MySql.csproj" />
+    <!-- The real saga runtime, both dialects: durable AXIS_SAGA storage + the hosted AxisSagaResumerWorker
+         (crash recovery, schema bootstrap, definition catalogue) — replaces the in-memory, worker-less saga. -->
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisSaga\Postgres\AxisSaga.Postgres\AxisSaga.Postgres.csproj" />
+    <ProjectReference Include="..\..\..\2-ApplicationFlow\AxisSaga\MySql\AxisSaga.MySql\AxisSaga.MySql.csproj" />
+    <!-- The framework HTTP-response package: maps AxisError -> ProblemDetails and renders AxisResult at the edge. -->
+    <ProjectReference Include="..\..\..\4-Edge\AxisResult.HttpResponse\AxisResult.HttpResponse.csproj" />
+    <!-- Applies the Axis convention analyzers (AXIS0605): proves each route-injected command property is [JsonIgnore]. -->
+    <ProjectReference Include="..\..\..\Conventions\Axis.Conventions.Analyzers\Axis.Conventions.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.E2ETests" />
+  </ItemGroup>
+
+</Project>

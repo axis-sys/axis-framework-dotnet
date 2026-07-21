@@ -1,0 +1,42 @@
+id: mediator-runtime-di-registration
+title: AddAxisMediator wires the mediator and handler Scoped and both accessors Singleton
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  AddAxisMediator() is the single wiring point for the runtime. It registers IAxisMediatorHandler and
+  IAxisMediator with a Scoped lifetime (one per request scope) and both IAxisMediatorAccessor and
+  IAxisMediatorContextAccessor as Singleton. The accessors are safe as singletons because their state lives
+  in static AsyncLocal fields, not instance fields, so no request state is shared across scopes.
+  AddPerformanceBehavior() is a separate opt-in that adds the open-generic timing behavior.
+invariants:
+  - AddAxisMediator registers IAxisMediatorHandler as AxisMediatorHandler and IAxisMediator as AxisMediator with a Scoped lifetime.
+  - AddAxisMediator registers IAxisMediatorAccessor as AxisMediatorAccessor and IAxisMediatorContextAccessor as AxisMediatorContextAccessor with a Singleton lifetime.
+  - The Singleton accessors are correct only because their backing state is stored in static AsyncLocal fields, not per instance, so no request state leaks across scopes.
+  - AddAxisMediator is called once per application and is independent of AddCqrsMediator (handler scan) and AddPerformanceBehavior (opt-in behavior).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/DependencyInjection.cs:17 — AddAxisMediator: mediator+handler Scoped, both accessors Singleton"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/BaseUnitTest.cs:11 — DefaultServiceProvider composes AddAxisMediator with the handler scan and the behaviors"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/registration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The mediator and handler are Scoped so they can carry per-request ambient state; the accessors are
+  Singleton but hold no per-request state of their own — the static AsyncLocal fields do.

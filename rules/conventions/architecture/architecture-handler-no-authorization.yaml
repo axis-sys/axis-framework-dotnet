@@ -1,0 +1,52 @@
+id: architecture-handler-no-authorization
+title: A handler does not re-perform the authentication or authorization the driving edge already enforced
+tier: convention
+concern: architecture
+layer: application
+severity: should
+status: canonical
+description: >
+  A use-case handler runs behind the driving adapter's authentication/authorization gate: the edge (the
+  [Authorize] attribute, the auth middleware, the infra) establishes identity and coarse access before the
+  request reaches the mediator, and the handler reads the ambient identity for BUSINESS use — stamping the
+  actor, scoping a query — not to re-check what the edge already checked. So a handler must not DUPLICATE that
+  gate: re-validating a bearer token, re-asserting a role the [Authorize] policy already required. This is a
+  judgment applied with context, NOT a syntactic ban on returning 401/403. Two legitimate cases produce auth
+  errors from inside a handler: (1) the handler IS the authentication mechanism — token-issuance and
+  refresh-token handlers are the gate itself and return Unauthorized on invalid credentials or an
+  expired/again-consumed refresh token; (2) a genuine domain-level permission decision the edge cannot express
+  — per-resource ownership, a tenant-scoped grant, an account-disabled gate on session issuance — may return
+  Forbidden. The smell is re-validating what the infra already validated, not the auth error itself.
+invariants:
+  - A handler does not re-check the authentication or coarse authorization the driving edge/[Authorize] gate already enforced; it reads the ambient identity for business use, not to re-authorize the caller.
+  - Returning Unauthorized/Forbidden is legitimate when the handler IS the authentication mechanism (token issuance, refresh-token consumption) or is making a genuine domain-level permission decision the edge cannot make.
+  - The distinction is contextual — applied by review and the use-case/edge skills, not by a syntactic analyzer; the anti-pattern is duplicating the edge's gate, never the auth error per se.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Authentication and token handlers (request token, refresh token, service-account token) ARE the gate and return Unauthorized on invalid credentials or an expired/consumed refresh token.
+  - A domain-level permission decision the [Authorize] edge cannot express (per-resource ownership, tenant-scoped grant, account-disabled gate on session issuance) may return Forbidden from the handler.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+    - axis-webapi-controllers
+    - axis-review
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-13
+notes: >
+  Was briefly enforced by the AXIS0606 analyzer (HandlerAuthorizationAnalyzer), which flagged any
+  AxisError.Unauthorized/Forbidden lexically inside a handler. That was too blunt — it false-positived on
+  legitimate authentication/token handlers (RequestToken, RefreshToken, RequestServiceToken) and on genuine
+  domain permission gates, which cannot move to the [Authorize] edge because the decision needs the database
+  (a secret hash, a refresh-token lookup) or per-resource context. The analyzer was removed on 2026-07-13; the
+  convention is now a context-aware judgment applied through the use-case and edge skills. Same "don't
+  duplicate what another layer already guarantees" theme as architecture-handler-shape's value-object-cast
+  invariant (the handler trusts the already-validated input instead of re-parsing it).

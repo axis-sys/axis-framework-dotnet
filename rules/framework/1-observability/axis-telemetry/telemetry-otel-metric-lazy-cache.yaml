@@ -1,0 +1,44 @@
+id: telemetry-otel-metric-lazy-cache
+title: Histograms and counters are created once on first use and cached concurrently
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [performance, concurrency]
+severity: should
+status: canonical
+description: >
+  The OpenTelemetryAdapter creates each metric instrument lazily and reuses it. RecordHistogram and
+  IncrementCounter look the instrument up by name in a ConcurrentDictionary via GetOrAdd, creating the
+  Histogram<double> / Counter<long> on the first call and returning the cached instance thereafter — safely
+  under concurrency because the backing store is a ConcurrentDictionary. So you can call RecordHistogram or
+  IncrementCounter with any name from any code path without pre-declaring the instrument; the same name
+  always resolves to the same instrument.
+invariants:
+  - RecordHistogram resolves the Histogram<double> from a ConcurrentDictionary keyed by name, creating it once via GetOrAdd.
+  - IncrementCounter resolves the Counter<long> from a ConcurrentDictionary keyed by name, creating it once via GetOrAdd.
+  - The same metric name always maps to the same cached instrument; creation is concurrency-safe.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:26 — RecordHistogram: _histograms.GetOrAdd then Record"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:32 — IncrementCounter: _counters.GetOrAdd then Add"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/OpenTelemetryAdapterTests.cs:90 — IncrementCounter and RecordHistogram do not throw"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/opentelemetry-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The lazy caching is why ad-hoc metric names work without a registration step — the instrument is born on
+  first Record/Increment and shared atomically from then on.

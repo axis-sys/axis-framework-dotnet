@@ -1,0 +1,44 @@
+id: telemetry-span-fluent-disposable
+title: IAxisSpan is fluent and IDisposable — chain the mutators, end it with using
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  IAxisSpan is the unit of work you actually tag. It exposes the read-only TraceId/SpanId and four mutators —
+  SetTag(key, value), SetStatus(status, description?), RecordException(ex) and AddEvent(name, attributes) —
+  each of which returns the same IAxisSpan so calls chain fluently next to StartSpan. It implements
+  IDisposable, and disposing ends the span; wrap it in `using var` so the span closes on every exit path
+  (success, exception, early return). Open one span per operation and do not nest unless the work truly nests.
+invariants:
+  - IAxisSpan exposes TraceId and SpanId (read-only) plus exactly four mutators — SetTag, SetStatus, RecordException, AddEvent.
+  - Every mutator returns IAxisSpan (itself) so the calls chain.
+  - IAxisSpan is IDisposable and disposing ends the span; callers use `using var` to guarantee it closes on all paths.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisSpan.cs:3 — IDisposable span with TraceId/SpanId and four this-returning mutators"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/ActivityAxisSpan.cs:10 — each mutator returns this; Dispose ends the Activity"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:23 — SetTag chained onto a live span"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:84 — TraceId/SpanId reflect the backing Activity"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/spans.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The fluent style keeps all tagging next to StartSpan, avoiding a later "did I forget to tag it?" hunt; the
+  using pattern is what guarantees the span ends even when the operation throws.

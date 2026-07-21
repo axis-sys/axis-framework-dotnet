@@ -1,0 +1,46 @@
+id: testing-unit-serviceprovider-mocks
+title: Unit-test the core through the Facade over a ServiceProvider, mocking only driven ports
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  A unit test exercises the core (domain plus application) by building a ServiceProvider with the real
+  application wiring and driving the use case through its Facade, so the full mediator pipeline — validation
+  and behaviors — runs. The only test doubles are driven ports; a shared base registers every one of them as
+  a singleton mock with a permissive default so the whole pipeline provisions, and each test overrides only
+  the port behavior it exercises before building the provider. Driving adapters are never mocked and never
+  unit-tested.
+invariants:
+  - A unit test resolves and drives the use case through its Facade from a ServiceProvider composed of the real application registration plus the facade adapter registration, so the real mediator pipeline of validation and behaviors runs.
+  - The only test doubles are driven ports — repository ports and IAxis* infrastructure ports; driving adapters are never mocked.
+  - A shared test base registers every driven port the pipeline needs as a singleton mock with a permissive default, so the whole application dependency chain provisions.
+  - A test overrides only the specific driven-port behavior it exercises and then builds the provider; ports it does not touch keep the base default.
+  - The test ServiceProvider registers a TimeProvider (and IAxisTelemetry when the telemetry behavior is wired) because the pipeline requires them at run time.
+  - Driven adapters are never unit-tested; their coverage is integration tests against real containers. The facade driving adapter carries zero logic and is exercised implicitly by every facade-driven test.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/AuthTestHost.cs:13 — the shared base registering every driven port as a permissive singleton mock"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/AuthTestHost.cs:40 — Build<TFacade>() composes application + facade adapter and resolves the facade from a scope"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/RequestTokenHandlerTests.cs:12 — a test driving the use case through its facade, overriding only the port behavior it exercises"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-unit-tests
+    - axis-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Entity state for arranging a scenario still uses a Fake{Entity} record implementing the property interface
+  (testing-fake-entity-property-records); Moq is the only mocking framework (testing-allowed-packages).
+  Driving the use case through the Facade — not the handler directly — is what keeps the validation and
+  behavior pipeline honest. Adapter coverage lives in testing-pyramid-four-projects.

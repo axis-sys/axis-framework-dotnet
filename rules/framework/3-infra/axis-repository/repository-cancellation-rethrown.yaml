@@ -1,0 +1,41 @@
+id: repository-cancellation-rethrown
+title: OperationCanceledException is re-thrown, never mapped to an AxisError
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  Cancellation is control flow, not a database failure. Every core method catches OperationCanceledException
+  FIRST and re-throws it before any DbException handler runs, so a cancelled request unwinds as a cancellation
+  rather than being swallowed into a ServiceUnavailable or InternalServerError result. The ordering matters:
+  the OperationCanceledException catch precedes every DbException catch in each core method.
+invariants:
+  - Each core method (Execute, ExecuteCount, Get, List) has a catch (OperationCanceledException) that re-throws before any DbException catch.
+  - A cancelled repository call throws OperationCanceledException; it is never converted into an AxisResult failure.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:82 — catch (OperationCanceledException) { throw; } ahead of the DbException handlers"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisRepositoryBaseTests.cs:139 — OperationCanceledIsRethrownNotMapped"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresRepositoryBaseTests.cs:369 — cancelled Execute/Get/List all throw OperationCanceledException"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/repository-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  ExecuteCountAsync also re-throws (repository has a dedicated ExecuteCountOperationCanceledIsRethrown test),
+  so the guarantee holds on all four surfaces, not only the three write/read paths.

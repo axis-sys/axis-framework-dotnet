@@ -1,0 +1,47 @@
+id: architecture-contracts-primitive-dtos
+title: Keep driving contracts primitive-typed — nullable inits on input, required inits on output
+tier: convention
+concern: architecture
+layer: contracts
+severity: must
+status: canonical
+description: >
+  Commands, queries and responses in the driving contracts are wire-shaped DTOs: only strings, bools,
+  numbers, dates, collections and nested contract DTOs. Value objects and domain types never appear (an
+  architecture test forbids the domain reference outright). Input properties are nullable with init setters
+  so validators — not the type system — report missing fields; output properties are non-nullable required
+  inits.
+invariants:
+  - A command is public record {UseCase}Command : IAxisCommand<{UseCase}Response> (or IAxisCommand); a query is {UseCase}Query : IAxisQuery<{UseCase}Response>; a response is {UseCase}Response : IAxisCommandResponse or IAxisQueryResponse.
+  - Input DTO properties are nullable primitives, or collections defaulted to empty, so absence is reported by the validator rather than the type system.
+  - Response DTO properties are required with init setters, non-nullable unless the value is genuinely optional.
+  - Ids, slugs and codes cross the boundary as strings; parsing into value objects happens in validators and handlers, and outputs render value objects as strings.
+  - No type from the domain or the driven contracts appears in a driving contract.
+  - Contracts carry XML doc comments feeding the API reference; a nested row DTO is declared inside or beside its response.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Customers/v1/EnsureCustomer/EnsureCustomerCommand.cs:11 — nullable primitive init input on a command implementing the CQRS marker"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Customers/v1/GetCustomer/GetCustomerResponse.cs:7 — required non-nullable init outputs (nullable only when optional); ids cross as strings"
+  incorrect: []
+exceptions:
+  - A shared sub-DTO of a use case lives beside the command and follows the input shape without implementing a CQRS marker interface.
+  - Positional records are used for events and internal saga DTOs, not for commands or queries.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The CQRS marker interfaces come from the framework rule mediator-request-response-markers; where each DTO
+  lives is architecture-contracts-location and how the folder is laid out is architecture-contracts-versioned-layout.
+  The string-to-value-object parse happens in validators/handlers (architecture-validator-conventions,
+  framework rule types-value-object-parsing). Events are sealed positional records governed by
+  architecture-bus-events; the plain public record is the dominant style for commands, queries and responses.

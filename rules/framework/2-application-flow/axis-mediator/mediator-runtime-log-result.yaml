@@ -1,0 +1,44 @@
+id: mediator-runtime-log-result
+title: Every command or query dispatch resolves a logger and logs its outcome
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  After the pipeline runs, ExecutePipelineAsync calls LogResult, which resolves ILogger of AxisMediatorHandler
+  with GetRequiredService on every dispatch and also re-resolves IAxisMediator. On success it logs Information
+  with the request name and TraceId; on failure it logs Error with the request name, TraceId and the full
+  error list. The JourneyId is included in the message only when it is non-null. Because the logger is
+  resolved with GetRequiredService, a logging provider must be registered or the dispatch throws.
+invariants:
+  - LogResult runs after every ExecuteAsync and QueryAsync dispatch, on both success and failure; StreamAsync does not log.
+  - It resolves ILogger of AxisMediatorHandler with GetRequiredService on every call, so a logging provider must be registered or the dispatch throws.
+  - A successful result is logged at Information; a failed result is logged at Error carrying the full result.Errors list.
+  - The JourneyId is added to the log message only when the mediator JourneyId is non-null.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:66 — pipeline calls LogResult after awaiting the chain"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:88 — LogResult resolves ILogger and IAxisMediator, branches success vs failure and on JourneyId presence"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/CommandHandlerTests.cs:29 — a successful dispatch runs LogResult on the Information path"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/dispatching.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Resolving ILogger and re-resolving IAxisMediator on every dispatch is a per-call cost; the mediator is
+  fetched from the provider rather than injected into the handler.

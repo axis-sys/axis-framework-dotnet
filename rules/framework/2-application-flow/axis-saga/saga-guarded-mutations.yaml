@@ -1,0 +1,44 @@
+id: saga-guarded-mutations
+title: Every instance mutation is guarded by optimistic version AND lease ownership
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+lens: [concurrency]
+description: >
+  The ISagaInstanceStore contract requires every mutation to use optimistic concurrency on the Version column
+  AND lease ownership (CLAIMED_BY + CLAIMED_UNTIL): a write only lands if the expected version matches and the
+  caller still owns the lease. The engine passes its expected version to each store call (MoveToStatus,
+  PersistStageSuccess, Complete, Compensate, Fail) and increments its in-memory version on success. Two runs
+  racing the same saga therefore cannot both persist a transition — the version/lease guard turns the loser's
+  write into a no-op.
+invariants:
+  - Every ISagaInstanceStore mutation takes an expectedVersion and the runner id and only writes when the version matches and the lease is still owned.
+  - The engine increments its tracked Version after each successful persisted transition and passes it to the next store call.
+  - A concurrent run that lost the version/lease race cannot persist a transition; its mutation is rejected rather than applied.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaInstanceStore.cs:5 — optimistic concurrency on version AND lease ownership; never throws"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:272 — TransitionToAsync passes expected version and increments on success"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/SagaLeaseConcurrencyTests.cs:65 — concurrent runs execute the stage once (version/lease guard)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Version guards the transition sequence; the lease guards single-execution — both are checked on every write,
+  so neither a stale version nor a lost lease can corrupt the saga's state.

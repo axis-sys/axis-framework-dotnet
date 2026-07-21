@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="AxisRepository.MySql" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.Repository" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <!-- The shared, provider-agnostic repository + the MySQL binding of the framework persistence. -->
+    <ProjectReference Include="..\Scaffolds.ECommerce.Adapters.Driven.Repository\Scaffolds.ECommerce.Adapters.Driven.Repository.csproj" />
+    <ProjectReference Include="..\..\..\3-Infra\AxisRepository\MySql\AxisRepository.MySql\AxisRepository.MySql.csproj" />
+  </ItemGroup>
+
+</Project>

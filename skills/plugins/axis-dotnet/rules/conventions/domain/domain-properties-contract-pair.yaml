@@ -1,0 +1,43 @@
+id: domain-properties-contract-pair
+title: Model each persisted entity as a public Properties interface plus an internal sealed record
+tier: convention
+concern: domain
+layer: domain
+severity: must
+status: canonical
+description: >
+  The domain project exposes entity state as read-only property interfaces (I{Entity}EntityProperties) and
+  hides the concrete shape behind an internal positional record ({Entity}Properties) in the same Properties
+  folder. Ports, factories and use cases traffic in the interface; only the application layer (via
+  InternalsVisibleTo) and a repository's DbEntity may materialize the concrete record.
+invariants:
+  - Every persisted entity has a public read-only interface — I{Entity}EntityProperties for aggregates and child entities, or I{Entity}Properties for lookups — exposing get-only properties.
+  - The concrete implementation is an internal sealed positional record {Entity}Properties in the same namespace, implementing the interface in the same property order.
+  - Property types are value objects for ids and slugs and BCL primitives for the rest; an optional value object is modelled as a nullable value-object type.
+  - The domain project grants InternalsVisibleTo only to the application project and the core unit-test project, so nothing else can construct the concrete record.
+  - Properties records are the state contract only and carry no behavior; any rule belongs to the aggregate's N2 entity (domain-aggregate-levels).
+  - A child entity of an aggregate lives in the same Properties folder as its aggregate root.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Unit tests use a Fake{Entity} record implementing the interface because the concrete record is internal (see axis-unit-tests).
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks:
+    - AXIS0604
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-13
+notes: >
+  Folder layout is {BC}/{Aggregate}/Properties/, with nested folders for sub-aggregates. The interface is
+  what ports, factories and use cases depend on; the sealed record is materialized only inside the
+  application (through InternalsVisibleTo) and by a repository's DbEntity when mapping a reader row. The
+  behavior that a Properties record deliberately omits belongs to the N2 entity described in
+  domain-aggregate-levels.

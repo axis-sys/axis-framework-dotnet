@@ -1,0 +1,46 @@
+id: httpresponse-no-content-drops-value
+title: A NoContent success status returns NoContentResult and drops the AxisResult value
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  HttpStatusCode.NoContent (204) is special-cased on the value-carrying overload. Even when an
+  AxisResult<TData> succeeds WITH a value, passing statusCode = NoContent to HttpContext.SendAsync returns a
+  NoContentResult and discards the value rather than serializing it into an ObjectResult body. This lets a
+  controller express a 204 intent at the edge (update, mark-as-read) without changing the handler's
+  Task<AxisResult<T>> contract. Any other statusCode serializes the value as the body; only NoContent drops it.
+invariants:
+  - SendAsync<TData> returns a NoContentResult (204, no body) when the result is a success and statusCode == HttpStatusCode.NoContent, discarding result.Value.
+  - For every success status other than NoContent, SendAsync<TData> serializes result.Value in an ObjectResult; the value is dropped only for NoContent.
+  - The NoContent special-case applies to the value overload; the valueless Task<AxisResult> overload has no value to drop and simply returns StatusCodeResult(statusCode).
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisHttpContextExtensions.cs:19 — SendAsync<TData>, the public entry point that delegates to the internal render path"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisResultHttpExtensions.cs:21 — if the success status is NoContent return new NoContentResult()"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisResultHttpExtensions.cs:24 — otherwise ObjectResult(result.Value){StatusCode}"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:83 — SendAsync_HttpContext_generic_success_no_content"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/HttpContextExtensionsTests.cs:54 — SendAsync_HttpContext_generic_success_default_200 (any non-NoContent status keeps the body)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/send-http-response.md"
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The 204-vs-200 gotcha: a valueless AxisResult success defaults to 200 (a bodyless StatusCodeResult), while a
+  value-carrying AxisResult<T> only becomes a bodyless 204 when you explicitly ask for NoContent — in which
+  case the value is silently dropped. If you want the value in the body, use any status other than NoContent.

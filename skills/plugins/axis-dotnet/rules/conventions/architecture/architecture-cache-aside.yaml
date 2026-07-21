@@ -1,0 +1,43 @@
+id: architecture-cache-aside
+title: Cache hot reads with a named cache-aside component over IAxisCache; invalidate on mutation events
+tier: convention
+concern: architecture
+layer: application
+lens: performance
+severity: should
+status: canonical
+description: >
+  A hot read path gets a dedicated internal cache component that composes IAxisCache.GetOrCreateAsync over
+  the underlying source (another bounded context's facade, or a reader port). Mutating use cases never
+  touch the cache directly — they publish a bus event and an event handler in the caching bounded context
+  evicts the affected entries. Hot paths stay fast and invalidation stays decoupled from the mutators.
+invariants:
+  - The cache component is internal (static key/TTL helpers or a sealed class) and composes the IAxisCache port; it never wraps an SDK type.
+  - Keys are built by static helpers under a stable, namespaced prefix; the TTL is a static readonly TimeSpan on the component.
+  - A read is one line of cache-aside — cache.GetOrCreateAsync(key, () => ComposeAsync(...), Ttl) — populating lazily on a miss.
+  - Invalidation is event-driven eviction — RemoveAsync of the affected keys, or an epoch/version bump for whole-scope invalidation; repopulation happens on the next read.
+  - Mutating handlers never inject the cache; they publish an event and the caching bounded context's event handler evicts, keeping invalidation decoupled from the mutators.
+  - An entry that guards correctness rather than caches data (for example an epoch counter) never expires, because an expired guard could resurrect entries written under an older version.
+  - IAxisCache itself is registered at the composition root, not inside the application's own registration extension.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  IAxisCache is one of the swappable infra ports (architecture-swappable-infra-ports): the adapter is a DI
+  choice and the component composes AxisResult, never a provider type. The mutation-to-eviction hop is a
+  bus event (architecture-bus-events) rather than a direct cache write, which is what keeps a mutator
+  ignorant of who caches its data.

@@ -1,0 +1,44 @@
+id: architecture-ambient-context
+title: Caller identity and cancellation are ambient — never parameters on contracts or HandleAsync
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  Execution context flows around the call, not through it. Caller identity comes from the mediator's
+  ambient context and cancellation is ambient in the mediator pipeline (AsyncLocal), so neither appears in
+  handler signatures or contracts. Any app-scoped ambient dimension (for example a tenant) is read from a
+  scoped accessor, never passed as a parameter.
+invariants:
+  - Commands and queries never carry the caller's own identity; an operation that TARGETS a specific principal or scope carries that target explicitly as a value.
+  - HandleAsync and dispatch signatures never include a CancellationToken; port interfaces consumed by handlers do not declare CancellationToken parameters either.
+  - The current principal is read from the mediator's ambient identity accessor (null means anonymous or system); handlers that need it inject that accessor rather than receiving an id parameter.
+  - App-scoped ambient context such as a tenant is exposed through a single scoped accessor read inside the handler; background, saga and worker flows establish it via an AxisResult-returning write before dispatching scoped work.
+  - Application pipelines do not use the cancellation-token-aware AxisResult overloads; those exist for code running outside a mediator scope, where cancellation is passed explicitly.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Pipelines/ActorStampBehavior.cs:15 — the ambient caller identity is read from the mediator accessor (mediator.AxisEntityId), never passed on a contract"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/UseCases/RequestCode/v1/RequestEmailValidationHandler.cs:19 — HandleAsync takes only the command; no CancellationToken parameter"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Customers/ICustomersPort.cs:7 — driven port methods carry no CancellationToken (cancellation is ambient)"
+  incorrect: []
+exceptions:
+  - Service entry points that run outside a mediator scope (background reconcilers, worker loops) DO take an explicit CancellationToken, because there is no ambient pipeline to carry it.
+derives_to:
+  skills:
+    - axis-mediator
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The canonical owner of cancellation-is-ambient is the framework rule mediator-cancellation-is-ambient;
+  this convention forbids the leak of that (and of caller identity) into the application boundary.
+  Multi-tenancy is not mandated by Axis — the tenant accessor is only one example of an app-scoped ambient
+  dimension.

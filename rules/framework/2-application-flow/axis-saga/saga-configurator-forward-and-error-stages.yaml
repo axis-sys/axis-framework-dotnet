@@ -1,0 +1,45 @@
+id: saga-configurator-forward-and-error-stages
+title: The configurator declares forward stages with AddStage and compensation stages with AddErrorStage
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  IAxisSagaConfigurator<TPayload> exposes exactly two declarations: AddStage(name) appends a forward stage
+  (the business progression) and AddErrorStage(name) appends an error/compensation stage. They land in two
+  separate lists on the definition (ForwardStages, ErrorStages); the first forward stage is the saga's entry
+  point (FirstForwardStage => ForwardStages[0]). Error stages use the SAME IAxisSagaStageHandler contract and
+  AxisResult shape — the only difference is where they sit and how the engine treats their failures.
+invariants:
+  - AddStage(name) appends a forward stage (IsErrorStage=false) to ForwardStages; AddErrorStage(name) appends an error stage (IsErrorStage=true) to ErrorStages.
+  - Forward stages are the ordered business progression; the first registered forward stage is the entry point (FirstForwardStage => ForwardStages[0]).
+  - Error stages are reachable only via another stage's RouteToOnError and are still implemented by an IAxisSagaStageHandler with the same AxisResult<TPayload> shape.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/IAxisSagaConfigurator.cs:5 — AddStage / AddErrorStage"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaConfigurator.cs:10 — forward vs error builder lists"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/AxisSagaDefinition.cs:9 — FirstForwardStage => ForwardStages[0]"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:48 — AddErrorStage registers as an error stage"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md:98 — OrderSaga: two AddStage forward + two AddErrorStage compensation"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Compensation is modelled as ordinary error stages reached by routing — not a separate handler type — so the
+  same idempotency and AxisResult contract apply to undo steps.

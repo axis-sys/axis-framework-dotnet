@@ -1,0 +1,46 @@
+id: edge-tenant-scoping-middleware
+title: In multi-tenant apps, scope the tenant via a marker attribute plus middleware setting the ambient accessor
+tier: convention
+concern: edge
+layer: driving
+lens:
+  - security
+severity: must
+status: canonical
+description: >
+  In a multi-tenant application the tenant is fully ambient: no command or query carries a tenant field
+  from the controller. Endpoints that operate on tenant data are marked with a tenant attribute; a
+  middleware registered after authentication reads the tenant header, validates the caller's membership
+  through the authorization facade (the thin token carries no tenant claims; administrators bypass), and
+  publishes the tenant through the ambient accessor for the request. Single-tenant applications do not
+  adopt this rule.
+invariants:
+  - The tenant marker is an attribute discovered via endpoint metadata; endpoints without it pass through the middleware untouched.
+  - The tenant header name is a constant; its value is trimmed and normalized before use.
+  - A missing or blank header on a tenant-marked endpoint is rejected 400; a tenant the authorization grants deny is rejected 403 (administrators bypass); an invalid slug is rejected 400 — all as ProblemDetails.
+  - The middleware runs after authentication and authorization and before endpoint routing, so claims exist and the tenant is resolved before any filter or handler runs.
+  - Controllers and handlers read the tenant only through the ambient accessor; no header reads occur outside the middleware.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Single-tenant applications have no tenant scope and do not adopt this rule at all.
+  - Tenant-neutral surfaces (session/token endpoints, tenant-listing, identity, administrative and global-vocabulary endpoints) omit the tenant marker on purpose.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This rule is conditional on multi-tenancy — it is the tenant-scoping shape for applications that have
+  tenants, and it does not apply to single-tenant hosts. Sagas re-establish the ambient tenant
+  themselves from their payload; the middleware covers only the HTTP request scope. The header-derived
+  tenant is validated through the same authorization grants model the permission filter uses
+  (edge-permission-authorization), which works because the token is thin (edge-auth-schemes).

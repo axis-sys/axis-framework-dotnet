@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced by the types (to instantiate the analyzers), not applied as an analyzer here. -->
+    <ProjectReference Include="..\AxisBus.Analyzers\AxisBus.Analyzers.csproj" />
+    <ProjectReference Include="..\AxisBus\AxisBus.csproj" />
+  </ItemGroup>
+
+</Project>

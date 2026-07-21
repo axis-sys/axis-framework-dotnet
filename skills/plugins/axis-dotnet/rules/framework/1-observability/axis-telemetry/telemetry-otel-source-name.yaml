@@ -1,0 +1,43 @@
+id: telemetry-otel-source-name
+title: The ActivitySource and Meter share the name "Axis.AxisMediator" — register it or nothing flows
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  The OpenTelemetryAdapter holds one process-wide ActivitySource and one Meter, both named by the constant
+  OpenTelemetryAdapter.SourceName = "Axis.AxisMediator". Spans and metrics only reach a sink if that name is
+  added to the OpenTelemetry pipeline — WithTracing(b => b.AddSource("Axis.AxisMediator")) and
+  WithMetrics(b => b.AddMeter("Axis.AxisMediator")). Without those two registrations the adapter still runs
+  but every span is unsampled (a null Activity) and no metric is exported. Reference the SourceName constant
+  rather than retyping the literal so the name cannot drift.
+invariants:
+  - The adapter's ActivitySource and Meter are both named OpenTelemetryAdapter.SourceName, whose value is "Axis.AxisMediator".
+  - Data only flows when the sink registers that source (AddSource) and meter (AddMeter) by name.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:9 — SourceName const = \"Axis.AxisMediator\""
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:11 — ActivitySource and Meter both constructed with SourceName"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/opentelemetry-adapter.md"
+    - "docs/en-us/1-Observability/AxisTelemetry/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A silent-empty-dashboard gotcha: AddOpenTelemetryAxis wires the adapter, but forgetting AddSource/AddMeter
+  for "Axis.AxisMediator" means no data ever leaves the process even though the code is fully instrumented.

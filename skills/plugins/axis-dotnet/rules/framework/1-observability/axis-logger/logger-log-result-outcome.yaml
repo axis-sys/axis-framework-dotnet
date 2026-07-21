@@ -1,0 +1,47 @@
+id: logger-log-result-outcome
+title: LogResult logs an AxisResult outcome — Information on success, Error on failure, with Tag/RequestName/AxisErrorList
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  LogResult(tag, result) is the interface's railway-aware method: it picks the level from the outcome —
+  Information when result.IsSuccess, Error otherwise — writes the message $"{tag} Handled {typeof(T).Name}",
+  and attaches Tag and RequestName (= typeof(T).FullName) as properties, plus, on failure only, the whole
+  error list under "AxisErrorList" (= result.Errors). It is one decision-free call at the end of a pipeline,
+  usually via TapAsync so the railway keeps flowing.
+invariants:
+  - LogResult logs at Information when result.IsSuccess and at Error when the result is a failure.
+  - The message is $"{tag} Handled {typeof(T).Name}"; Tag and RequestName (typeof(T).FullName) are attached in both cases.
+  - result.Errors is attached under the "AxisErrorList" property on failure only; on success that property is absent.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/IAxisLogger.cs:19 — void LogResult(string tag, AxisResult result)"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:30 — level from IsSuccess; Tag/RequestName always, AxisErrorList on failure"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:134 — success logs Information with Tag/RequestName"
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:147 — failure logs Error with AxisErrorList"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/log-result.md"
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  LogResult is the fixed-severity, handler-tag-coupled precedent that the LogIf* extensions generalise into a
+  chainable Tap-family form with caller-chosen severity (see logger-result-log-if). Both use the same
+  "AxisErrorList" key, so a sink query spans manual and chained call sites. A railway NotFound is an Error on
+  the rail, so LogResult records it at Error — the intended severity, not an exception.

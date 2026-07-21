@@ -1,0 +1,45 @@
+id: architecture-contracts-location
+title: Commands, queries, responses, facades, events and saga payloads live in the driving contracts project
+tier: convention
+concern: architecture
+layer: contracts
+severity: must
+status: canonical
+description: >
+  The application project holds behavior only — handlers, validators, factories, sagas, services. Every
+  driving contract — Command, Query, Response, sub-DTOs, the facade interface, IAxisEvent records and saga
+  payloads — lives in the driving contracts project, mirroring the slice path {BC}/{Aggregate}/v1/{UseCase}/.
+  This keeps contracts consumable by controllers, other bounded contexts and tests without referencing the
+  application, and an architecture test keeps the contracts free of the domain.
+invariants:
+  - No Command/Query/Response type is declared inside the application project; a contract is declared only in the driving contracts project.
+  - Every driving contract — Command, Query, Response, sub-DTOs, the facade interface, event records and saga payloads — lives in the driving contracts project.
+  - The driving contracts project depends only on the mediator contracts and the Axis kernel — never on the domain, the application, the driven contracts or any adapter (enforced by an architecture test).
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Scaffolds.ECommerce.Contracts.Driving.csproj:15 — the driving contracts project ({App}.Contracts.Driving) references only AxisMediator.Contracts, never Domain/Application/Adapters"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.ArchitectureTests/HexagonalBoundaryTests.cs:45 — the architecture test that enforces the dependency invariant by reflection"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/Checkout/CheckoutCommand.cs:7 — a Command declared in the driving contracts, not in the application"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/ICatalogFacade.cs:9 — the facade interface lives with the contracts"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Auth/v1/IAuthFacade.cs:5 — the facade interface for a second bounded context (Auth), same v1-root placement"
+  incorrect: []
+exceptions:
+  - A saga-internal composition DTO that never crosses the bounded-context edge may stay in the application.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This rule owns which contracts belong in the driving contracts project; the folder/namespace layout is
+  architecture-contracts-versioned-layout, event placement is architecture-bus-events and payload placement
+  is architecture-saga-payloads. The facade interface itself is architecture-facade-pattern and each DTO's
+  shape is architecture-contracts-primitive-dtos. Contracts staying free of the application is what lets
+  controllers, sibling bounded contexts and tests consume them without a behavior dependency.

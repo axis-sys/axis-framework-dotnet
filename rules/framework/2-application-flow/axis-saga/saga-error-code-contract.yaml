@@ -1,0 +1,40 @@
+id: saga-error-code-contract
+title: AxisSagaErrors holds the stable saga error-code constants
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  The saga runtime reports failures with the string codes in AxisSagaErrors — SagaDefinitionNotFound,
+  SagaInstanceNotFound, StageHandlerNotFound, StageNotFound, ConcurrencyConflict, PayloadDeserializationFailed,
+  PayloadSerializationFailed, PersistenceFailed. These constants (plus the store-owned
+  SAGA_ID_ALREADY_EXISTS / validation codes) are the stable code contract callers pivot on, carried on the
+  AxisError and persisted to LAST_ERROR_CODE. Match on the code, not the human-readable message.
+invariants:
+  - Saga failures carry an AxisSagaErrors code (or a store/validation code such as SAGA_ID_ALREADY_EXISTS), and these codes are the stable contract callers match on.
+  - The code, not the message, is what downstream code and the persisted LAST_ERROR_CODE key on.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/SharedKernel/AxisSagaErrors.cs:3 — the saga error-code constants"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md:49 — the StartAsync / GetByIdAsync outcome codes"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This mirrors the AxisResult error-typing discipline: the code is the contract. The saga also relies on
+  AxisError.IsTransient (not a saga-specific code) to decide retry vs compensation.

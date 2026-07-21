@@ -1,0 +1,39 @@
+id: persistence-ddl-axistable-define
+title: DDL is a single Axis.Ddl AST — one static Define() per table, rendered per dialect
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Schema is never written as raw provider SQL. Each table has a public static {Entities}Table class whose
+  Define() builds an AxisTable AST (columns, defaults, collation, indexes, partial uniques, foreign keys,
+  seeds). The AST is rendered to each provider's SQL by the injected IAxisSqlDialect at migration time, so
+  one definition serves every targeted provider.
+invariants:
+  - Every persisted table has a public static AxisTable Define() in a {Entities}Table class, built fluently from a new AxisTable over the table's own Table const.
+  - Column types use the AxisDbType vocabulary; defaults use the AxisDefault vocabulary; collation is declared through the AST where case or accent sensitivity matters.
+  - Indexes, partial unique constraints and foreign keys are declared on the AST, referencing only {Entities}Columns consts.
+  - Static lookup data is seeded declaratively through the AST's seed step inside Define(), keeping seeds idempotent.
+  - No hand-written CREATE TABLE or CREATE INDEX SQL exists anywhere in the repository projects.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The AST is rendered per provider by IAxisSqlDialect at migration time, so the table is defined exactly
+  once regardless of how many providers the app targets. The Table const the AST is built over is the same
+  one the runtime SQL uses (persistence-columns-single-source), and the rendered migrations are applied by
+  the runner described in persistence-dbinit-migrator.

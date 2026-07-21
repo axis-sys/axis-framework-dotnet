@@ -1,0 +1,42 @@
+id: testing-concurrency-invariants-both-dbs
+title: Test every concurrent invariant on every supported database — isolation defaults differ
+tier: convention
+concern: testing
+layer: tests
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  In a multi-provider application a read-then-act invariant that holds under one engine's read-committed
+  default can silently break under another's snapshot/repeatable-read default: the snapshot is pinned at the
+  transaction's first read, so a count taken after acquiring a row lock still sees stale data and the
+  invariant leaks. Any test that hammers such an invariant with Task.WhenAll concurrency must therefore be a
+  provider theory that reproduces the production read order on every supported engine.
+invariants:
+  - Concurrency-invariant tests are a [Theory] over every supported database provider, never single-provider when more than one engine is supported.
+  - The concurrent phase uses Task.WhenAll over N parallel scopes, each with its own DI scope (own unit of work and connection).
+  - The test replicates the production transaction shape, including the first read that pins a snapshot-isolation engine, and says so in a comment.
+  - The final assertion checks the invariant exactly (for example an exact processed count), not merely that no error was thrown.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Single-provider applications assert the invariant against their one database; the multi-provider theory applies only where the same code runs on more than one database engine.
+  - A single-provider precursor test may be kept alongside the provider theory once a second engine is added.
+derives_to:
+  skills:
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The risk being pinned is that database engines carry different default isolation levels, so the same
+  read-then-act sequence commits under one and over-claims under another; only an exact assertion after real
+  parallelism catches it. This rule is conditional on multi-provider deployments and complements
+  testing-dual-db-repository-parity, which pins non-concurrent dialect divergences.

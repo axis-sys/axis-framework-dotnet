@@ -1,0 +1,40 @@
+id: saga-stage-names-unique-and-nonempty
+title: Stage names must be non-empty and unique across the whole definition
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Every stage name is the saga's addressing scheme (routes and handler matching key off it), so a name must
+  be non-empty and unique across the combined forward + error set. The configurator enforces both at
+  registration time: an empty/whitespace name throws ArgumentException, and a name already used by any forward
+  or error stage throws InvalidOperationException. Uniqueness is a case-sensitive Ordinal comparison.
+invariants:
+  - AddStage / AddErrorStage with a null, empty or whitespace name throws ArgumentException.
+  - A stage name already registered on any forward OR error stage throws InvalidOperationException (uniqueness spans both lists).
+  - Stage-name comparison is case-sensitive Ordinal, so names differing only in case are distinct.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaConfigurator.cs:49 — EnsureStageNameValid / EnsureStageNameUnique"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:145 — duplicate name throws; empty name throws"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because handler matching reads StageName off the interface, a duplicate or mistyped name would silently
+  bind the wrong handler — the build-time uniqueness check removes that class of bug.

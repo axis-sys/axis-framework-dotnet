@@ -1,0 +1,42 @@
+id: cache-repository-registration-scoped
+title: The repository core registers the cache and store as Scoped
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AddAxisCacheRepositoryCore(settings) wires the dialect-agnostic runtime a storage adapter builds on: the
+  settings as a singleton, AddMemoryCache() (the shared L1), TimeProvider.System via TryAddSingleton, and
+  BOTH ICacheEntryStore and IAxisCache as Scoped. Scoped — not Singleton — because the store injects
+  IAxisLogger<T>, which depends on the scoped ambient IAxisMediator; L1 stays the shared singleton
+  IMemoryCache, so caching still spans requests. When RunStartupMigration is true it also hosts the schema
+  bootstrap worker.
+invariants:
+  - AddAxisCacheRepositoryCore registers the settings as a singleton, AddMemoryCache(), and TimeProvider.System via TryAddSingleton.
+  - ICacheEntryStore and IAxisCache are registered Scoped, because the store depends on IAxisLogger<T> which needs the scoped ambient IAxisMediator.
+  - The AxisCacheStorageInitializerWorker hosted service is registered only when settings.RunStartupMigration is true.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/DependencyInjection.cs:17 — settings singleton, AddMemoryCache, TryAddSingleton TimeProvider, AddScoped store + adapter, conditional worker"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres.IntegrationTests/AxisCachePostgresTests.cs:15 — resolves IAxisCache and ICacheEntryStore from the built provider"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Same scoped-store reasoning as the AxisSaga stores. The storage adapter (AddAxisCachePostgres /
+  AddAxisCacheMySql) calls this core exactly once and adds the two dialect seams as singletons.

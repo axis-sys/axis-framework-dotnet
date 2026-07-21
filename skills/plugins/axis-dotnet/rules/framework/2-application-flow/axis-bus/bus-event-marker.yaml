@@ -1,0 +1,45 @@
+id: bus-event-marker
+title: An event is an immutable record implementing the IAxisEvent marker
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  IAxisEvent is a near-marker interface — public interface IAxisEvent { string? OrderingKey => null; } — a
+  payload must implement it to be publishable through the port's where TEvent : IAxisEvent constraint. It
+  carries one optional, default-implemented member: OrderingKey lets an event opt into a logical partition,
+  which the durable outbox reads to resolve its FIFO ordering key (falling back to the ambient JourneyId, then
+  the event's own id, when left null). An event records a fact that has already become true, so it is modelled
+  as an immutable, value-equal record and named in the past tense (OrderCreatedEvent, InvoicePaidEvent), never
+  an imperative command.
+invariants:
+  - A publishable event is a type implementing the IAxisEvent marker interface.
+  - IAxisEvent carries one optional default-implemented member, OrderingKey (default null) — the durable outbox reads it to resolve the event's ordering/partition key, falling back to the ambient JourneyId then the event's own id when left null.
+  - Events are modelled as immutable records (or readonly structs) so they are value-equal and easy to log.
+  - An event names a past-tense fact that already happened; a request to do something is a command, not an event.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEvent.cs:6 — public interface IAxisEvent { string? OrderingKey => null; } (default-implemented member, not a bare marker)"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/RepositoryBusAdapter.cs:35 — string orderingKey = @event.OrderingKey ?? journeyId ?? eventId; the cascade that resolves the outbox partition key"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/events-and-handlers.md:6 — CustomerUpdatedEvent record : IAxisEvent"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/events-and-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Ask for something to be done via a command (mediator ExecuteAsync); return data via a query
+  (mediator QueryAsync); publish a fact via IAxisBus — see bus-publish-not-mediator.

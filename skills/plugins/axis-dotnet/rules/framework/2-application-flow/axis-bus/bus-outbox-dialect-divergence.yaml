@@ -1,0 +1,53 @@
+id: bus-outbox-dialect-divergence
+title: Only the INSERT diverges by dialect; the claim path mirrors across both stores
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  The publish path is almost fully shared: IAxisBusSqlDialect exposes only InsertSql, and the two dialects
+  differ solely in Postgres casting the JSON columns to ::JSONB where MySQL does not — the rest of the write
+  goes through the shared RepositoryOutboxDrain. The claim path has no shared core — IBusEventDispatchStore is
+  implemented independently by each dialect — but the mechanism itself is identical: a non-locking discovery
+  SELECT finds the head of each due partition, an UPDATE by primary key (guarded by a not-currently-claimed
+  check) claims it individually, and a read-back SELECT fetches the claimed rows. Neither dialect uses
+  UPDATE ... RETURNING or FOR UPDATE SKIP LOCKED. MySQL additionally pins connections to READ COMMITTED and
+  wraps writes in a transient-error retry, because its dispatch-store connections share a pool with other
+  adapters that do need the looser isolation — not because its own claim UPDATE requires it. Postgres needs
+  neither precaution.
+invariants:
+  - IAxisBusSqlDialect exposes only InsertSql; Postgres casts JSON/topics to ::JSONB, MySQL does not; the rest of the insert is shared in RepositoryOutboxDrain.
+  - IBusEventDispatchStore has no shared implementation — Postgres and MySQL each implement claim/delete/release fully — but both follow the same non-locking discover + per-PK claim + read-back mechanism.
+  - Neither dialect claims a batch with UPDATE ... RETURNING or FOR UPDATE SKIP LOCKED; the per-PK claim UPDATE (guarded by a not-claimed check) is what makes two dispatchers never take the same head.
+  - MySQL additionally pins its dispatch-store connections to READ COMMITTED and wraps writes in a transient-error retry (pool-sharing precaution, not a different claim algorithm); Postgres needs neither.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/PostgresBusSqlDialect.cs:9 — the only divergent publish statement: INSERT with ::JSONB casts"
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/Adapters/PostgresBusDispatchStore.cs:26 — ClaimHeadsAsync: non-locking discover (DISTINCT ON) + per-PK claim UPDATE + read-back SELECT, no RETURNING/SKIP LOCKED"
+    - "src/2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql/Adapters/MySqlBusDispatchStore.cs:37 — the same non-locking discovery SELECT + per-PK claim + read-back"
+    - "src/2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql/DependencyInjection.cs:44 — connections pinned to READ COMMITTED because the pool is shared with adapters that need it, not because the claim UPDATE does"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/Adapters/PostgresBusDispatchStore.cs:26 — Postgres ClaimHeadsAsync: non-locking discover + per-PK claim + read-back, mirroring MySQL"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  Mirrors the AxisSaga split: shared-core SQL where it is safe (INSERT), independently-implemented stores for
+  the claim (no shared base class) — though the claim algorithm itself is identical across dialects.
+  MySqlTransientRetry absorbs residual deadlock/lock-timeout (1213/1205) on top of the READ COMMITTED pin, a
+  precaution Postgres's MVCC does not require.

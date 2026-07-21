@@ -1,0 +1,46 @@
+id: logger-ambient-scope-enrichment
+title: Every entry is wrapped once in a BeginScope carrying UtcTime and the ambient correlation ids
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AxisLogger<T> wraps every write in a single ILogger.BeginScope whose dictionary always carries UtcTime plus
+  OriginId, TraceId and JourneyId read from the ambient IAxisMediator. That is the whole point of the
+  abstraction over raw ILogger<T>: correlation ids are attached automatically, per entry (BeginScope, not a
+  global enricher), so no handler has to remember them. Because it reads IAxisMediator, an AxisLogger<T> only
+  enriches correctly inside a mediator request scope.
+invariants:
+  - Every write opens exactly one ILogger.BeginScope built from BuildScope, then logs inside that scope.
+  - The scope always contains UtcTime, OriginId, TraceId and JourneyId; OriginId/TraceId/JourneyId come from the ambient IAxisMediator and UtcTime from the injected TimeProvider.
+  - Caller-supplied properties are applied after the defaults, so a colliding key overwrites the default.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:45 — BeginScope(BuildScope(properties)) wraps the log call"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:52 — BuildScope seeds UtcTime/OriginId/TraceId/JourneyId then copies caller props over them"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:10 — UtcTime from timeProvider.GetUtcNow()"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:62 — TraceId/OriginId/JourneyId/UtcTime present on the scope, plus the caller pair"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/categories.md"
+    - "docs/en-us/1-Observability/AxisLogger/iaxislogger.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Per-entry BeginScope is the right tool for per-request fields, unlike a global Serilog enricher (correct
+  only for static fields) or a manual LogContext.PushProperty (easy to leak). Outside a mediator scope there
+  is no ambient IAxisMediator to read, so use ILogger<T> directly there instead.

@@ -1,0 +1,44 @@
+id: saga-resumer-claims-stale-leases
+title: The resumer re-fires non-terminal sagas whose execution lease has expired
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+lens: [concurrency]
+description: >
+  A saga is "stuck" when it is non-terminal (Pending / Running / Compensating) and its execution lease has
+  expired (CLAIMED_UNTIL is null or in the past). RunOnceAsync claims up to ResumeBatchSize such instances and
+  calls ResumeAsync on each; it never touches terminal sagas (Completed / Compensated / Failed) or ones whose
+  lease is still live. The claim uses SELECT ... FOR UPDATE SKIP LOCKED keyed on the expired lease, so a
+  resumer on another node skips rows already locked, and the engine's atomic AcquireLease prevents double-firing.
+  RunOnceAsync returns the number of sagas it kicked.
+invariants:
+  - The resumer claims only non-terminal sagas whose lease has expired; it never re-fires terminal or live-leased instances.
+  - RunOnceAsync claims at most ResumeBatchSize instances per pass and calls ResumeAsync on each, returning the count kicked.
+  - The claim is multi-node safe (FOR UPDATE SKIP LOCKED on the expired-lease predicate); the engine's atomic lease re-acquisition prevents double execution.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaResumer.cs:13 — RunOnceAsync claims stale ids and ResumeAsync each"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaInstanceStore.cs:55 — ClaimStaleSagaIdsAsync selects non-terminal, lease-expired instances"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaResumerTests.cs:83 — claims a saga with an expired lease and a pending saga with no lease; does not claim a fresh lease"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  ResumeAfter is the lease duration and the staleness threshold; aim for ResumeAfter >= 2 x ResumerPollInterval
+  so a saga whose lease the engine just renewed is never reclaimed mid-flight.

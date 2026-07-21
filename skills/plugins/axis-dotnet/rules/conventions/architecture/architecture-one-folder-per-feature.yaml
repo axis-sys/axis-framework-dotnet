@@ -1,0 +1,56 @@
+id: architecture-one-folder-per-feature
+title: One subfolder per feature/aggregate in every layer, mirrored by namespace, with children nested under the parent
+tier: convention
+concern: architecture
+layer: any
+severity: must
+status: canonical
+description: >
+  Every feature/aggregate gets its own {BC}/{Feature} subfolder in every layer (domain, application,
+  contracts, driven adapters, shared kernel), and namespaces always mirror the folder path. A child entity
+  or association nests inside the owning aggregate's folder as a relationship-named subfolder with its own
+  full file set. Features are never grouped into generic buckets like Common/, Helpers/ or Enumerators/.
+invariants:
+  - Every layer mirrors the same {BC}/{Feature} tree, so one slice is traceable by folder name across domain, application, contracts and the driven adapters.
+  - Namespaces mirror folders exactly; no file declares a namespace that differs from its folder path.
+  - No generic grab-bag folder (Common/, Helpers/, Enumerators/) groups unrelated features together.
+  - A child entity or association lives in a nested folder named for the relationship ({Children}Of{Parent}) under the owning aggregate, carrying its own full file set.
+  - A driven adapter family is its own project under the driven adapters folder; provider-specific code splits into sibling projects that reference the shared adapter, and each folder level that registers services has exactly one DependencyInjection (internal below the project root — see architecture-di-registration).
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/Products/ProductsRepository.cs:1 — {BC}/{Feature}/{file set} inside the driven repository adapter, namespace ...Repository.Catalog.Products mirroring the folder"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/DependencyInjection.cs:1 — the BC-level DependencyInjection, one per folder level that registers services"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/RegisterProduct/v1/RegisterProductHandler.cs:1 — the same Catalog BC in the application layer, same folder name"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Catalog/IProductsPort.cs:1 — the same Catalog BC in the driven contracts, one slice traceable by folder name across all three layers"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Domain/Catalog/Products/IProductEntityProperties.cs:1 — the same Catalog/Products feature in the domain project, namespace Domain.Catalog.Products mirroring the folder"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Domain/Customers/Customers/ICustomerEntityProperties.cs:1 — a single-table BC still gets its own {BC}/{Feature} folder (Customers/Customers/), not collapsed into the BC root"
+examples:
+  correct:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/ — Products/, Orders/ and CartItems/ each carry their own file set (Columns, Table, DbEntity, Repository), never dumped flat at the BC or project root"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/DependencyInjection.cs:1 and .../DependencyInjection.cs:1 (project root) — the BC registers its own ports, the root orchestrates by calling AddCatalogRepositories/AddCustomersRepositories/AddAuthRepositories plus the cross-BC UnitOfWork"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Domain/Catalog/Orders/OrderProperties.cs:1 — the identical {BC}/{Feature} split one layer up from the repository adapter (Products/, Orders/, CartItems/ siblings), proving the tree is traceable across domain and driven"
+  incorrect: []
+exceptions:
+  - Per-bounded-context non-feature files may sit at the bounded-context root (the BC's DbInit and DependencyInjection).
+  - Cross-bounded-context shared types live in the shared kernel, not under any feature folder.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+    - axis-domain-modeling
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  This is the cross-layer layout rule with no single-layer counterpart: the same {BC}/{Feature} mirroring
+  drives the application slices (architecture-vertical-slice-layout) and the driving contracts
+  (architecture-contracts-versioned-layout). In the driven repository adapters a child entity's nested
+  folder carries the aggregate's per-entity file set (repository, entity, columns, table, and a dialect
+  seam where needed) beside the parent, so parent and child persistence are always co-located. The
+  DependencyInjection-per-folder half of invariant 4 is enforced mechanically by AXIS0607 (hooked on
+  architecture-di-registration, the rule that owns the public/internal split); this rule owns the folder
+  and namespace shape, that one owns which of those classes is allowed to be public.

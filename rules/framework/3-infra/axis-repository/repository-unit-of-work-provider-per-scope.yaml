@@ -1,0 +1,46 @@
+id: repository-unit-of-work-provider-per-scope
+title: The unit-of-work provider caches one instance per key per scope so both interfaces share one connection
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  The keyed IAxisUnitOfWork and provider interface must resolve to the SAME unit of work within a DI scope,
+  otherwise a repository and its caller would each get a separate connection and transaction and the caller's
+  SaveChanges would not commit the repository's writes. {Provider}UnitOfWorkProvider caches one unit of work
+  per service key in a ConcurrentDictionary and both keyed registrations delegate to it. It uses GetOrAdd (not
+  TryGetValue + TryAdd) so concurrent callers in the same scope all observe the single winning instance, never
+  a discarded copy with its own connection.
+invariants:
+  - Both keyed registrations (IAxisUnitOfWork and the provider interface) resolve through the provider to one cached unit of work per key.
+  - The provider caches per key with ConcurrentDictionary.GetOrAdd, so concurrent callers share the single winning instance.
+  - Within a scope, the two interfaces for a key return the same instance (same connection and transaction).
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresUnitOfWorkProvider.cs:19 — GetUnitOfWork caches per key via GetOrAdd"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/DependencyInjection.cs:22 — both keyed registrations delegate to the provider"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresUnitOfWorkProviderTests.cs:25 — GetUnitOfWorkReturnsCachedInstancePerKey (Assert.Same)"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlUnitOfWorkProviderTests.cs:30 — the MySQL parity assertion"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/keyed-multi-database.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Without the shared instance, injecting IAxisDbRepository (bound to the provider unit of work) and
+  IAxisUnitOfWork (to commit) would silently use two transactions. The MySQL provider is internal and its
+  GetUnitOfWork throws ArgumentException on a null key; the Postgres provider is public.

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AxisMediator\AxisMediator\AxisMediator.csproj" />
+    <ProjectReference Include="..\..\AxisBus\AxisBus.csproj" />
+  </ItemGroup>
+</Project>

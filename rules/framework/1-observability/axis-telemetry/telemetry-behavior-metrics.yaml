@@ -1,0 +1,45 @@
+id: telemetry-behavior-metrics
+title: The behavior records duration and invocations always, exceptions only on a throw
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  TelemetryBehavior emits three metrics with fixed names and tags. On every completed request it records
+  axis.handler.duration_ms (a histogram of the elapsed milliseconds, tagged RequestName and ResultSuccess)
+  and increments axis.handler.invocations (a counter, tagged RequestName and ResultSuccess). It increments
+  axis.handler.exceptions (tagged RequestName and ExceptionType) ONLY when the handler throws — a returned
+  failed AxisResult does not touch the exceptions counter, it only bumps invocations with ResultSuccess=false.
+invariants:
+  - Every completed request records axis.handler.duration_ms (histogram) tagged RequestName and ResultSuccess.
+  - Every completed request increments axis.handler.invocations (counter) tagged RequestName and ResultSuccess.
+  - axis.handler.exceptions (counter, tagged RequestName and ExceptionType) is incremented only when the handler throws, never for a returned failure.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:56 — RecordResult writes duration_ms and invocations with RequestName + ResultSuccess"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:45 — the exceptions counter increments only in the catch block, tagged ExceptionType"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:81 — a throwing handler is recorded then rethrown"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:69 — a returned failure records invocations but no exception"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/telemetry-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The returned-failure vs thrown-exception distinction is the key gotcha for sink queries — failure rate
+  comes from invocations(ResultSuccess=false), exception rate from the separate exceptions counter, and the
+  two do not overlap.

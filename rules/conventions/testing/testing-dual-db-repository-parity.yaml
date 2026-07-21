@@ -1,0 +1,44 @@
+id: testing-dual-db-repository-parity
+title: Prove dialect-agnostic repository behavior on every supported database with a provider theory
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  When the same repository code runs on more than one database by composition, any behavior that could
+  diverge across dialects (shared SQL seams, seeded lookups, JSON round-trips, counts, cascade semantics)
+  is asserted on all of them. The canonical shape is a parity test class with a provider enum, a
+  BuildServiceProvider(provider) helper that composes the matching adapter, and a [Theory] with one
+  [InlineData] per provider on every test — one body, not two copies.
+invariants:
+  - New or changed repository behavior with any dialect risk gets a parity test.
+  - Each parity test is a single [Theory] parameterized by the provider enum with one InlineData per provider, never two copies of the test body.
+  - The class-level comment states what could diverge across dialects (the risk being pinned).
+  - Parity test names declare that the behavior is identical across providers (a ..._the_same style suffix).
+  - Data is namespaced per provider (for example a per-provider key suffix) so all theories can run against long-lived shared containers.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/ProductsRepositoryDualDbTests.cs:32 — one [Theory] with an [InlineData] per provider (a single body) over a provider enum"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/ProductsRepositoryDualDbTests.cs:11 — a BuildProvider(Database) helper that composes the matching provider adapter"
+  incorrect: []
+exceptions:
+  - Single-provider applications need no parity theory; the rule applies only where the same repository code is composed against more than one database engine.
+  - Coexistence of business and saga storage on different engines has its own fixture, since that split is per-store rather than the same schema on both.
+derives_to:
+  skills:
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Parity is a single theory over the provider enum, so both dialects exercise one body and drift cannot hide
+  in a forgotten copy. This rule is conditional on multi-provider deployments; the concurrency-specific case
+  (isolation-level divergence under real parallelism) is testing-concurrency-invariants-both-dbs, and the
+  shared containers both run against are testing-integration-fixture-per-collection.

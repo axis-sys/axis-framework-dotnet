@@ -1,0 +1,47 @@
+id: edge-permission-authorization
+title: Granular permissions via a permission attribute plus a global filter over an authorization facade
+tier: convention
+concern: edge
+layer: driving
+lens:
+  - security
+severity: must
+status: canonical
+description: >
+  Granular authorization never travels in the token. Endpoints declare the module.action code they need
+  with a permission attribute; a single global MVC authorization filter resolves the caller's grants for
+  the current tenant through the authorization bounded context's read-model facade — a cache-aside model
+  invalidated by the relevant domain events. Whole-controller administrative surfaces use a claim-based
+  admin policy instead.
+invariants:
+  - Permission codes are constants (a PermissionCodes class); the attributes never carry string literals.
+  - The permission filter is scoped, registered once globally, and no-ops on endpoints without the permission attribute.
+  - The filter reads the caller's identity claim; a non-parsable identity short-circuits 401, and a failed grants lookup or a missing permission short-circuits 403 — both as ProblemDetails.
+  - The permission check is tenant-scoped, so a permission-gated endpoint implies the tenant marker.
+  - The facade reports facts and the policy lives in the filter — a disabled caller is always denied, an administrator bypasses the per-permission check, everyone else needs membership plus the code.
+  - Administrative-only controllers use a claim-based admin policy declared in the authorization setup, with no per-request authorization-BC lookup.
+  - Authorization wiring (attribute, filter, policies, header names) lives in a dedicated edge folder, not in the composition root entry point.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Global read-only vocabularies may require only bare authentication, without a permission code.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The authorization facade is the driving contract of a read-only authorization bounded context; the
+  edge consumes it read-only and its cache is invalidated through the events published by the
+  membership/identity/licensing use cases. The filter and the tenant middleware share one grants lookup
+  model and cache (see edge-tenant-scoping-middleware). Grants are resolved server-side precisely
+  because the token is thin (edge-auth-schemes), and failures render through the same builder as
+  controllers (edge-axisresult-render).

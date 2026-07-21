@@ -1,0 +1,49 @@
+id: result-zip-heterogeneous
+title: Combine 2 to 4 different values into a tuple with Zip
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  Zip combines heterogeneous values into a single tuple so a caller can assemble one response from
+  several distinct operations. Starting from a value result, Zip projects the value into a 2-tuple;
+  chaining ZipAsync extends the tuple one element at a time up to four values, running each step
+  sequentially and short-circuiting on the first failure. A terminal Map then collapses the tuple
+  into the final value.
+invariants:
+  - Zip on a success projects the value into a named 2-tuple (Value1, Value2), keeping the original as Value1.
+  - Chained ZipAsync extends a tuple by exactly one element, up to a maximum of four values; there is no five-value Zip overload.
+  - Each Zip step runs its mapper only after the upstream result succeeds, so combination is sequential, not parallel.
+  - The first failing step returns its errors and short-circuits, so later Zip steps do not run.
+  - A terminal Map or MapAsync collapses the accumulated tuple into the final value, receiving the tuple elements as separate arguments.
+  - On a tuple track, the spread overloads (MapAsync, ZipAsync, ThenAsync with one delegate parameter per element) are the canonical access path; a single-parameter lambda on a tuple track binds the one-value overload and NESTS the tuple ((T1, T2), T3) instead of flattening it.
+  - A mid-tuple failable side effect (persist, invalidate) uses the valueless spread ThenAsync, which runs the step and preserves the whole tuple.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs — instance Zip projects a value into a 2-tuple"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.cs — Tuple2/Tuple3 ZipAsync extend the tuple one element at a time up to four"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.cs — Tuple2/Tuple3/Tuple4 spread ThenAsync run a failable step preserving (valueless) or replacing (value) the tuple"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/zip.md"
+ledger:
+  reviewed_against: cc41921
+  reviewed_on: 2026-07-16
+notes: >
+  Zip is the sequential, fail-fast combinator for heterogeneous values; use ZipParallel when the
+  operations are independent and should run concurrently. Each arity exposes four overloads (plain
+  value, Task, AxisResult, Task of AxisResult) so a step may itself be fallible or async. The spread
+  ThenAsync overloads complete the tuple surface: Zip accumulates, ThenAsync (valueless) runs a side
+  effect keeping the tuple, Map collapses — no ValueN access anywhere in the pipeline.

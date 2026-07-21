@@ -1,0 +1,53 @@
+id: result-thenwhen-conditional-step
+title: Run a same-type transforming step only when a condition on the value holds with ThenWhen
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  ThenWhen is the conditional step: it runs the fallible, same-type transforming next only when the
+  predicate over the flowing value is true, and passes the success through untouched when the
+  predicate is false — the step simply does not apply. It replaces the ternary
+  cond ? Step(x) : Ok(x) written inside a Then lambda. It is the mirror of ThenUnless: where
+  ThenUnless guards a valueless side effect (the value always survives), ThenWhen's next returns
+  AxisResult<TValue> and, when it runs, its result REPLACES the flowing one. The value type cannot
+  change — a conditional step producing a different type still routes to Then with the branch inside
+  the lambda, because the pass-through branch could not produce the new type.
+invariants:
+  - ThenWhen is defined only on AxisResult<TValue>; the predicate reads the flowing value and next returns AxisResult<TValue> of the same type.
+  - When the predicate is false, the result passes through unchanged (value preserved) and next never runs.
+  - When the predicate is true, next runs and its result replaces the flowing one — a transformed value on success, next's errors on failure.
+  - An already-failed upstream result short-circuits — neither the predicate nor next runs.
+  - The predicate is always synchronous (Func<TValue, bool>); async variants (Task, ValueTask and CancellationToken-aware) exist only for next.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:124 — ThenWhen and ThenWhenAsync, the conditional-step pair on the generic result"
+    - "docs/en-us/0-Foundations/AxisResult/then-when.md — usage, the same-type constraint and the contrast with ThenUnless"
+examples:
+  correct:
+    - "src/0-Foundations/AxisResult/AxisUnitTests/AxisResultFunctionalSyncTests.cs — ThenWhen region: predicate false preserves, true replaces, next failure propagates, failed upstream skips both"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/then-when.md"
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  Two surface decisions are deliberate: (1) next is same-type by design — the false branch returns
+  this, so a transforming variant to TNew could not type-check; conditional transformation to a NEW
+  type still routes to Then with the branch inside the lambda (see result-thenunless-success-guard
+  notes for the shared history of this decision); (2) the predicate is synchronous by design — an
+  async check that can fail is a validation and routes to Ensure or Then. The idempotency guard at
+  the TOP of a saga stage handler intentionally stays an imperative if returning Ok(payload)
+  (architecture-saga-stage-handlers), not a ThenWhen — the pipeline has not started there and the
+  guard reads better as an entry check; ThenWhen is for conditions over values born MID-pipeline.

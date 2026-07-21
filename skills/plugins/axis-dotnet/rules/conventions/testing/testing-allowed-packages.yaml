@@ -1,0 +1,45 @@
+id: testing-allowed-packages
+title: Test packages are xUnit v3, Moq, Testcontainers and NetArchTest — never FluentAssertions
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  The allowed test-only packages are xUnit v3 (runner + Microsoft.NET.Test.Sdk + coverlet), Moq,
+  Testcontainers for the supported database engines, a NetArchTest-style architecture-invariant library,
+  and Microsoft.AspNetCore.Mvc.Testing for the end-to-end project. FluentAssertions is banned outright —
+  every assertion uses the built-in xUnit Assert API. Versions are pinned centrally.
+invariants:
+  - All test projects reference xUnit v3 (the v3 package line), never xUnit 2.x.
+  - FluentAssertions appears in no test csproj and no using directive anywhere under the test tree.
+  - Moq is the only permitted mocking framework; no other isolation library is referenced.
+  - Testcontainers is referenced only by the projects that boot a real database container (integration and end-to-end).
+  - The architecture-invariant assertion library (NetArchTest-style) is referenced only by the architecture-test project.
+  - Microsoft.AspNetCore.Mvc.Testing is referenced only by the end-to-end project.
+  - Test package versions are pinned centrally (central package management / Directory.Packages.props); test csprojs carry no Version attributes.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Scaffolds.ECommerce.E2ETests.csproj:15 — Mvc.Testing (and Testcontainers) referenced only by the E2E test project"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/Scaffolds.ECommerce.UnitTests.csproj:32 — Moq is the only isolation library; no FluentAssertions; no per-project Version attribute"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/Scaffolds.ECommerce.IntegrationTests.csproj:29 — Testcontainers referenced only in integration + E2E, versions pinned centrally"
+  incorrect: []
+exceptions:
+  - Test projects may reference the real in-memory adapter of an infra port (e.g. cache or bus) to exercise its logic against the real in-memory implementation instead of a mock.
+  - Validator unit tests may consume the underlying validation library's ValidationResult type transitively to assert error codes; building validation rules directly in a test stays banned.
+derives_to:
+  skills:
+    - axis-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  xUnit v3 specifics recur throughout: IAsyncLifetime returns ValueTask and cancellation flows via
+  TestContext.Current.CancellationToken (the end-to-end project passes it to every HttpClient call). The
+  assertion-library ban pairs with testing-aaa-structure, which fixes the concrete xUnit Assert usage.

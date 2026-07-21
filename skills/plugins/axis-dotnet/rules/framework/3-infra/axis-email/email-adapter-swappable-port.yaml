@@ -1,0 +1,44 @@
+id: email-adapter-swappable-port
+title: A custom IAxisEmailService adapter implements one method and swaps via DI
+tier: framework
+family: 3-infra
+package: AxisEmail
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  Swapping SMTP for SendGrid, SES, Mailgun, Postmark or a test double is implementing the single SendAsync
+  method for IAxisEmailService and registering the class. To keep application code identical across the swap,
+  an adapter must return Task<AxisResult> and never throw, return Ok() when the provider accepts the message,
+  honour BodyTextType, read the sender/credentials from AxisEmailSettings (or its own settings), and log
+  failures via AxisLogger.
+invariants:
+  - A custom adapter implements IAxisEmailService.SendAsync and is registered for IAxisEmailService in place of the MimeKit adapter.
+  - It returns Task<AxisResult> and never throws cooperatively; Ok() when the provider accepts the message.
+  - It honours BodyTextType (plain/html) and reads sender/credentials from settings.
+  - Registering a different adapter changes no calling code — handlers depend only on IAxisEmailService.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisEmail/AxisEmail/IAxisEmailService.cs:3 — the one-method port every adapter implements"
+examples:
+  correct:
+    - "docs/en-us/3-Infra/AxisEmail/custom-adapter.md:5 — a SendGrid adapter over the same port"
+    - "docs/en-us/3-Infra/AxisEmail/custom-adapter.md:61 — a recording test double"
+  incorrect: []
+exceptions:
+  - Returning InternalServerError(ERROR_SENDING_EMAIL) and logging via AxisLogger are recommended, not compiler-enforced; a provider adapter may surface finer error codes if callers expect them.
+derives_to:
+  skills:
+    - axis-email
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisEmail/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The common swappable-infra-port pattern (IAxis* + AxisResult + AddAxis* swaps the adapter via DI) is
+  canonical in the axis-dotnet-architect hub; this rule states its email-specific obligations.

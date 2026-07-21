@@ -1,0 +1,51 @@
+id: bus-outbox-enqueue-in-uow-transaction
+title: Publishing enqueues on a request-scoped queue the unit of work drains into its own transaction at commit
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The atomic-outbox adapter never writes on its own connection. IAxisBus.PublishAsync only ENQUEUES the event
+  on a request-scoped IOutboxScopedQueue (resolving the ordering key, stamping the ambient trace/journey,
+  serializing) and returns an enqueue acknowledgement. The business unit of work drains that queue through
+  IAxisRepositoryOutbox.DrainAsync into its OWN connection and transaction immediately before COMMIT, so the
+  event rows and the business state change land atomically — commit persists both, rollback persists neither.
+  There is no autocommit and no separate connection for the write path, so an event cannot be published without
+  a committing unit of work to drain it.
+invariants:
+  - PublishAsync enqueues on the request-scoped IOutboxScopedQueue and never opens a connection or inserts a row itself.
+  - The unit of work invokes IAxisRepositoryOutbox.DrainAsync(connection, transaction) between its guards and CommitAsync, writing the queued rows on the unit of work's own connection and transaction.
+  - The event rows and the business state commit atomically in one transaction; a drain failure aborts the commit so neither persists.
+  - A drained event requires a committing unit of work — there is no autocommit write path and no way to publish an event outside a unit of work.
+  - In application code the publish therefore PRECEDES SaveChangesAsync; a publish placed after the commit enqueues on a queue no commit will drain and the event is silently lost.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/RepositoryBusAdapter.cs:22 — PublishAsync enqueues on the scoped queue, no database write"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Outbox/RepositoryOutboxDrain.cs:21 — DrainAsync writes the queued rows on the passed connection/transaction"
+    - "src/3-Infra/AxisRepository/AxisRepository/IAxisRepositoryOutbox.cs:15 — the pre-commit drain port the unit of work invokes"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks:
+    - AXIS0300
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+supersedes: bus-outbox-autocommit-no-enlist
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  This is the textbook transactional outbox: the event and the state share one transaction, closing the
+  dual-write window the previous autocommit model left open (bus-outbox-autocommit-no-enlist, superseded).
+  Delivery is still at-least-once and handlers must be idempotent — the atomicity is between the state write and
+  the outbox row, not between the row and its later dispatch. The connection factory now serves only the
+  read/dispatch path.

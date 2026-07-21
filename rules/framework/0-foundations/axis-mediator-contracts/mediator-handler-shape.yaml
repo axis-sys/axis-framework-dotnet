@@ -1,0 +1,47 @@
+id: mediator-handler-shape
+title: A handler implements the one Axis handler interface for its message kind and returns an AxisResult with no cancellation parameter
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  There is exactly one handler interface per message kind, and each fixes the HandleAsync signature. A
+  handler takes a single argument — its request or event — and returns the AxisResult shape dictated by
+  whether the message carries a payload. The stream handler is the only one that leaves the AxisResult
+  railway.
+invariants:
+  - A valueless command handler implements IAxisCommandHandler<TCommand> and returns Task<AxisResult>.
+  - A valued command handler implements IAxisCommandHandler<TCommand, TResponse> and returns Task<AxisResult<TResponse>>.
+  - A query is always valued and is handled by IAxisQueryHandler<TQuery, TResponse> returning Task<AxisResult<TResponse>>; there is no valueless query handler.
+  - An event handler implements IAxisEventHandler<TEvent> and returns Task<AxisResult>, since events never carry a payload.
+  - A streaming query handler implements IAxisStreamQueryHandler<TQuery, TItem> and returns a bare IAsyncEnumerable<TItem>, outside the AxisResult railway.
+  - Every handler HandleAsync takes exactly one parameter — the request or event — and never a CancellationToken.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Commands/IAxisCommandHandler.cs:5 — valueless and valued command handlers"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Queries/IAxisQueryHandler.cs:5 — the only query handler shape (always valued)"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Events/IAxisEventHandler.cs:5 — event handler returns Task<AxisResult>"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Queries/IAxisStreamQuery.cs:5 — stream handler returns bare IAsyncEnumerable<TItem>"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The no-CancellationToken-parameter fact is the contract face of mediator-cancellation-is-ambient. A
+  handler must also be a concrete, non-abstract, non-generic class or the AddCqrsMediator scan silently
+  skips it — that registration mechanic belongs to the AxisMediator runtime cluster, not the contracts.

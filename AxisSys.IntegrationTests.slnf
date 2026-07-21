@@ -1,0 +1,18 @@
+{
+  "solution": {
+    "path": "AxisSys.slnx",
+    "projects": [
+      "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.IntegrationTests/AxisTelemetry.AzureMonitor.IntegrationTests.csproj",
+      "src/2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql.IntegrationTests/AxisBus.MySql.IntegrationTests.csproj",
+      "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/AxisBus.Postgres.IntegrationTests.csproj",
+      "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/AxisSaga.MySql.IntegrationTests.csproj",
+      "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/AxisSaga.Postgres.IntegrationTests.csproj",
+      "src/3-Infra/AxisCache/Repository/MySql/AxisCache.MySql.IntegrationTests/AxisCache.MySql.IntegrationTests.csproj",
+      "src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres.IntegrationTests/AxisCache.Postgres.IntegrationTests.csproj",
+      "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/AxisRepository.MySql.IntegrationTests.csproj",
+      "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/AxisRepository.Postgres.IntegrationTests.csproj",
+      "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.IntegrationTests/AxisStorage.CloudflareR2.IntegrationTests.csproj",
+      "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.IntegrationTests/AxisStorage.AzureBlob.IntegrationTests.csproj"
+    ]
+  }
+}

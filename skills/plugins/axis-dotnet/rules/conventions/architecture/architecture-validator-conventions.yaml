@@ -1,0 +1,46 @@
+id: architecture-validator-conventions
+title: Validators extend AxisValidatorBase using only Axis helpers with {Aggregate}Errors codes
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  Input validation is declarative: an internal sealed {UseCase}Validator : AxisValidatorBase<T> whose
+  constructor registers rules through the Axis helper vocabulary. The raw FluentValidation API is forbidden
+  — if a helper is missing, add it to the AxisValidator library and repack. Every rule carries an error
+  code constant from the aggregate's Errors class, never an inline literal. The ValidationBehavior
+  short-circuits before the handler, so a handler may trust validated fields.
+invariants:
+  - The validator is internal sealed {UseCase}Validator : AxisValidatorBase<{UseCase}Command|Query>, with rules registered in the constructor only.
+  - Only Axis helper methods declare rules; the raw FluentValidation API (RuleFor, WithErrorCode, using FluentValidation) never appears in application code.
+  - Every helper call passes a const from the aggregate's {Aggregate}Errors class as the error code — never an inline string literal.
+  - A value-object input is validated with a TryParse-style helper so that a parse failure and an absent value share one error code.
+  - A nested or complex sub-DTO gets its own AxisValidatorBase subclass, composed via the validator-composition helpers in the same v1 folder.
+  - A use case whose input needs no validation simply has no validator file — the ValidationBehavior no-ops; queries generally need none.
+  - Domain invariants stay in the domain and factories and database-dependent checks stay in the handler chain (Then plus a port) — never in a validator.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/UseCases/EnsureCustomer/v1/EnsureCustomerValidator.cs:5 — internal sealed {UseCase}Validator : AxisValidatorBase<T> with rules declared in the constructor"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutValidator.cs:11 — Axis helpers only, each passing a {Aggregate}Errors const (CatalogErrors.CartIdInvalid)"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/UseCases/MarkEmailValidated/v1/MarkEmailValidatedValidator.cs:10 — value-object input validated via RequiredTryParse + CustomerId.TryParse"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks:
+    - AXIS0601
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The ValidationBehavior runs in the mediator pipeline and short-circuits before the handler (framework rule
+  mediator-pipeline-behavior), which is why architecture-handler-shape lets a handler cast validated input
+  to value objects at the top. TryParse-style helpers over string inputs are the boundary where wire-shaped
+  contract DTOs (architecture-contracts-primitive-dtos) become value objects.

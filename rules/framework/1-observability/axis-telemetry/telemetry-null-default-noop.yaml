@@ -1,0 +1,47 @@
+id: telemetry-null-default-noop
+title: NullAxisTelemetry is the no-op default that turns telemetry off without touching call sites
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability, performance]
+severity: must
+status: canonical
+description: >
+  NullAxisTelemetry (with its NullAxisSpan) is the sink you register to switch telemetry OFF while every call
+  site keeps calling StartSpan / RecordHistogram / IncrementCounter unchanged. It implements both ports as
+  pure no-ops: StartSpan returns the shared NullAxisSpan.Instance, CurrentTraceId/CurrentSpanId return null,
+  and RecordHistogram/IncrementCounter do nothing. NullAxisSpan returns string.Empty for TraceId/SpanId,
+  returns itself from every mutator, and its Dispose is empty. Both expose a static Instance, so nothing
+  allocates on the hot path. Use it in unit tests and CLI tools; wire OpenTelemetry for production.
+invariants:
+  - NullAxisTelemetry.StartSpan always returns the singleton NullAxisSpan.Instance regardless of name or kind.
+  - NullAxisTelemetry.CurrentTraceId and CurrentSpanId return null; RecordHistogram and IncrementCounter are empty.
+  - NullAxisSpan returns string.Empty for TraceId/SpanId, returns itself from SetTag/SetStatus/RecordException/AddEvent, and its Dispose does nothing.
+  - Both NullAxisTelemetry and NullAxisSpan expose a static Instance so no per-call allocation occurs.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/NullAxisTelemetry.cs:3 — the no-op telemetry+metrics adapter with static Instance"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/NullAxisTelemetry.cs:17 — NullAxisSpan: self-returning mutators, empty ids, empty Dispose"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/NullAxisTelemetryTests.cs:80 — StartSpan returns the shared NullAxisSpan.Instance"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/NullAxisTelemetryTests.cs:96 — CurrentTraceId is null and the metrics methods do not throw"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/null-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the canonical gotcha — the no-op adapter is the way to disable telemetry, not conditional call
+  sites. The unit-test TestHost must still register a telemetry sink (Null is the natural choice) because the
+  behavior pipeline resolves IAxisTelemetry/IAxisMetrics at runtime.

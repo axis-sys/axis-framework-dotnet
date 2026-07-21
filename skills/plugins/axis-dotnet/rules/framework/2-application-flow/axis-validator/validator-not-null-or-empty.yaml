@@ -1,0 +1,41 @@
+id: validator-not-null-or-empty
+title: NotNullOrEmpty rejects null, default and blank, and runs dependent rules only when present
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  NotNullOrEmpty is the presence helper. A property fails when it is null, equal to default(TProperty), or a
+  string that is empty or whitespace-only. Two further overloads take dependent rules — an Action, or an
+  Action<TProperty> handed the non-null value — that run only when the property is present, so nested checks
+  never fire on a missing parent.
+invariants:
+  - NotNullOrEmpty fails when the value is null, equals default(TProperty), or is a whitespace-only string.
+  - The Action overload runs its nested rules only when the property is non-null (guarded by When).
+  - The Action<TProperty> overload passes the non-null value into the lambda and runs it only when present.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:13 — null/default/whitespace rejection and the two dependent-rule overloads"
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/AxisValidatorBase.cs:11 — the three interface overloads"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:98 — Action overload fails name-only, then email; simple overload rejects null/whitespace"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  PrivateNotNullOrEmpty is the shared building block reused by the required-* helpers to layer a format
+  check on top of presence.

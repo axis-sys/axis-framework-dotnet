@@ -1,0 +1,47 @@
+id: telemetry-tag-names-are-contract
+title: Tag-name constants are the observable contract — renaming a value is a breaking change
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability, security]
+severity: must
+status: canonical
+description: >
+  TelemetryTagNames and AuthTelemetryTagNames hold the string keys the framework stamps onto spans and
+  metrics. Those values are consumed by dashboard and alert queries in the sink (Grafana / Datadog / etc.),
+  which live outside this repo, so renaming a constant's VALUE is an observable breaking change even though
+  it compiles. A golden unit test pins every literal so a silent rename becomes a red build and forces
+  migrating the consumers in the same PR. Use the constants at every tag site rather than inline strings so
+  the compiler catches typos and a rename propagates from one place.
+invariants:
+  - TelemetryTagNames defines exactly AxisEntityId, TraceId, JourneyId, RequestType, RequestName, ResultSuccess, ErrorCodes, ExceptionType with the axis.* snake_case values.
+  - AuthTelemetryTagNames defines exactly Scheme, Result, FailureReason, ApiId, BruteForceSuspected with the auth.* snake_case values.
+  - The constant VALUES are a stable external contract; a golden test pins every literal so a rename breaks the build.
+  - Framework signals are tagged through these constants, never inline string literals.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryTagNames.cs:3 — the eight framework tag keys"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/AuthTelemetryTagNames.cs:3 — the five auth tag keys"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryTagNamesTests.cs:17 — golden test pinning every framework tag literal"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryTagNamesTests.cs:30 — golden test pinning every auth tag literal"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/tag-names.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Codifies learning routed-L0001 — the rename axis.axis_identity -> axis.axis_entity_id (commit 3acbf9a)
+  went green because nothing pinned the literal, silently breaking dashboards. The golden test is the guard.
+  AuthTelemetryTagNames carries a security lens (auth.brute_force_suspected et al.).

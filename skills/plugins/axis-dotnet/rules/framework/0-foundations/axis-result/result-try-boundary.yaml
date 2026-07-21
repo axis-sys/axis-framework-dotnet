@@ -1,0 +1,47 @@
+id: result-try-boundary
+title: Convert exceptions to AxisResult only at the infra edge, with a typed error handler
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  Try and TryAsync are the single sanctioned bridge from exception-throwing infrastructure (database
+  drivers, HttpClient, brokers, file I/O) into AxisResult, so everything above the adapter stays
+  exception-free. They exist only at the infra edge; above it, code composes AxisResult and never
+  catches. A typed errorHandler is mandatory because the default turns the exception message into the
+  error code and lets programmer-bug exceptions escape.
+invariants:
+  - Try and TryAsync run the callback inside a single try/catch and return AxisResult instead of throwing.
+  - Every Try/TryAsync call passes an explicit errorHandler that maps the exception to a typed AxisError.
+  - The default (no errorHandler) produces AxisError.InternalServerError(ex.Message), placing the raw message in the error CODE and breaking the stable-code contract.
+  - Try does not catch exceptions where IsCritical is true (OperationCanceledException, StackOverflowException, OutOfMemoryException, ThreadAbortException, NullReferenceException, ArgumentNullException); the catch filter lets them propagate.
+  - Try and TryAsync are Task-only; no ValueTask overload exists, because a lambda async callback is ambiguous between Func<Task> and Func<ValueTask> (CS0121).
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:111 — Try(Action, errorHandler): errorHandler?.Invoke(ex) ?? AxisError.InternalServerError(ex.Message)"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:103 — IsCritical exception set used by the when(!IsCritical(ex)) catch filter to rethrow"
+    - "docs/en-us/0-Foundations/AxisResult/boundary-and-try.md — boundary adapter pattern and the Try rethrow rules"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0004
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/boundary-and-try.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  TryBind/TryBindAsync are the flattening siblings for callbacks that themselves return AxisResult and
+  share the same IsCritical rethrow and Task-only rules; they are covered by their own rule. The
+  reference app documents the same boundary convention in its rulebook and becomes an examples.correct
+  anchor once the convention tier is migrated.

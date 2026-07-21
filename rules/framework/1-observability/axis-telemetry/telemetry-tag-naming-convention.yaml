@@ -1,0 +1,43 @@
+id: telemetry-tag-naming-convention
+title: Framework tags are dotted snake_case constants; app-specific tags stay local
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  Framework-wide tag keys follow a dotted snake_case convention under a namespace prefix — axis.* for core
+  signals (axis.request_name, axis.trace_id) and auth.* for authentication signals (auth.scheme,
+  auth.failure_reason) — and each is a const string on TelemetryTagNames or AuthTelemetryTagNames. A new
+  signal that is genuinely framework-wide is added there and reused; a one-off application tag (order.id,
+  warehouse, step) is a local const string or inline literal in the owning code, NOT a new entry in the
+  framework tag classes. This keeps the framework's tag surface small and its sink-side queries predictable.
+invariants:
+  - Framework tag keys use dotted snake_case with a namespace prefix (axis.* or auth.*) and live as const strings on the two tag-name classes.
+  - A genuinely framework-wide new tag extends the appropriate tag-name class; a one-off application tag uses a local const/inline string and is never added there.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryTagNames.cs:5 — axis.* dotted snake_case keys"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/AuthTelemetryTagNames.cs:5 — auth.* dotted snake_case keys"
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Application-specific tags (order.id, warehouse, step) are expected to be inline strings or local constants, not framework constants.
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/tag-names.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Scattering new framework-wide strings instead of extending the constant class is the anti-pattern; the
+  tag-names doc's "when not to use" table draws the line between a framework tag and an application tag.

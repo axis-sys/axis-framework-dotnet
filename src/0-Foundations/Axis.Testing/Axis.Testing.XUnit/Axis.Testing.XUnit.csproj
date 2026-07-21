@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis.Testing</RootNamespace>
+    <!-- NuGet Package -->
+    <PackageId>Axis.Testing.XUnit</PackageId>
+    <Authors>Fillippe Prata</Authors>
+    <Description>The single test dependency for Axis xUnit projects: AxisResult-aware fluent assertions that throw a native XunitException with rich, IDE-friendly messages and delegate value comparisons to xUnit's Assert. Re-exports xUnit v3 so a test project references only this package.</Description>
+    <PackageTags>axis;testing;xunit;assertions;result;railway</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Axis.Testing\Axis.Testing.csproj" />
+    <!-- Dogfood: analyzers ROP; usa a base + Assert do xUnit, sem .Value. -->
+    <ProjectReference Include="..\..\AxisResult\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- LIB-safe xUnit v3 packages (not the xunit.v3 meta, which requires an executable project):
+         xunit.v3.assert => Xunit.Assert; xunit.v3.extensibility.core => Xunit.Sdk.XunitException. -->
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+  </ItemGroup>
+</Project>

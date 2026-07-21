@@ -1,0 +1,48 @@
+id: testing-pyramid-four-projects
+title: Keep the four-project test pyramid; each project has one job
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  The suite splits into four projects with fixed scope: architecture tests (executable dependency
+  invariants, no runtime), unit tests (handlers, validators and domain rules with no I/O), integration
+  tests (repositories, sagas and journeys against real Testcontainers databases, no HTTP), and end-to-end
+  tests (full HTTP pipeline via WebApplicationFactory<Program>, including auth and controllers). New tests
+  go into the lowest project that can prove the behavior.
+invariants:
+  - The architecture-test project contains only executable dependency/boundary assertions (NetArchTest-style) and runs no application code.
+  - The unit-test project never opens a database connection, socket, or HTTP client, and references the core — application, domain, kernel and contracts — plus the facade driving adapter it drives the core through; never a driven adapter or the host.
+  - Driven adapter projects are exercised only by integration or end-to-end tests, never unit-tested; the facade driving adapter carries zero logic and is exercised implicitly by every facade-driven unit test.
+  - The integration-test project exercises ports, facades and sagas against Testcontainers databases and never boots the web host.
+  - The end-to-end project is the only one referencing the web-host driving adapter and Microsoft.AspNetCore.Mvc.Testing.
+  - The end-to-end project may reference the application only to assert against {Aggregate}Errors constants instead of literal error codes.
+  - A new test is added to the lowest project that can prove the behavior.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/Scaffolds.ECommerce.UnitTests.csproj:35 — the unit project references the facade driving adapter (its doorway) and no driven adapter"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Scaffolds.ECommerce.E2ETests.csproj:17 — only the end-to-end project references the web-host driving adapter"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.UnitTests/CatalogTestHost.cs:29 — the unit host composes the application plus the facade adapter, mocking only driven ports"
+  incorrect: []
+exceptions:
+  - The end-to-end project may exercise an in-process CLI against the in-memory host.
+derives_to:
+  skills:
+    - axis-tests
+    - axis-unit-tests
+    - axis-integration-tests
+    - axis-e2e-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The testing hub describes a three-layer pyramid (unit/integration/e2e); the fourth executable layer —
+  architecture tests — is an addition, not a replacement, and the review gate treats it as part of the
+  suite. Which behaviors live where is refined by the per-layer rules and by axis-review.

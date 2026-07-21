@@ -1,0 +1,44 @@
+id: repository-datasource-lifetimes
+title: The data source is a keyed singleton and the unit of work is scoped, with Npgsql and MySqlConnector differing only in registration mechanics
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  In both adapters the data source (connection pool) is a keyed singleton and the unit of work is scoped, so
+  one pool is shared process-wide per key while each request scope gets its own transaction. Postgres registers
+  the pool through AddNpgsqlDataSource with dataSourceLifetime Singleton and connectionLifetime Scoped, keyed by
+  the service key. MySQL registers a keyed singleton MySqlDataSource built directly from the connection string,
+  and requires a non-empty service key (it throws InvalidOperationException otherwise, because the key
+  identifies the database).
+invariants:
+  - The data source / connection pool is registered as a keyed singleton; the unit of work is registered keyed and scoped.
+  - Postgres uses AddNpgsqlDataSource with dataSourceLifetime Singleton and connectionLifetime Scoped; MySQL registers a keyed singleton MySqlDataSource.
+  - AddMySqlUnitOfWork throws InvalidOperationException on a null-or-whitespace service key.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/DependencyInjection.cs:16 — AddNpgsqlDataSource connectionLifetime Scoped, dataSourceLifetime Singleton, keyed"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/DependencyInjection.cs:16 — non-empty key guard + AddKeyedSingleton<MySqlDataSource>"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlUnitOfWorkProviderTests.cs:42 — the keyed scoped unit of work resolves and opens over the singleton data source"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/keyed-multi-database.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Singleton pool + scoped unit of work is the standard ADO.NET lifetime split — the pool is expensive and
+  process-wide, the transaction is per request. The unit of work opens the connection lazily on first command,
+  so a scope that never touches the database costs no connection.

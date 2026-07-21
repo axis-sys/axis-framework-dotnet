@@ -1,0 +1,46 @@
+id: result-zip-parallel
+title: Run an independent side concurrently with ZipParallelAsync
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  ZipParallelAsync starts an independent operation and awaits it together with the upstream pipeline
+  via Task.WhenAll, so both sides run concurrently rather than sequentially. It fails if either side
+  fails and accumulates both error lists only when both sides fail; when exactly one side fails it
+  propagates just that side. Because the two sides run at the same time, never use it for writes that
+  share a unit of work, transaction, or connection.
+invariants:
+  - ZipParallelAsync starts the independent side and awaits both with Task.WhenAll, so the two sides run concurrently.
+  - The independent side is a factory that receives no upstream value (at most a CancellationToken), so it cannot depend on the upstream result.
+  - When both sides succeed the result is Ok with a tuple of both values.
+  - When exactly one side fails the result carries only that side's errors.
+  - When both sides fail the result accumulates both error lists (left errors concatenated with right errors).
+  - The CancellationToken overload forwards the token to the independent-side factory.
+  - Do not use ZipParallelAsync for operations that share a unit of work, transaction, or connection, since both sides run concurrently.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.Parallel.cs:17 — Task ZipParallelAsync starts the independent factory and awaits both via Task.WhenAll"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.Parallel.cs:72 — Combine concats both error lists only when both fail, else propagates the single failing side"
+    - "src/0-Foundations/AxisResult/AxisUnitTests/AxisResultZipParallelTests.cs:38 — single-side failure propagates only that side's error"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/aggregate.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Contrast with the fail-fast sequential ZipAsync: ZipParallelAsync is for two genuinely independent
+  reads, and the parallelism is only meaningful when at least one side is truly asynchronous.

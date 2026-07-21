@@ -1,0 +1,44 @@
+id: bus-outbox-store-no-throw-ambient-ct
+title: The outbox store never throws and reads the ambient cancellation token
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: superseded
+superseded_by: bus-outbox-enqueue-in-uow-transaction
+description: >
+  BusEventStore is the dialect-agnostic write store. It drives plain parameterized ADO.NET over a
+  DbConnection and returns an AxisResult on every path — a caught exception is logged and returned as
+  AxisError.InternalServerError(AXIS_BUS_PERSISTENCE_FAILED), never rethrown. The CancellationToken is read
+  from the ambient IAxisMediatorAccessor, never taken as a method parameter.
+invariants:
+  - Every BusEventStore path returns an AxisResult; a thrown DB exception is caught, logged, and returned as AxisError PersistenceFailed.
+  - The store reads its CancellationToken from IAxisMediatorAccessor.AxisMediator?.CancellationToken, not from a parameter.
+  - SQL is executed with bound DbParameters (never string-interpolated values), the try/catch living at this adapter edge.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Outbox/RepositoryOutboxDrain.cs:53 — the drain catches, logs, and returns AxisError PersistenceFailed (never throws), aborting the commit"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Outbox/RepositoryOutboxDrain.cs:60 — every value bound as a DbParameter, never string-interpolated"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SUPERSEDED by bus-outbox-enqueue-in-uow-transaction. There is no longer a standalone BusEventStore: the write
+  path is RepositoryOutboxDrain, which still never throws (returns an AxisResult error that aborts the commit) and
+  still binds every value as a DbParameter, but takes its CancellationToken as an explicit parameter from the
+  unit of work rather than reading the ambient IAxisMediatorAccessor. The dispatch-side store
+  (IBusEventDispatchStore) is likewise driven by the background worker with an explicit token. Kept for history.

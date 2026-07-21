@@ -1,0 +1,39 @@
+id: style-errors-convention
+title: One internal static {Aggregate}Errors class per aggregate holding UPPER_SNAKE_CASE code-only consts
+tier: convention
+concern: style
+layer: application
+severity: must
+status: canonical
+description: >
+  Error identity is a code, not a message. Each aggregate owns exactly one internal static
+  {Aggregate}Errors class at its root folder, holding public const string codes in UPPER_SNAKE_CASE grouped
+  by use case under a comment header. Validators and handlers reference these consts; inline string literals
+  for error codes are forbidden. Codes are an API contract — never rename an existing one.
+invariants:
+  - Exactly one errors class per aggregate, named {Aggregate}Errors; codes shared across aggregates live in a single shared errors class.
+  - The class is declared internal static at the aggregate root ({BC}/[{Aggregate}/]{Aggregate}Errors.cs), never inside a use-case folder.
+  - Every member is a public const string whose value is UPPER_SNAKE_CASE, usually prefixed by the use case or aggregate (e.g. CREATE_{ENTITY}_{FIELD}_INVALID).
+  - Members are grouped under // {UseCase} comment headers.
+  - AxisError factory calls always receive one of these consts, never an inline string literal.
+  - Existing code values are immutable because clients match on them; add new codes instead of renaming.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Persistence-owned codes (not-found or already-exists emitted by repositories) may keep their single
+  declaration next to the ports they come from, with the application matching on those same consts rather
+  than redeclaring them. The no-throw discipline these codes serve is the framework rule result-no-throw.

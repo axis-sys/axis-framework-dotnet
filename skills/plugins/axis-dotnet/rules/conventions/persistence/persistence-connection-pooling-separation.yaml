@@ -1,0 +1,39 @@
+id: persistence-connection-pooling-separation
+title: Business and saga connection pools are separate and explicitly sized
+tier: convention
+concern: persistence
+layer: driven
+severity: should
+status: canonical
+description: >
+  The business repositories (keyed by AppKey) and a saga store draw from different connection pools even
+  when they target the same database, so background fan-out cannot starve request handling. Pool sizes are
+  configuration, not code.
+invariants:
+  - The business pool is sized in its own connection string.
+  - The saga pool is sized separately through its own configuration key, applied by rewriting the saga connection string at the host, never by mutating the shared business string.
+  - The pool arithmetic is guarded; the sum of the configured pools must fit the server's maximum-connections limit.
+  - Concurrency knobs that protect the pools (an orchestration window, a global maximum of concurrent sagas) are configuration or seeded settings, not constants.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Test fixtures pin their own smaller pool sizes to fit container limits.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The isolation starts at registration: keying the business unit of work and db repository by AppKey
+  (persistence-di-registration) is what gives the business pool its own identity separate from the saga
+  store, even against one physical database. Sizing both to fit the server's connection ceiling is what
+  keeps background fan-out from exhausting request-handling capacity.

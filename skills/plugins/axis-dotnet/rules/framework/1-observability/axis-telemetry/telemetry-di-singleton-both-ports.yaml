@@ -1,0 +1,43 @@
+id: telemetry-di-singleton-both-ports
+title: AddOpenTelemetryAxis registers one singleton adapter bound to both ports
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AddOpenTelemetryAxis() is the one-call wiring for the production sink. It registers OpenTelemetryAdapter as
+  a singleton and binds both IAxisTelemetry and IAxisMetrics to that same instance (each via a factory that
+  resolves the concrete adapter), so a request for either port returns the one process-wide adapter that owns
+  the shared ActivitySource and Meter. Singleton lifetime is required because the ActivitySource/Meter are
+  process-wide and the metric cache must be shared.
+invariants:
+  - AddOpenTelemetryAxis registers OpenTelemetryAdapter with singleton lifetime.
+  - It binds both IAxisTelemetry and IAxisMetrics to the same OpenTelemetryAdapter instance.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/DependencyInjection.cs:8 — AddOpenTelemetryAxis wires the singleton and binds both ports to it"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/OpenTelemetryAdapterTests.cs:62 — both ports resolve to the same adapter instance"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/opentelemetry-adapter.md"
+    - "docs/en-us/1-Observability/AxisTelemetry/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  AddOpenTelemetryAxis wires the sink but NOT the TelemetryBehavior — the auto-instrumentation is a separate,
+  opt-in pipeline registration. To disable telemetry instead, register NullAxisTelemetry.Instance for both
+  ports by hand rather than calling this.

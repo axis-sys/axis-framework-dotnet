@@ -1,0 +1,42 @@
+id: saga-forward-then-compensation
+title: The engine drives the forward chain to Completed, or on failure compensates to Compensated (else Failed)
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The engine walks the forward chain stage by stage: on success it advances to NextStageOnSuccess, and when the
+  chain ends it marks the saga Completed. When a forward stage fails, if the stage has RouteToOnError entries the
+  engine transitions to Compensating and walks that compensation chain; when the chain finishes it marks the
+  saga Compensated. A forward stage failure with no error routes marks the saga Failed on that stage. Status
+  moves Pending -> Running -> Completed | (Compensating -> Compensated) | Failed.
+invariants:
+  - On stage success the engine advances to NextStageOnSuccess; when the forward chain ends it calls CompleteAsync (Completed).
+  - A forward stage failure with a non-empty RouteToOnError transitions to Compensating and walks the routed error stages; finishing them calls CompensateAsync (Compensated).
+  - A forward stage failure with no RouteToOnError calls FailAsync (Failed) on that stage and stops.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:95 — ExecuteForwardChainAsync: advance, complete, or begin compensation"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:151 — ExecuteCompensationChainAsync ends in CompensateAsync"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/MySqlSagaLifecycleTests.cs:52 — happy path reaches Completed; forward failure routes to compensation and reaches Compensated"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Completed / Compensated / Failed are the three terminal states; the resumer never touches them and the
+  janitor eventually deletes them once their retention window elapses.

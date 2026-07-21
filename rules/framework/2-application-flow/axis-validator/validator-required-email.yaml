@@ -1,0 +1,38 @@
+id: validator-required-email
+title: RequiredEmail requires a present string that is a valid email address
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  RequiredEmail layers FluentValidation's EmailAddress check on top of the presence check: the value must be
+  present (not null, empty or whitespace-only) and a syntactically valid email address. Missing and malformed
+  both report the same single error code.
+invariants:
+  - The value must pass the presence check (not null, empty or whitespace-only).
+  - The value must satisfy FluentValidation's EmailAddress validation.
+  - A missing value and a malformed value both fail with the same error code.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:144 — presence + EmailAddress().WithErrorCode(errorCode)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:28 — valid passes; null, empty and malformed fail with the code"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The email syntax check is FluentValidation's default EmailValidator; Axis does not add its own regex.

@@ -1,0 +1,40 @@
+id: persistence-dbentity-fromreader-ordinal
+title: Map rows with an internal sealed record DbEntity and a static ordinal FromReader
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Each entity has an internal sealed record {Entity}DbEntity that implements the domain's
+  I{Entity}EntityProperties and exposes a static FromReader(DbDataReader) factory reading columns by ordinal
+  in the exact order of {Entities}Columns.All. The DbEntity is the only place raw reader access happens.
+invariants:
+  - The row type is an internal sealed record {Entity}DbEntity implementing I{Entity}EntityProperties, declared next to its repository.
+  - A static {Entity}DbEntity FromReader(DbDataReader reader) reads by ordinal (GetString(0), GetBoolean(7), ...) in {Entities}Columns.All order — never by column name.
+  - Value objects are materialized via an explicit cast from the raw value; because value-object parsing rejects null, nullable columns guard first.
+  - Nullable columns use the IsDBNull check; a nullable value object needs the explicit lifted cast so a null flows through as a typed null.
+  - Timestamps are read as a DateTimeOffset through the reader's typed getter, never as a local DateTime.
+  - Repositories pass {Entity}DbEntity.FromReader as the mapper argument of the framework Get and List calls; ad-hoc scalar or aggregate queries may use inline lambdas over the reader.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Scalar and aggregate projections (counts, grouped counts, single-column lists) map with inline lambdas instead of a DbEntity.
+derives_to:
+  skills:
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The mapper takes the provider-neutral DbDataReader, never a provider-specific reader type, so the same
+  DbEntity serves every targeted provider. The ordinal contract is why {Entities}Columns.All order is
+  load-bearing (persistence-columns-single-source): the two must be reordered together. Value-object
+  non-nullability is a domain rule; the lifted cast is how the adapter honours it at the persistence edge.

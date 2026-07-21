@@ -1,0 +1,41 @@
+id: bus-outbox-serializer-no-throw
+title: The outbox serializer turns exceptions into an AxisError, never throwing
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AxisBusSerializer centralizes payload (de)serialization over System.Text.Json and guarantees no exception
+  escapes: Serialize and both Deserialize overloads wrap the call in try/catch and return
+  AxisError.InternalServerError with a stable code (AXIS_BUS_SERIALIZATION_FAILED /
+  AXIS_BUS_DESERIALIZATION_FAILED) instead. A null deserialization result is treated as a failure too.
+invariants:
+  - Serialize returns AxisResult<string> and converts any thrown exception to AxisError.InternalServerError(SerializationFailed).
+  - Deserialize returns the value or AxisError.InternalServerError(DeserializationFailed) on a thrown exception or a null result.
+  - No path in the serializer throws to the caller — the failure is always a value on the rail.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusSerializer.cs:15 — Serialize wraps STJ, returns AxisError on failure"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusSerializer.cs:27 — Deserialize returns AxisError on exception or null"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/RepositoryBusAdapterTests.cs:63 — a self-referencing event fails serialization as an AxisError, not an exception"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A non-generic Deserialize(json, Type) overload exists for the dispatcher, which only learns the event's CLR
+  Type at runtime. Mirrors AxisCacheSerializer.

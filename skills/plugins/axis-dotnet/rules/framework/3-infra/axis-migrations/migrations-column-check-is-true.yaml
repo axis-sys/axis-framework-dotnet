@@ -1,0 +1,42 @@
+id: migrations-column-check-is-true
+title: A column CHECK is the closed IsTrue boolean guard rendered per dialect
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  A column-level CHECK is modelled by the closed AxisCheck hierarchy, whose only case is the IsTrue singleton —
+  the single-row-guard pattern that pins a boolean column to true (paired with a one-value primary key it makes
+  a table hold at most one row). It is intentionally narrow: the dialect renders the boolean predicate its own
+  way (Postgres CHECK (col), MySQL CHECK (col = 1)), so a portable boolean guard needs no engine SQL.
+invariants:
+  - AxisCheck is a closed hierarchy whose only case is the IsTrueCheck, exposed as the shared AxisCheck.IsTrue singleton.
+  - IsTrue renders the bare boolean column on Postgres (CHECK (col)) and the explicit comparison on MySQL (CHECK (col = 1)).
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisCheck.cs:7 — abstract AxisCheck, single IsTrueCheck singleton"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlSqlDialect.cs:30 — RenderCheck renders col = 1"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresSqlDialect.cs:30 — RenderCheck renders the bare column"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisDdlModelTests.cs:44 — IsTrueCheckIsASingleton"
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisSqlDialectBaseTests.cs:63 — column CHECK renders after DEFAULT in the column line"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/ddl.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A multi-column or arbitrary boolean constraint is not a column CHECK — it is a table-level check with a raw
+  portable expression (migrations-table-check-portable).

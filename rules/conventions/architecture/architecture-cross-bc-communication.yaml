@@ -1,0 +1,45 @@
+id: architecture-cross-bc-communication
+title: Cross-BC calls go through the other BC's facade (sync), the bus (async) or a saga — never its ports
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  A bounded context may not reach into another bounded context's repository ports or internals.
+  Synchronous needs use the other BC's public facade (optionally wrapped in a local port adapter so the
+  consumer stays decoupled); fire-and-forget side effects use bus events; multi-BC processes with
+  compensation use a saga whose stage handlers live in the BC that owns each stage. The boundary is meant
+  to be enforced mechanically by an architecture test.
+invariants:
+  - Application code in one bounded context never injects another bounded context's repository ports; foreign write ports are forbidden unconditionally, including inside sagas.
+  - Synchronous cross-BC reads and writes call the other BC's public facade; a BC may define a local port and implement it over that facade to stay decoupled.
+  - Decoupled notifications publish an event through the bus; the publisher does not know the consumers.
+  - Multi-BC workflows with compensation are sagas; each stage handler lives in the application of the BC that owns that stage and communicates only through the shared payload.
+  - Reading another bounded context's shared kernel (value objects, shared constants) is always allowed — it is a leaf.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/UseCases/RequestToken/v1/RequestTokenHandler.cs:12 — the Auth BC injects the Customers BC's public facade, straight from the shared driving contracts"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/UseCases/RequestToken/v1/RequestTokenHandler.cs:19 — a synchronous cross-BC read/write through the owning BC's facade"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/EmailValidation/Sagas/ValidateEmail/Handlers/MarkEmailValidatedStageHandler.cs:24 — a saga stage's cross-BC write through the owning (Customers) BC's facade, never its raw port"
+  incorrect: []
+exceptions:
+  - Saga stage handlers MAY read a sibling bounded context's reader port directly, because the saga is the sanctioned cross-BC orchestration; writes still go through the owning BC.
+derives_to:
+  skills:
+    - axis-systems-architect
+    - axis-bus
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The three sanctioned channels (facade sync, bus async, saga with compensation) are the same channels the
+  architecture planning and the LikeC4 model use for cross-BC edges. This convention is a strong candidate
+  for a future convention-tier analyzer over handler constructor parameters.

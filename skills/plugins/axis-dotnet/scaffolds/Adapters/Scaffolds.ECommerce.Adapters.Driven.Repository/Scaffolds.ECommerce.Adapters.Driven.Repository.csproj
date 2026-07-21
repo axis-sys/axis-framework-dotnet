@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Axis.Ddl" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Auth" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Customers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <!-- The dialect-agnostic persistence surface only (IAxisDbRepository, IAxisUnitOfWork, AxisTable,
+         IAxisSqlDialect/IAxisMigrationRunner). NO provider package — Postgres and MySql plug in via DI. -->
+    <ProjectReference Include="..\..\..\3-Infra\AxisRepository\AxisRepository\AxisRepository.csproj" />
+    <!-- Applies the Axis convention analyzers (AXIS0606): proves each {Entity}DbEntity record keeps one
+         constructor parameter per line, mirroring the column order it maps. -->
+    <ProjectReference Include="..\..\..\Conventions\Axis.Conventions.Analyzers\Axis.Conventions.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,44 @@
+id: mediator-runtime-performance-behavior
+title: PerformanceBehavior is an opt-in transparent behavior that warns past 500ms
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [performance, observability]
+severity: should
+status: canonical
+description: >
+  PerformanceBehavior of TRequest and TResponse is the one behavior shipped in the runtime package. It times
+  next() with a Stopwatch and, when the elapsed time exceeds a 500ms threshold, logs a warning through
+  IAxisLogger of TRequest; otherwise it is silent. It never alters the response — it returns exactly what
+  next() produced. It is opt-in via AddPerformanceBehavior(), which registers it as an open-generic Transient
+  behavior, and it exists only in the valued shape.
+invariants:
+  - PerformanceBehavior returns the response from next() unchanged; it is a transparent timing wrapper.
+  - It logs a warning via IAxisLogger of TRequest only when the measured duration exceeds the 500ms threshold.
+  - It is registered only by AddPerformanceBehavior() as an open-generic Transient IAxisPipelineBehavior; AddAxisMediator does not wire it.
+  - Only the valued IAxisPipelineBehavior of TRequest and TResponse overload exists; there is no valueless PerformanceBehavior.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/Pipelines/PerformanceBehavior.cs:13 — const 500ms threshold, time next(), warn when exceeded, return response"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/DependencyInjection.cs:26 — AddPerformanceBehavior registers PerformanceBehavior as open-generic Transient"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:73 — a 550ms command exceeds the threshold and still succeeds transparently"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/performance-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The 500ms threshold is a compile-time const; the behavior only observes, it never fails or reshapes the
+  result, so adding or removing it changes logging only, never behavior.

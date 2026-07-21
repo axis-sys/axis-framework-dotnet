@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Axis</RootNamespace>
+    <!-- NuGet Package -->
+    <PackageId>AxisResult</PackageId>
+    <Description>Railway-Oriented Programming for C#. A zero-dependency Result monad with full async/ValueTask support, typed error categories, monadic composition (Then/Map/Zip), recovery patterns, and parallel aggregation.</Description>
+    <PackageTags>result;monad;railway;error-handling;functional;csharp;dotnet</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/0-Foundations/AxisResult/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="_PackAxisResultAnalyzer" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="..\AxisResult.Analyzers\bin\$(Configuration)\netstandard2.0\AxisResult.Analyzers.dll">
+        <BuildAction>None</BuildAction>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+</Project>

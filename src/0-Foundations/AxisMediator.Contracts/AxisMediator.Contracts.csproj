@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Contracts (commands, queries, handlers) shared between AxisMediator and its consumers, with analyzers that enforce them at build time.</Description>
+    <PackageTags>mediator;cqrs;contracts;analyzer;axis;csharp;dotnet</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../docs/en-us/0-Foundations/AxisMediator.Contracts/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AxisResult\AxisResult\AxisResult.csproj" />
+    <ProjectReference Include="..\AxisTypes\AxisTypes\AxisTypes.csproj" />
+    <ProjectReference Include="..\AxisMediator.Contracts.Analyzers\AxisMediator.Contracts.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="_PackAxisMediatorContractsAnalyzer" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="..\AxisMediator.Contracts.Analyzers\bin\$(Configuration)\netstandard2.0\AxisMediator.Contracts.Analyzers.dll">
+        <BuildAction>None</BuildAction>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+</Project>

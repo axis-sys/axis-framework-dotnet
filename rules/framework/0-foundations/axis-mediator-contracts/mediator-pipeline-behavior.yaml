@@ -1,0 +1,47 @@
+id: mediator-pipeline-behavior
+title: A pipeline behavior implements one of the two IAxisPipelineBehavior overloads and calls next exactly once
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  A cross-cutting concern that must wrap every dispatch is a pipeline behavior, not code sprinkled into
+  handlers. There are two overloads — one for valueless requests and one for requests with a response —
+  and a behavior continues the chain by invoking next exactly once, or short-circuits by returning a
+  failed AxisResult without calling it. Ordering is a wiring decision, not an attribute on the behavior.
+invariants:
+  - A cross-cutting concern is a pipeline behavior implementing IAxisPipelineBehavior<TRequest> for valueless requests or IAxisPipelineBehavior<TRequest, TResponse> for requests with a response.
+  - The valued overload constrains TResponse to the broad IAxisResponse, so one behavior type spans both command responses and query responses.
+  - HandleAsync receives the request, the shared AxisPipelineContext and a next delegate, and invokes next exactly once to continue the chain, or short-circuits by returning a failed AxisResult without calling next.
+  - A behavior that must apply to every request is registered for both the valueless and the valued overload; registering only the valued overload skips valueless commands.
+  - Behaviors execute in DI registration order, so the first-registered behavior is the outermost wrapper and ordering is decided at wiring time.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/Pipelines/IAxisPipelineBehavior.cs:6 — the valueless and valued behavior overloads"
+    - "src/0-Foundations/AxisMediator.Contracts/Pipelines/IAxisPipelineBehavior.cs:11 — valued overload constrains TResponse to IAxisResponse"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:57 — behaviors reversed then folded, first-registered is outermost"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/Pipelines/PerformanceBehavior.cs:15 — reference behavior calls next exactly once"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds:
+    - pipeline-behavior
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The embedded PerformanceBehavior implements only the valued overload, so valueless commands get no
+  performance timing — a coverage gap detailed in the AxisMediator runtime cluster. Proving next is
+  called exactly once is not mechanically decidable across branches, so no analyzer enforces it; the
+  registration order and wiring live in the runtime cluster.

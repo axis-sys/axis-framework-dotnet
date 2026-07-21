@@ -1,0 +1,45 @@
+id: storage-result-never-throws
+title: Every storage operation returns AxisResult and never throws for an expected outcome
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  Storage is a driven port on the railway: each method returns AxisResult, and the in-box adapters wrap the
+  vendor SDK call in AxisResult.TryAsync so any thrown exception (auth, network, a missing object, a server
+  error) becomes a typed AxisResult failure rather than an exception the caller must catch. Callers compose
+  storage calls with Then/Map on the railway and never wrap a storage call in try/catch.
+invariants:
+  - Each IAxisStorage or capability method returns AxisResult (or AxisResult<T>) and never throws for an expected failure.
+  - The in-box adapters wrap the SDK call in AxisResult.TryAsync, converting any thrown exception into a typed AxisResult failure.
+  - A caller composes storage calls on the railway and never wraps them in try/catch.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageAdapter.cs:12 — UploadAsync wraps PutObjectAsync in AxisResult.TryAsync"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageAdapter.cs:24 — every Azure method wraps the SDK call in AxisResult.TryAsync"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/FileSystemStorageAdapter.cs:11 — the filesystem adapter wraps every I/O call the same way"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:66 — a thrown AmazonS3Exception becomes a failed AxisResult"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/AzureBlobStorageAdapterTests.cs:66 — a thrown RequestFailedException becomes a failed AxisResult"
+  incorrect: []
+exceptions:
+  - Cancellation is deliberate — a cancelled ambient token surfaces as OperationCanceledException, not a failed AxisResult (see storage-ambient-cancellation).
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/why-axisstorage.md"
+    - "docs/en-us/3-Infra/AxisStorage/upload-download.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the AxisStorage face of the framework-wide no-throw rule owned by AxisResult: the SDK throws, the
+  adapter projects the exception onto the railway, so no wrapper is needed at the call site.

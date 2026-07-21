@@ -1,0 +1,42 @@
+id: bus-publish-port
+title: IAxisBus is a single one-method publish port
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  IAxisBus is the whole publishing surface: one generic method PublishAsync<TEvent>(TEvent @event,
+  params string[] topics) constrained to where TEvent : IAxisEvent, returning Task<AxisResult>. It has
+  no subscribe/consume method — subscription is expressed by registering IAxisEventHandler<TEvent> in DI,
+  never by a call on the port. Because it returns a valueless AxisResult, publishing never hands data back
+  to the caller.
+invariants:
+  - IAxisBus exposes exactly one member, PublishAsync<TEvent>(TEvent @event, params string[] topics) where TEvent : IAxisEvent.
+  - PublishAsync returns Task<AxisResult> (valueless) — the publisher gets a success/failure rail, never a value back.
+  - The port has no subscribe or consume method; consumers are registered as IAxisEventHandler<TEvent> in the container.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:9 — the interface, one PublishAsync member"
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:11 — PublishAsync<TEvent>(event, params topics) where TEvent : IAxisEvent -> Task<AxisResult>"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:62 — a publish call through the port"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/iaxisbus.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  IAxisEvent lives in AxisMediator.Contracts (CQRS/Events), not in the AxisBus package — the bus depends on
+  the contracts foundation for the event/handler shapes and only owns the port.

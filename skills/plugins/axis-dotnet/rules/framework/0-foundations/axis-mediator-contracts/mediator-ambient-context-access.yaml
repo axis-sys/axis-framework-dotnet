@@ -1,0 +1,45 @@
+id: mediator-ambient-context-access
+title: Handlers read identity and tracing from IAxisMediator, never from the writable context accessor
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A handler consumes the ambient request context through the single read-only interface IAxisMediator,
+  which is Scoped. The writable IAxisMediatorContextAccessor exists only so application middleware can
+  seed that context at the edge; a handler that injects it is reaching behind the abstraction. The
+  authenticated identity is nullable and anonymous requests are legal, so it is guarded before use.
+invariants:
+  - A handler reads identity and tracing (AxisEntityId, TraceId, OriginId, JourneyId) from the injected IAxisMediator, which is registered Scoped.
+  - A handler never injects IAxisMediatorContextAccessor; that writable seam is populated by application middleware only.
+  - AxisEntityId is nullable and is null-guarded before use, because a null value means an anonymous, unauthenticated caller.
+  - TraceId is non-null for the life of the request, whereas OriginId and JourneyId may be null.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/IAxisMediator.cs:6 — read-only ambient context (AxisEntityId nullable, TraceId non-null)"
+    - "src/0-Foundations/AxisMediator.Contracts/IAxisMediatorContextAccessor.cs:5 — writable seam for middleware, not for handlers"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.cs:15 — the Scoped mediator delegates identity reads to the context accessor"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks:
+    - AXIS0402
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Analyzer AXIS0402 — flag a constructor parameter of type IAxisMediatorContextAccessor on a
+  class that implements an Axis handler interface. The null-guard-first ordering (check AxisEntityId
+  before touching the factory) is shown in the axis-mediator handler scaffold.

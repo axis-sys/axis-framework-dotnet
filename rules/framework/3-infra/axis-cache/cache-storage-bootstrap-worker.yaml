@@ -1,0 +1,45 @@
+id: cache-storage-bootstrap-worker
+title: A hosted worker creates the L2 schema once on startup, idempotently
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  When RunStartupMigration is true (the default), AddAxisCacheRepositoryCore hosts
+  AxisCacheStorageInitializerWorker, a BackgroundService that runs IAxisCacheStorageInitializer.InitializeAsync()
+  once after the host starts. The per-dialect initializer renders the AXIS_CACHE schema and applies it through
+  the framework migration runner — idempotent, so it is safe on every restart and a no-op if a fixture
+  migrated first. Turn RunStartupMigration off for hosts that must not touch the database at boot (e.g. test
+  hosts that fake the storage ports), and migrate explicitly via AxisCacheMigrations.Initialize{Postgres,MySql}Async.
+invariants:
+  - With RunStartupMigration true, AxisCacheStorageInitializerWorker runs IAxisCacheStorageInitializer.InitializeAsync() once post-start.
+  - InitializeAsync renders and applies the AXIS_CACHE schema idempotently, so it is safe on every startup and a no-op if already applied.
+  - Setting RunStartupMigration false suppresses the worker; the schema is then applied explicitly via AxisCacheMigrations.Initialize{Postgres,MySql}Async.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCacheStorageInitializerWorker.cs:12 — BackgroundService running InitializeAsync once on startup"
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/DependencyInjection.cs:30 — worker hosted only when settings.RunStartupMigration"
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/Ports/IAxisCacheStorageInitializer.cs:7 — the per-dialect idempotent apply seam"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres.IntegrationTests/AxisCachePostgresFixture.cs:17 — a fixture applies InitializePostgresAsync explicitly before the DI worker would run"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The cache twin of the AxisSaga / AxisBus storage bootstrap. This worker only creates the schema; the
+  separate AxisCacheSweepWorker (see cache-store-expired-read-is-miss) periodically invokes
+  DeleteExpiredAsync when AxisCacheRepositorySettings.SweepEnabled is set (the default).

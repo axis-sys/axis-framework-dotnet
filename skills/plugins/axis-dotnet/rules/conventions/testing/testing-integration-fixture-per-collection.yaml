@@ -1,0 +1,43 @@
+id: testing-integration-fixture-per-collection
+title: One Testcontainers fixture per xUnit collection; migrations run once in InitializeAsync
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  Integration tests share database containers through xUnit collection fixtures: a sealed {X}Fixture :
+  IAsyncLifetime starts the container(s) and runs all migrations exactly once in InitializeAsync (ValueTask,
+  xUnit v3), a [CollectionDefinition] class binds it via ICollectionFixture<>, and test classes join with
+  [Collection(...)]. Tests then isolate by unique keys, never by re-migrating or truncating between tests.
+invariants:
+  - A sealed {X}Fixture : IAsyncLifetime starts the container(s) and runs all migrations exactly once in InitializeAsync.
+  - A [CollectionDefinition] class binds the fixture via ICollectionFixture<>, and test classes join with [Collection(...)].
+  - Containers are declared with explicit image tags and automatic cleanup enabled.
+  - Multi-container fixtures start their containers in parallel with Task.WhenAll.
+  - The connection string caps the pool so application and saga pools stay under the driver default during fan-out.
+  - Tests isolate with unique keys per test (tenant slug / Guid v7 ids), not with database resets between tests.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/DualDbFixture.cs:6 — a sealed {X}Fixture : IAsyncLifetime that starts containers and runs migrations once in InitializeAsync"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/DualDbFixture.cs:31 — [CollectionDefinition] binds the fixture via ICollectionFixture<>, joined by [Collection] on the test class"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/DualDbFixture.cs:19 — multi-container parallel startup via Task.WhenAll"
+  incorrect: []
+exceptions:
+  - An end-to-end factory may itself be the collection fixture (factory plus container in one class); see testing-e2e-hermetic-provider-pinning.
+derives_to:
+  skills:
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  One container and one migration run per collection keeps the suite fast and hermetic; per-test isolation
+  is achieved with fresh keys rather than resetting the schema. Per-step scoping inside a journey is a
+  separate concern covered by testing-journey-scope-per-step.

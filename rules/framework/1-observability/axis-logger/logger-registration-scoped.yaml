@@ -1,0 +1,43 @@
+id: logger-registration-scoped
+title: AddAxisLogger registers IAxisLogger as an open-generic Scoped service
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AddAxisLogger() wires the logger with two calls — AddLogging() (so the underlying ILogger<T> pipeline
+  exists even if the host forgot it) and AddScoped(typeof(IAxisLogger<>), typeof(AxisLogger<>)) — and returns
+  the same IServiceCollection for chaining. Scoped is deliberate: the logger reads request-scoped correlation
+  ids from the ambient IAxisMediator, so its lifetime matches the request.
+invariants:
+  - AddAxisLogger calls AddLogging() and registers IAxisLogger<> -> AxisLogger<> as an open generic with a Scoped lifetime.
+  - AddAxisLogger returns the same IServiceCollection so registration can be chained.
+  - AddAxisLogger does not register TimeProvider; AxisLogger<T> needs TimeProvider and IAxisMediator from DI, so one of them must be registered elsewhere.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/DependencyInjection.cs:10 — AddLogging() + AddScoped(typeof(IAxisLogger<>), typeof(AxisLogger<>)), returns services"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:8 — ctor injects IAxisMediator, TimeProvider and ILogger<T>"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:172 — resolves IAxisLogger<T> from a built scope"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/getting-started.md"
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Gotcha — AddAxisLogger() alone does not register TimeProvider, which AxisLogger<T>'s ctor requires; the
+  unit tests add TimeProvider.System explicitly, and in an app AddLoggingBehavior() (or the host) supplies
+  it. Scoped, not Singleton, because the ambient correlation ids are per request.

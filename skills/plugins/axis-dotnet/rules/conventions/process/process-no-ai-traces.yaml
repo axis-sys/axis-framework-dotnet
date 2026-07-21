@@ -1,0 +1,39 @@
+id: process-no-ai-traces
+title: No AI-assistant traces in anything delivered — commits, branches, code or docs
+tier: convention
+concern: process
+layer: any
+severity: must
+status: canonical
+description: >
+  Nothing in the repository history or content may reveal AI-assistant usage. No Co-Authored-By or
+  "Generated with" trailers on commits, no agent-generated branch names, no AI-assistant references or
+  emoji in code, error messages, seeds or docs. Local AI-tool state stays untracked through a generic,
+  multi-vendor ignore block so that no single tool is identifiable.
+invariants:
+  - Commit messages carry no Co-Authored-By trailer and no "Generated with" footer.
+  - Branch names are human task names; agent-style prefixes (worktree-*, agent/*, and similar) never reach the shared history.
+  - No code comment, error message, seed or doc references an AI assistant, and no AI-signature emoji appears in delivered content.
+  - Local AI-tool directories are kept out of git by a generic multi-vendor "AI coding assistants" ignore block, so no single vendor is identifiable from the ignore file itself.
+  - "Commit messages are meaningful, in a conventional 'type(scope): summary' style; placeholder messages such as 'wip' or 'bkp' are not delivery-quality."
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Local-only worktrees kept untracked are fine as long as their branch names never merge into shared history with an agent-style prefix.
+derives_to:
+  skills:
+    - axis-docs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This applies to what is DELIVERED — the history and content a client or downstream consumer can see. The
+  ignore block is vendor-neutral by design (it covers many assistants at once), which both keeps local
+  session state out of git and prevents any one tool from being fingerprinted from the ignore file.

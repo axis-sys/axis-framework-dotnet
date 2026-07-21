@@ -1,0 +1,45 @@
+id: style-entity-record-parameter-per-line
+title: An entity properties record with two or more constructor parameters puts each parameter on its own line
+tier: convention
+concern: style
+layer: any
+severity: must
+status: canonical
+description: >
+  A domain {Entity}Properties record and a repository {Entity}DbEntity both carry the persisted shape of an
+  entity in their positional (primary constructor) parameter list. When that list has two or more parameters,
+  each parameter goes on its own line — none sharing the record-declaration line — so a reader scans the
+  entity's shape (and, for a DbEntity, the column order it maps) vertically rather than parsing a crammed
+  single line. The AXIS0606 analyzer enforces it at build time.
+invariants:
+  - An entity properties record — a record implementing an I…Properties interface (I{Entity}EntityProperties or I{Entity}Properties), whether the domain's own record or a repository DbEntity — is detected by the implemented interface, from any assembly.
+  - When its primary constructor declares two or more parameters, each parameter begins on its own line and none shares the line of the record keyword/identifier; the closing parenthesis sits on its own line before the base list.
+  - A single-parameter positional record needs no wrapping and is not flagged.
+  - A DbEntity's static FromReader factory mirrors the same one-argument-per-line layout in its `new(...)` call, so the record's declared shape and the reader's ordinal mapping line up column for column (style only — not analyzer-enforced).
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/CartItems/CartItemDbEntity.cs:7 — a repository DbEntity with each parameter on its own line and its FromReader new(...) mirroring the layout"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Domain/Catalog/Orders/OrderProperties.cs:8 — a domain {Entity}Properties record, one parameter per line"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Customers/Customers/CustomerDbEntity.cs:6 — a seven-column DbEntity, one parameter per line"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks:
+    - AXIS0606
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  Enforced by the Axis.Conventions.Analyzers diagnostic AXIS0606 (category Axis.Style), which shares the
+  I…Properties detection with domain-properties-contract-pair (AXIS0604) but drops that rule's same-assembly
+  restriction so a repository DbEntity — whose interface lives in the domain assembly — is also in scope.
+  There is no .editorconfig / dotnet-format switch that wraps positional-record parameters one per line, which
+  is why the guarantee is an analyzer rather than a formatter setting. The companion FromReader new(...) layout
+  is a style convention the analyzer does not police.

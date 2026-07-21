@@ -1,0 +1,46 @@
+id: types-value-object-shape
+title: A value object is a readonly partial record struct whose private constructor is the single validation site
+tier: framework
+family: 0-foundations
+package: AxisTypes
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  The author-written half of a string value object is small and fixed: a readonly partial record struct
+  annotated [ValueObject], a private constructor that validates and assigns the backing property, and —
+  for id-style values — a static factory that mints a fresh valid instance. The private constructor is
+  the one place the value object throws; every other member is generated.
+invariants:
+  - A string value object is declared as a readonly partial record struct annotated [ValueObject]; the generated partial supplies the conversions, equality and TryParse.
+  - The private constructor is the only hand-written member and the only place the value object throws, validating the input before assigning the backing property.
+  - The backing property (default name Value) is private; external reads go through the implicit-to-string conversion or ToString, never a public getter.
+  - An id-style value object exposes a static New (or equivalent) factory that produces a fresh valid instance rather than a public constructor.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:6 — [ValueObject] readonly partial record struct"
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:10 — private constructor is the sole validation and throw site"
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:24 — private backing Value property"
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:8 — static New factory mints a fresh valid value"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-types
+  hooks:
+    - AXIS0200
+  scaffolds:
+    - sku-value-object
+  docs:
+    - "docs/en-us/0-Foundations/AxisTypes/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Keeping the backing property private is what forces call sites through the implicit conversion, so the
+  value object reads as its underlying string without exposing a mutable or bypassable getter. The
+  reference app mirrors this shape in its domain-value-object convention rule.

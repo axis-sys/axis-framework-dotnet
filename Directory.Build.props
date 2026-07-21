@@ -1,0 +1,68 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NoWarn>CS1591;VSTHRD003</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AxisTestProject)' == 'true'">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- NuGet package metadata, centralized for every publishable project -->
+  <PropertyGroup Condition="'$(AxisTestProject)' != 'true'">
+    <Version>2.1.1</Version> <!-- x-release-please-version -->
+    <Authors>Fillippe Prata</Authors>
+    <Company>Fillippe Prata</Company>
+    <Product>Axis Framework</Product>
+    <Copyright>Copyright (c) 2026 Fillippe Prata</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/axis-sys/axis-framework-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/axis-sys/axis-framework-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description Condition="'$(Description)' == ''">Part of the Axis Framework — an opinionated, ports-and-adapters .NET framework.</Description>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(AxisTestProject)' != 'true'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Falls back to the root README.md when a project hasn't wired its own module README via a <None Include=".../README.md" Pack="true" PackagePath="/" /> item. -->
+  <Target Name="_AxisFallbackReadme" BeforeTargets="_GetPackageFiles" Condition="'$(AxisTestProject)' != 'true'">
+    <ItemGroup Condition="'@(None->WithMetadataValue(&quot;PackagePath&quot;, &quot;/&quot;))' == ''">
+      <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(AxisTestProject)' == 'true'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)src/0-Foundations/Axis.Testing/Axis.Testing.XUnit/Axis.Testing.XUnit.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <Using Include="Xunit" />
+    <Using Include="Axis" />
+    <Using Include="Axis.Testing" />
+  </ItemGroup>
+</Project>

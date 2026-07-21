@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+    <!-- Applies the Axis convention analyzers (AXIS0604): proves the properties record stays internal sealed. -->
+    <ProjectReference Include="..\..\..\Conventions\Axis.Conventions.Analyzers\Axis.Conventions.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Only the application (through the factory) and the core unit tests may materialize the internal record. -->
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.Application" />
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.UnitTests" />
+  </ItemGroup>
+
+</Project>

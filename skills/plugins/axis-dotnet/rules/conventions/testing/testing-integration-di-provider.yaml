@@ -1,0 +1,45 @@
+id: testing-integration-di-provider
+title: Compose integration providers via a shared helper; always register IAxisTelemetry and TimeProvider.System
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  Integration tests build a real DI container per test with a shared DependencyInjection helper that
+  mirrors production composition, rather than duplicating the wiring. The Axis behavior pipeline fails at
+  runtime without IAxisTelemetry and TimeProvider, so any test container that drives the mediator pipeline
+  registers the null telemetry instance and TimeProvider.System. Repository-only containers stub the
+  ambient mediator instead of booting the real one.
+invariants:
+  - Full-stack integration tests obtain their container from a shared DependencyInjection helper (ServiceProviderWith{Provider}) that mirrors production composition.
+  - Any test service provider that drives the Axis mediator/behavior pipeline registers IAxisTelemetry (the null telemetry instance) and TimeProvider.System.
+  - Repository-only containers stub the ambient mediator (canned trace/origin ids, CancellationToken.None) instead of booting the real mediator.
+  - Ambient request context (such as the current tenant) is bound to a fixed test value; it is ambient, never a command field.
+  - Test-tuned settings are injected as singletons with a comment stating why they diverge from production.
+  - The helper accepts an optional Action<IServiceCollection> seam so a test can swap one service without forking the composition.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/ProductsRepositoryDualDbTests.cs:16 — a repository-only container stubs the ambient mediator (canned trace/origin, CancellationToken.None)"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/ProductsRepositoryDualDbTests.cs:21 — registers TimeProvider.System and IAxisTelemetry (null) to mirror production wiring"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-integration-tests
+    - axis-unit-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The required IAxisTelemetry + TimeProvider.System registrations materialize wherever the Axis behavior
+  pipeline actually runs: in integration containers that drive the real mediator, and in any unit TestHost
+  that does the same. Tests that bypass the mediator entirely need neither. Cancellation stays ambient via
+  the mediator (mediator-cancellation-is-ambient); the entity fakes seeded here follow
+  testing-fake-entity-property-records.

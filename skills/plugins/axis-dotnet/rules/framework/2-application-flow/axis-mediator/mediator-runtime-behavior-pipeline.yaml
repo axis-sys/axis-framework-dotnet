@@ -1,0 +1,44 @@
+id: mediator-runtime-behavior-pipeline
+title: The dispatcher folds behaviors so they execute in registration order around the handler
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  ExecutePipelineAsync builds the behavior chain for each dispatch. It creates a fresh AxisPipelineContext,
+  resolves IAxisPipelineBehavior for the request (and response) shape, calls Reverse() on the resolved set,
+  and folds each behavior around the handler delegate. Because folding an already-reversed list makes the
+  first-registered behavior the outermost wrapper, behaviors execute in registration order: the first
+  registered sees the request first and the response last. StreamAsync builds no pipeline.
+invariants:
+  - Each command or query dispatch gets its own fresh AxisPipelineContext, created inside ExecutePipelineAsync.
+  - The dispatcher resolves the behaviors, calls Reverse(), and folds them so the first-registered behavior is the outermost wrapper and runs first.
+  - Each behavior receives a next delegate that runs the rest of the chain; the innermost next is the handler itself.
+  - StreamAsync bypasses the behavior pipeline entirely — streaming queries are wrapped by no IAxisPipelineBehavior.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:56 — new AxisPipelineContext per dispatch, GetServices then Reverse, foreach folds behaviors"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:43 — StreamAsync yields directly with no pipeline built"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:73 — PerformanceBehavior wraps the handler through the built pipeline"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/pipeline-behaviors.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The Reverse() call reads as reverse order but the net effect is registration order, because the fold itself
+  reverses the list; the dispatching and pipeline-behaviors docs draw the onion (first registered = outermost).

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\3-Infra\AxisCache\Repository\MySql\AxisCache.MySql\AxisCache.MySql.csproj" />
+    <ProjectReference Include="..\..\AxisBus.Repository\AxisBus.Repository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisBus.MySql.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

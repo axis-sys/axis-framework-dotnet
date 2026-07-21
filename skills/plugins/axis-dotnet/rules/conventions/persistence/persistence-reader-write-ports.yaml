@@ -1,0 +1,45 @@
+id: persistence-reader-write-ports
+title: Split persistence into I{Entities}ReaderPort and I{Entities}WritePort returning AxisResult over property interfaces
+tier: convention
+concern: persistence
+layer: contracts
+severity: must
+status: canonical
+description: >
+  Repository ports live in the driven repository-contracts project, mirrored on the domain folder tree
+  ({BC}/{Aggregate}/...). Reads and writes are separate interfaces; every method returns Task of AxisResult
+  or Task of AxisResult of a value and never throws. Reads project into the domain property interfaces;
+  writes take a property interface for creation and value-object-typed ids plus scalars for targeted
+  mutations.
+invariants:
+  - Naming is I{Entities}ReaderPort and I{Entities}WritePort — "Reader" but "Write" is the established asymmetry; never introduce "WriterPort".
+  - Every method returns Task of AxisResult or Task of AxisResult of T, where T is I{Entity}EntityProperties, a sequence of them, a scalar or a read model — never a concrete record or DbEntity.
+  - Creation methods take the property interface (CreateAsync(I{Entity}EntityProperties properties)) or an add method for child collections.
+  - Ids and foreign keys are shared-kernel value objects, never raw strings or Guids; a scope-scoped method takes its scope key as the first parameter.
+  - An N0 lookup aggregate gets a ReaderPort only; a WritePort exists only when a use case mutates the aggregate.
+  - Ports never expose Save or commit members — transactional commit belongs exclusively to the single IUnitOfWork.
+  - Paged list methods take (..., int page, int pageSize) and are paired with a Count variant.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Foreign or external identifiers that have no value object (an external identity id, a license key, a status code string) may be passed as raw strings.
+  - Two reader ports for the same concept may coexist in different namespaces when each bounded context owns its own model of that concept.
+derives_to:
+  skills:
+    - axis-domain-modeling
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Filter and read-model helper records used by search live beside the port in the same contract folder,
+  not in the driving contracts. The property interfaces the reads project into are the domain's
+  I{Entity}EntityProperties, keeping the concrete DbEntity internal to the adapter
+  (persistence-dbentity-fromreader-ordinal).

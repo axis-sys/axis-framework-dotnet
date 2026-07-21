@@ -1,0 +1,42 @@
+id: saga-resume-is-signal
+title: ResumeAsync is a fire-and-forget signal; a re-fire on a terminal saga is harmless
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  ResumeAsync(sagaId) says "please drive this saga forward". The mediator schedules the engine (Task.Run -> a
+  fresh scope -> SagaEngine.ExecuteAsync) and returns Ok immediately without waiting. A re-fire is safe for a
+  saga that is already Completed / Compensated / Failed: the engine re-acquires the execution lease via
+  AcquireLeaseAsync, which excludes terminal sagas, so the run finds nothing to claim and stops. Application
+  code drives a saga only through the mediator (StartAsync / ResumeAsync) — never by calling the engine.
+invariants:
+  - ResumeAsync schedules the engine in the background and returns Ok immediately; it does not await the engine.
+  - Re-firing a terminal saga is a no-op because AcquireLeaseAsync excludes Completed/Compensated/Failed instances.
+  - Application code never calls SagaEngine directly; it resumes only via IAxisSagaMediator.ResumeAsync.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:85 — ResumeAsync fires the engine and returns Ok"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md:82 — a re-fire is harmless on a terminal saga; never call the engine directly"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  ResumeAsync is exactly what the background resumer calls for each stale instance; an operator can also invoke
+  it manually after fixing a downstream issue.

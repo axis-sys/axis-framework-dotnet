@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\1-Observability\AxisLogger\AxisLogger\AxisLogger.csproj" />
+    <ProjectReference Include="..\..\..\..\1-Observability\AxisTelemetry\AxisTelemetry\AxisTelemetry.csproj" />
+    <ProjectReference Include="..\..\AxisRepository\AxisRepository.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisRepository.MySql.IntegrationTests" />
+  </ItemGroup>
+</Project>
