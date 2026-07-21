@@ -1,0 +1,168 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path=".release-please-manifest.json" />
+    <File Path="CHANGELOG.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/0-Foundations/" />
+  <Folder Name="/src/0-Foundations/AxisDependencyInjections/">
+    <Project Path="src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections.Abstractions/AxisDependencyInjections.Abstractions.csproj" />
+    <Project Path="src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections/AxisDependencyInjections.csproj" />
+  </Folder>
+  <Folder Name="/src/0-Foundations/AxisMediator.Contracts/">
+    <Project Path="src/0-Foundations/AxisMediator.Contracts/AxisMediator.Contracts.csproj" />
+    <Project Path="src/0-Foundations/AxisMediator.Contracts.Analyzers/AxisMediator.Contracts.Analyzers.csproj" />
+    <Project Path="src/0-Foundations/AxisMediator.Contracts.Analyzers.UnitTests/AxisMediator.Contracts.Analyzers.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/0-Foundations/AxisResult/">
+    <Project Path="src/0-Foundations/AxisResult/AxisResult/AxisResult.csproj" />
+    <Project Path="src/0-Foundations/AxisResult/AxisResult.Analyzers/AxisResult.Analyzers.csproj" />
+    <Project Path="src/0-Foundations/AxisResult/AxisResult.Analyzers.UnitTests/AxisResult.Analyzers.UnitTests.csproj" />
+    <Project Path="src/0-Foundations/AxisResult/AxisUnitTests/AxisUnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/0-Foundations/Axis.Testing/">
+    <Project Path="src/0-Foundations/Axis.Testing/Axis.Testing/Axis.Testing.csproj" />
+    <Project Path="src/0-Foundations/Axis.Testing/Axis.Testing.XUnit/Axis.Testing.XUnit.csproj" />
+  </Folder>
+  <Folder Name="/src/0-Foundations/AxisTypes/">
+    <Project Path="src/0-Foundations/AxisTypes/AxisTypes/AxisTypes.csproj" />
+    <Project Path="src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/AxisTypes.SourceGenerator.csproj" />
+    <Project Path="src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisTypes.UnitTests.csproj" />
+    <Project Path="src/0-Foundations/AxisTypes/AxisTypes.Analyzers/AxisTypes.Analyzers.csproj" />
+    <Project Path="src/0-Foundations/AxisTypes/AxisTypes.Analyzers.UnitTests/AxisTypes.Analyzers.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/1-Observability/" />
+  <Folder Name="/src/1-Observability/AxisLogger/">
+    <Project Path="src/1-Observability/AxisLogger/AxisLogger/AxisLogger.csproj" />
+    <Project Path="src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLogger.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/1-Observability/AxisTelemetry/">
+    <Project Path="src/1-Observability/AxisTelemetry/AxisTelemetry/AxisTelemetry.csproj" />
+    <Project Path="src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/AxisTelemetry.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/1-Observability/AxisTelemetry/AzureMonitor/">
+    <Project Path="src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor/AxisTelemetry.AzureMonitor.csproj" />
+    <Project Path="src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/AxisTelemetry.AzureMonitor.UnitTests.csproj" />
+    <Project Path="src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.IntegrationTests/AxisTelemetry.AzureMonitor.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/" />
+  <Folder Name="/src/2-ApplicationFlow/AxisBus/">
+    <Project Path="src/2-ApplicationFlow/AxisBus/AxisBus/AxisBus.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/AxisBus.Analyzers/AxisBus.Analyzers.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/AxisBus.Analyzers.UnitTests/AxisBus.Analyzers.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisBus/MemoryBus/">
+    <Project Path="src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/AxisMemoryBus.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/AxisMemoryBus.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisBus/Repository/">
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/AxisBus.Repository.UnitTests.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBus.Repository.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisBus/Repository/MySql/">
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql.IntegrationTests/AxisBus.MySql.IntegrationTests.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/MySql/AxisBus.MySql/AxisBus.MySql.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisBus/Repository/Postgres/">
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/AxisBus.Postgres.IntegrationTests.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres/AxisBus.Postgres.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisMediator/">
+    <Project Path="src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/AxisMediator.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisSaga/">
+    <Project Path="src/2-ApplicationFlow/AxisSaga/AxisSaga/AxisSaga.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/AxisSaga.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisSaga/MySql/">
+    <Project Path="src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/AxisSaga.MySql.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/AxisSaga.MySql.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisSaga/Postgres/">
+    <Project Path="src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/AxisSaga.Postgres.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/AxisSaga.Postgres.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisValidator/">
+    <Project Path="src/2-ApplicationFlow/AxisValidator/AxisValidator/AxisValidator.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisValidator/FluentValidation/">
+    <Project Path="src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidator.FluentValidation.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidator.FluentValidation.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/2-ApplicationFlow/AxisValidator/Localization/">
+    <Project Path="src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil/AxisValidator.Brazil.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil.UnitTests/AxisValidator.Brazil.UnitTests.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa/AxisValidator.Usa.csproj" />
+    <Project Path="src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa.UnitTests/AxisValidator.Usa.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/" />
+  <Folder Name="/src/3-Infra/AxisCache/">
+    <Project Path="src/3-Infra/AxisCache/AxisCache/AxisCache.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisCache/MemoryCache/">
+    <Project Path="src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache/AxisMemoryCache.csproj" />
+    <Project Path="src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache.UnitTests/AxisMemoryCache.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisCache/Repository/">
+    <Project Path="src/3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCache.Repository.csproj" />
+    <Project Path="src/3-Infra/AxisCache/Repository/AxisCache.Repository.UnitTests/AxisCache.Repository.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisCache/Repository/MySql/">
+    <Project Path="src/3-Infra/AxisCache/Repository/MySql/AxisCache.MySql/AxisCache.MySql.csproj" />
+    <Project Path="src/3-Infra/AxisCache/Repository/MySql/AxisCache.MySql.IntegrationTests/AxisCache.MySql.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisCache/Repository/Postgres/">
+    <Project Path="src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres/AxisCache.Postgres.csproj" />
+    <Project Path="src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres.IntegrationTests/AxisCache.Postgres.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisEmail/">
+    <Project Path="src/3-Infra/AxisEmail/AxisEmail/AxisEmail.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisEmail/MimeKit/">
+    <Project Path="src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit/AxisEmail.MimeKit.csproj" />
+    <Project Path="src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit.UnitTests/AxisEmail.MimeKit.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisRepository/">
+    <Project Path="src/3-Infra/AxisRepository/AxisRepository/AxisRepository.csproj" />
+    <Project Path="src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisRepository.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisRepository/MySql/">
+    <Project Path="src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/AxisRepository.MySql.csproj" />
+    <Project Path="src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/AxisRepository.MySql.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisRepository/Postgres/">
+    <Project Path="src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/AxisRepository.Postgres.csproj" />
+    <Project Path="src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/AxisRepository.Postgres.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisStorage/">
+    <Project Path="src/3-Infra/AxisStorage/AxisStorage/AxisStorage.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisStorage/CloudflareR2/">
+    <Project Path="src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/AxisStorage.CloudflareR2.csproj" />
+    <Project Path="src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.IntegrationTests/AxisStorage.CloudflareR2.IntegrationTests.csproj" />
+    <Project Path="src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/AxisStorage.CloudflareR2.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisStorage/AzureBlob/">
+    <Project Path="src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AxisStorage.AzureBlob.csproj" />
+    <Project Path="src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.IntegrationTests/AxisStorage.AzureBlob.IntegrationTests.csproj" />
+    <Project Path="src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AxisStorage.AzureBlob.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/3-Infra/AxisStorage/FileSystem/">
+    <Project Path="src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/AxisStorage.FileSystem.csproj" />
+    <Project Path="src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/AxisStorage.FileSystem.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/4-Edge/" />
+  <Folder Name="/src/4-Edge/AxisResult.HttpResponse/">
+    <Project Path="src/4-Edge/AxisResult.HttpResponse/AxisResult.HttpResponse.csproj" />
+    <Project Path="src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResult.HttpResponse.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/src/Conventions/">
+    <Project Path="src/Conventions/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj" />
+    <Project Path="src/Conventions/Axis.Conventions.Analyzers.UnitTests/Axis.Conventions.Analyzers.UnitTests.csproj" />
+  </Folder>
+</Solution>

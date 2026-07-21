@@ -1,0 +1,47 @@
+id: httpresponse-problem-title-reason-phrase
+title: The ProblemDetails title is the standard reason phrase for the chosen status, else "Error"
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  The Title member of the emitted ProblemDetails is not free text: AxisErrorTypeHttpMapping.ToProblemTitle maps
+  the chosen HTTP status to its canonical RFC reason phrase ("Bad Request", "Unauthorized", "Not Found",
+  "Conflict", "Unprocessable Entity", "Too Many Requests", "Internal Server Error", "Service Unavailable",
+  "Gateway Timeout", etc.). Any status without an explicit arm falls back to the generic "Error". The builder
+  uses this so the title always agrees with the status code the same failure produced.
+invariants:
+  - ToProblemTitle maps 400->"Bad Request", 401->"Unauthorized", 403->"Forbidden", 404->"Not Found", 409->"Conflict", 422->"Unprocessable Entity", 500->"Internal Server Error", 503->"Service Unavailable", 504->"Gateway Timeout".
+  - ToProblemTitle maps (HttpStatusCode)429 to "Too Many Requests".
+  - Any HttpStatusCode without an explicit arm falls through the default to the generic "Error".
+  - The builder sets ProblemDetails.Title from ToProblemTitle of the resolved status, so the title always matches the emitted status code.
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:22 — ToProblemTitle switch over HttpStatusCode"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:34 — default arm => \"Error\""
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsBuilder.cs:65 — Title = httpStatusCode.ToProblemTitle()"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisErrorTypeHttpMappingTests.cs:26 — ToProblemTitleMapsKnownStatusCodes incl. the OK->\"Error\" fallback"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisErrorTypeHttpMappingTests.cs:40 — ToProblemTitleMapsTooManyRequests"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/error-status-mapping.md"
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The default "Error" arm is only reachable for statuses the builder never selects (it always chooses a mapped
+  status), so in the normal flow the title is always a real reason phrase. The fallback exists because
+  ToProblemTitle is a general HttpStatusCode->string helper, not restricted to the mapped set.

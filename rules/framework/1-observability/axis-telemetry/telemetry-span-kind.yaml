@@ -1,0 +1,42 @@
+id: telemetry-span-kind
+title: AxisSpanKind is the five span kinds, defaulting to Internal
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  AxisSpanKind classifies a span for downstream tooling (trace waterfalls, service graphs): Internal for
+  in-process work such as a handler or validator, Server for an inbound request, Client for an outbound call
+  (HTTP / DB / external), Producer for publishing a message, Consumer for consuming one. StartSpan defaults
+  the kind to Internal, so a plain StartSpan(name) is an internal span. Pick the kind that matches the
+  operation; the OpenTelemetry adapter maps it one-to-one onto ActivityKind.
+invariants:
+  - AxisSpanKind has exactly five values — Internal, Server, Client, Producer, Consumer.
+  - StartSpan's kind parameter defaults to AxisSpanKind.Internal.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/AxisSpanKind.cs:3 — the five-value enum"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisTelemetry.cs:5 — StartSpan(..., AxisSpanKind kind = AxisSpanKind.Internal)"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/OpenTelemetryAdapterTests.cs:47 — every kind maps to its ActivityKind"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/contracts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The kind drives how the sink lays out the trace, so a wrong kind (e.g. Internal for an outbound DB call)
+  degrades the service graph even though nothing errors.

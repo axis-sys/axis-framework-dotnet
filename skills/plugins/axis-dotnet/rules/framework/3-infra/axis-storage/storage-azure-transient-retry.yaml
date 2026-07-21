@@ -1,0 +1,45 @@
+id: storage-azure-transient-retry
+title: The Azure adapter retries transient SDK failures with capped exponential backoff
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+lens: [performance]
+severity: should
+status: canonical
+description: >
+  Every Azure SDK call is wrapped in AzureBlobRetry.ExecuteAsync, an internal retry that makes up to 5
+  attempts with exponential backoff plus jitter, retrying ONLY transient failures —
+  AuthenticationFailedException and RequestFailedException with status 0, 408, 429, 500, 502, 503 or 504.
+  Non-transient failures (e.g. 403, 404) surface immediately and become a typed AxisResult failure via
+  TryAsync. The retry lives inside the adapter, not in application code.
+invariants:
+  - Azure SDK calls are wrapped in AzureBlobRetry.ExecuteAsync (max 5 attempts, exponential backoff with jitter).
+  - Only transient failures are retried, AuthenticationFailedException and RequestFailedException with status 0/408/429/500/502/503/504.
+  - A non-transient failure is not retried and surfaces as a typed AxisResult failure.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobRetry.cs:10 — the retry loop, max 5 attempts"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobRetry.cs:32 — IsTransient classifies the retryable failures"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageAdapter.cs:30 — UploadAsync wraps the SDK call in AzureBlobRetry.ExecuteAsync"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/AzureBlobStorageAdapterTests.cs:66 — a non-transient 403 surfaces immediately as a failed AxisResult"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/azure-blob.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the storage instance of the external-SDK retry-at-the-edge pattern: resilience for a flaky vendor
+  SDK is the adapter's concern, kept out of handlers. The R2 adapter has no such retry (the AWS SDK carries
+  its own).

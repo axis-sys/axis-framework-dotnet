@@ -1,0 +1,44 @@
+id: repository-generic-execution-error
+title: An unclassified DbException maps to a logged InternalServerError, never reclassified as transient or schema-not-ready
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  A DbException that is not duplicate, not schema-missing and not transient is a genuine failure. It maps to
+  AxisError.InternalServerError with a per-surface code — "{PREFIX}_EXECUTION_ERROR" for writes,
+  "{PREFIX}_GET_ERROR" for Get, "{PREFIX}_LIST_ERROR" for List — is written to the log, and faults the unit
+  of work. It is NOT transient (IsTransient false), so it must never be surfaced as the transient
+  SCHEMA_NOT_READY or TRANSIENT_ERROR: a real error against an existing table stays a 500.
+invariants:
+  - An unclassified DbException returns AxisError.InternalServerError with the surface-specific code (_EXECUTION_ERROR / _GET_ERROR / _LIST_ERROR).
+  - The generic path calls LogError and faults the unit of work.
+  - A non-schema, non-transient failure keeps the generic error and is never reclassified as SCHEMA_NOT_READY or TRANSIENT_ERROR.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:98 — terminal catch (DbException): MarkFaulted + LogError + InternalServerError(_EXECUTION_ERROR)"
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:180 — GetCore uses _GET_ERROR; ListCore uses _LIST_ERROR"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisRepositoryBaseTests.cs:222 — RealFailureStillMapsToExecutionErrorNotSchemaNotReady"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresRepositoryBaseTests.cs:265 — an invalid SELECT maps to POSTGRES_GET_ERROR"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/repository-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The per-surface code lets an operator see which operation failed from the code alone. This is the only
+  classification path that always logs; schema-not-ready is deliberately silent (repository-schema-not-ready).

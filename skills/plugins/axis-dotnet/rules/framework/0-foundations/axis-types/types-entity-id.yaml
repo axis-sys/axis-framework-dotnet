@@ -1,0 +1,44 @@
+id: types-entity-id
+title: AxisEntityId is a version-7 GUID value object minted by New
+tier: framework
+family: 0-foundations
+package: AxisTypes
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  AxisEntityId is the framework's canonical identity value object — a [ValueObject] readonly partial
+  record struct in the Axis namespace backing a UUID string. It is minted through AxisEntityId.New, which
+  produces a version-7 (time-ordered) Guid, and its constructor rejects anything that is not a valid v7
+  Guid, so an AxisEntityId that exists is always a valid, sortable identifier.
+invariants:
+  - AxisEntityId is a [ValueObject] readonly partial record struct in the Axis namespace, backing a Guid string.
+  - AxisEntityId.New mints a fresh version-7 (time-ordered) Guid via Guid.CreateVersion7.
+  - The constructor rejects null or whitespace with ArgumentNullException, non-Guid input with ArgumentException, and any Guid whose version is not 7 with ArgumentException.
+  - AxisEntityId equality is case-insensitive over the Guid string.
+reference:
+  kind: framework-test
+  at:
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:6 — [ValueObject] readonly partial record struct in namespace Axis"
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:8 — New mints a version-7 Guid"
+    - "src/0-Foundations/AxisTypes/AxisTypes/AxisEntityId.cs:10 — constructor validates null/whitespace, Guid format and version 7"
+    - "src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisEntityIdTests.cs:6 — New produces a valid version-7 Guid"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-types
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisTypes/axis-entity-id.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Version-7 Guids are time-ordered, so AxisEntityId values sort by creation time — the reason the
+  framework uses it for the ambient authenticated identity (AxisEntityId on the mediator context) and for
+  database keys that benefit from monotonic inserts.

@@ -1,0 +1,49 @@
+id: storage-factory-runtime-destination
+title: The runtime-destination factory is a Singleton that caches one adapter per destination
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: should
+status: canonical
+description: >
+  When the destination (bucket/container/root) is chosen at runtime — a bucket per tenant — register the
+  provider factory (AddAxis*StorageFactory), which binds I*StorageFactory as a Singleton. Create(destination)
+  returns an IAxisStorage and caches one adapter per destination, keyed by AccountId/BucketName for R2,
+  AccountUrl/Container for Azure, and Root for the filesystem, so repeated calls for the same destination
+  reuse the same instance and its caches. This is the framework-owned replacement for new-per-destination,
+  which the internal adapter forbids.
+invariants:
+  - AddAxis*StorageFactory registers I*StorageFactory as a Singleton.
+  - Create(destination) returns an IAxisStorage, caching one adapter per destination key.
+  - Repeated Create calls for the same destination return the same cached instance; different destinations return distinct instances.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageFactory.cs:13 — caches one adapter per AccountId/BucketName"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageFactory.cs:17 — caches one adapter per AccountUrl/Container"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/FileSystemStorageFactory.cs:11 — caches one adapter per Root"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/AzureBlobStorageFactoryTests.cs:14 — same instance for the same destination, distinct for different destinations"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/FileSystemStorageFactoryTests.cs:13 — same instance for the same Root"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/DependencyInjectionTests.cs:136 — the factory is registered as a Singleton"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/azure-blob.md"
+    - "docs/en-us/3-Infra/AxisStorage/cloudflare-r2.md"
+    - "docs/en-us/3-Infra/AxisStorage/filesystem.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  R2's Create takes the WHOLE CloudflareR2Settings because R2 credentials are per-bucket; the Azure factory
+  reuses one process-wide credential and varies only the destination. The destination-descriptor factory is
+  the subject of the out-of-repo ADR-0002 (referenced for intent only).

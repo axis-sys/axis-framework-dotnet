@@ -1,0 +1,40 @@
+id: saga-routes-validated-at-build
+title: Every NextStageOnSuccess and RouteToOnError target must reference a known stage
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Build() validates the topology's referential integrity: every NextStageOnSuccess target and every
+  RouteToOnError entry must name a stage that actually exists in the combined forward + error set. A dangling
+  reference throws InvalidOperationException at build time — a malformed saga fails at application startup, not
+  mid-execution when the engine tries to advance to a stage that is not there.
+invariants:
+  - A NextStageOnSuccess pointing at an unknown stage throws InvalidOperationException at Build().
+  - A RouteToOnError entry pointing at an unknown stage throws InvalidOperationException at Build().
+  - Route validation covers stages in both ForwardStages and ErrorStages (the known-name set is their union).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaConfigurator.cs:63 — ValidateRoutes checks Next/RouteToOnError against the union of stage names"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:163 — unknown NextStageOnSuccess and unknown RouteToOnError both fail at Build"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Together with the unique-name and at-least-one-forward-stage checks, this makes the compiled definition a
+  validated graph — the engine can walk it without defensive existence checks (it uses RequireStage/GetStage).

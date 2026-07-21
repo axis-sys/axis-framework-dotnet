@@ -1,0 +1,38 @@
+id: saga-at-least-one-forward-stage
+title: A saga must declare at least one forward stage
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A saga with no forward stage has no entry point, so Build() throws InvalidOperationException when
+  ForwardStages is empty. Error stages alone are not a saga — they are only reachable by routing from a
+  forward stage. The entry point is always ForwardStages[0].
+invariants:
+  - Build() throws InvalidOperationException when no forward stage was registered (AddStage never called).
+  - A definition with only error stages is invalid; the engine starts at FirstForwardStage which requires at least one forward stage.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaConfigurator.cs:32 — Build throws when _forwardStages.Count == 0"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:137 — Build without any forward stage throws"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is one of the build-time structural checks that surface a malformed saga at startup rather than at the
+  first StartAsync.

@@ -1,0 +1,47 @@
+id: result-pipeline-entry
+title: Enter the railway with .Rop(), implicit conversions and AsTaskAsync
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  Lift a plain value onto the railway with value.Rop() or an implicit conversion instead of spelling
+  out AxisResult.Ok/AxisResult.Error mid-expression. Rop() wraps a value in a successful result so a
+  fluent chain can start from the value itself; the implicit operators turn a bare value into a success
+  and an AxisError (or list/array of errors) into a failure, so return error; suffices; AsTaskAsync()
+  seeds a synchronous result into an async ThenAsync/MapAsync fold.
+invariants:
+  - value.Rop() returns AxisResult.Ok(value) as an AxisResult<T>, so a chain can start from the value itself.
+  - A bare value returned or assigned where AxisResult<T> is expected implicitly converts to a successful result.
+  - An AxisError, List<AxisError>, or AxisError[] where AxisResult<T> is expected implicitly converts to a failed result, so return error; needs no AxisResult.Error<T>(...).
+  - AsTaskAsync() wraps a synchronous AxisResult or AxisResult<T> in an already-completed Task to seed an async ThenAsync/MapAsync fold.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.Rop.cs:13 — Rop lifts any value into AxisResult.Ok(value)"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Generic.cs:21 — implicit operators: value to Ok; AxisError, List<AxisError>, AxisError[] to Error"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.cs:5 — AsTaskAsync wraps a sync result in Task.FromResult for async folds"
+    - "docs/en-us/0-Foundations/AxisResult/getting-started.md — implicit conversions and the first async chain"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - apply-discount
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  These are ergonomic entry points, not distinct semantics: Rop() and the implicit value operator both
+  equal AxisResult.Ok, and AsTaskAsync() is Task.FromResult. The reference app documents the same
+  pipeline-entry ergonomics in its rulebook; that rule becomes an examples.correct anchor once the
+  convention tier is migrated.

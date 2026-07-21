@@ -1,0 +1,44 @@
+id: cache-schema-single-table
+title: The L2 store is one dialect-agnostic table applied by the framework runner
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The L2 schema is declared once: AXIS_CACHE.CACHE_ENTRIES in CacheEntriesTable.Define(), a single table with
+  a consolidated V1 migration. CACHE_KEY is a VARCHAR(200) primary key, VALUE_JSON a not-null JSON column,
+  EXPIRES_AT a nullable UTC timestamp, UPDATED_AT a not-null UTC timestamp defaulting to now; an index on
+  EXPIRES_AT keeps the expiry sweep selective. Each adapter renders it with its own IAxisSqlDialect and
+  applies it idempotently through the framework migration runner (in MySQL a SCHEMA is a database, so the
+  runner issues CREATE SCHEMA IF NOT EXISTS).
+invariants:
+  - The L2 store is a single table AXIS_CACHE.CACHE_ENTRIES declared once in CacheEntriesTable.Define() and rendered per dialect.
+  - Columns are CACHE_KEY VARCHAR(200) PK, VALUE_JSON JSON not-null, EXPIRES_AT nullable UTC, UPDATED_AT not-null UTC default now, plus IDX_CACHE_ENTRIES_EXPIRES_AT.
+  - The consolidated V1 migration is applied idempotently by the framework runner, safe to run at every startup.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/Persistence/CacheEntriesTable.cs:24 — Define(): columns, VARCHAR(200) PK, JSON, EXPIRES_AT index"
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/Persistence/AxisCacheSchema.cs:16 — single consolidated V1 rendered per dialect"
+    - "src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres/Persistence/AxisCacheMigrations.cs:10 — PostgresMigrationRunner applies the schema idempotently"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/Repository/MySql/AxisCache.MySql/Persistence/AxisCacheMigrations.cs:10 — the same schema rendered with the MySQL dialect and runner"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Mirrors the AxisSaga / AxisBus schema pattern: one dialect-agnostic table declaration rendered per dialect
+  and applied by the shared framework runner.

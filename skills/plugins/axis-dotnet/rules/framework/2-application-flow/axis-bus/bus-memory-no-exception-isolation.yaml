@@ -1,0 +1,40 @@
+id: bus-memory-no-exception-isolation
+title: The in-memory adapter does not catch a throwing handler
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  MemoryBusAdapter only combines the AxisResult values its handlers return — it has no try/catch. A handler
+  that throws instead of returning a failed AxisResult (an uncooperative failure) lets the exception escape
+  PublishAsync to the publisher, aborting the whole fan-out. Risky work therefore belongs inside the
+  handler, wrapped in AxisResult.TryAsync, or behind an adapter that catches and converts.
+invariants:
+  - MemoryBusAdapter has no try/catch around handler invocation; a thrown exception propagates out of PublishAsync.
+  - An exception from one handler is not converted to an AxisError and does not aggregate with the other results.
+  - A handler that calls exception-throwing code must wrap it in AxisResult.TryAsync so the failure stays on the rail.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:17 — Task.WhenAll over the raw handler tasks, no exception guard"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:181 — a ThrowingHandler makes PublishAsync throw InvalidOperationException"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/memory-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Sharp edge, and the key divergence from the durable outbox dispatcher, which DOES catch a throwing handler
+  and treats it as a normal dispatch failure (bus-outbox-dispatch-swallows-handler-exception).

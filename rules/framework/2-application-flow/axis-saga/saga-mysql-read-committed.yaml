@@ -1,0 +1,44 @@
+id: saga-mysql-read-committed
+title: The MySQL saga store pins connections to READ COMMITTED and owns its own datasource
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+lens: [concurrency]
+description: >
+  The MySQL saga store pins every connection to READ COMMITTED via an open callback on new physical
+  connections. The lease claim gates on a COUNT over SAGA_INSTANCES inside the UPDATE; under InnoDB's default
+  REPEATABLE READ that scan takes next-key/gap locks, which deadlock against concurrent claims and block
+  concurrent INSERTs under a fan-out. READ COMMITTED drops the gap locks. Because of this, the MySQL keyed saga
+  ALWAYS builds and owns its own datasource — it cannot reuse the repository's plain keyed datasource. Postgres
+  defaults to READ COMMITTED, so its keyed saga MAY reuse the repository's keyed NpgsqlDataSource.
+invariants:
+  - The MySQL saga store pins new connections to READ COMMITTED (the lease-claim COUNT gap-locks under InnoDB's default REPEATABLE READ).
+  - The MySQL keyed saga always builds and owns its own datasource; it does not reuse the repository's keyed MySqlDataSource.
+  - The Postgres keyed saga reuses the repository's keyed NpgsqlDataSource when present (Postgres already defaults to READ COMMITTED), otherwise owns a dedicated one.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/DependencyInjection.cs:81 — BuildDataSource pins new connections to READ COMMITTED"
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/DependencyInjection.cs:59 — the keyed Postgres saga reuses the repository datasource or owns one"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/MySqlSagaConcurrencyTests.cs:113 — high-concurrency claims and inserts do not deadlock"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mysql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The isolation is set on new physical connections and persists across pool reuse; the global cap is a soft cap
+  by design, so the looser isolation does not change its semantics.

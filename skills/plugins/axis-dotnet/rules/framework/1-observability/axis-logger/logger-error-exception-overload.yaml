@@ -1,0 +1,45 @@
+id: logger-error-exception-overload
+title: LogError has two overloads; only the Exception overload attaches the stack trace
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  LogError comes in two shapes, both at LogLevel.Error: LogError(string, ...) records a failure that did not
+  throw, and LogError(Exception, string, ...) additionally carries the exception so the stack trace lands on
+  the entry. The exception is the only structural difference — both share the same scope enrichment and
+  message handling. Use the Exception overload at a boundary catch and keep other context as structured
+  properties, not baked into the message.
+invariants:
+  - LogError(string, ...) and LogError(Exception, string, ...) both log at LogLevel.Error.
+  - Only the Exception overload passes the exception to ILogger.Log(level, exception, message); the string overload logs with a null exception.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:21 — LogError(string) delegates to Write(Error, null, ...)"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:24 — LogError(Exception, string) delegates to Write(Error, exception, ...)"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:47 — Write logs with or without the exception argument"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:100 — the string overload logs Error with a null exception"
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:111 — the Exception overload carries the same exception onto the entry"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/iaxislogger.md"
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The Exception overload is for catches at the edge (e.g. an HttpRequestException before returning an
+  AxisError); the URL and other context still go in as structured properties, not in the message string.

@@ -1,0 +1,74 @@
+id: httpresponse-problem-details-builder
+title: AxisProblemDetailsBuilder renders AxisError as ProblemDetails decoupled from IActionResult
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  HttpContext.SendAsync already resolves, for controllers, the rich rendering of a
+  failed AxisResult: pick the most severe error's status, suppress InternalServerError detail (count-only)
+  and assemble a ProblemDetails with Type/Title/Status/Detail + Extensions["errors"]/["traceId"]. That
+  logic used to live entirely inside a private method reachable only from the IActionResult pipeline.
+  AxisProblemDetailsBuilder extracts it into a public, framework-level type with no dependency on
+  IActionResult/ActionContext, so middleware and IAsyncAuthorizationFilter — which run before or beside
+  MVC — can reuse the exact same severity/suppression rule instead of reimplementing it by hand. The
+  builder only BUILDS (a pure (int, ProblemDetails) tuple); consuming it from an HttpContext lives in
+  AxisProblemDetailsHttpExtensions, split by what the caller does with the response.
+  AxisResultHttpExtensions.BuildProblemDetailsResult is now a one-line wrapper over Build; there is a
+  single source of the severity rule for the whole package.
+invariants:
+  - Build(errors, traceId) returns the HTTP status of the most severe AxisErrorType present in errors, using AxisErrorTypeHttpMapping.Severity() as the ranking (ties keep the first-seen max).
+  - Build suppresses AxisErrorType.InternalServerError entries from the "errors" extension but counts them in Detail as "{visible} error(s) returned. {internal} internal error(s) suppressed.".
+  - Build sets Extensions["traceId"] to the traceId parameter unconditionally, on both the normal and the empty-errors fallback path.
+  - Build sets ProblemDetails.Type to AxisProblemDetailsConfiguration.ProblemTypeBaseUri followed by the kebab-case of the winning AxisErrorType (e.g. ValidationRule -> validation-rule).
+  - Build(errors, traceId) with an empty errors list returns a 500 with Detail "Failure without errors." instead of throwing or indexing errors[0] — a defensive fallback for callers outside the AxisResult flow, since a failed AxisResult itself always carries Errors.Count > 0.
+  - AxisProblemDetailsBuilder never touches an HttpContext or HttpResponse; it is a pure function of (errors, traceId) and carries no dependency on Microsoft.AspNetCore.Http.
+  - context.WriteProblemDetailsAsync(errors) WRITES the response — sets Response.StatusCode then calls Response.WriteAsJsonAsync(details) — for middleware, which has no ActionContext and must produce the response itself.
+  - context.ToProblemDetailsResult(errors) RETURNS an ObjectResult carrying the ProblemDetails and StatusCode, and does not touch the response — for an IAsyncAuthorizationFilter, which short-circuits MVC by assigning context.Result.
+  - Each extension has a single-error convenience overload that wraps the error in a one-element list and delegates to the IReadOnlyList<AxisError> overload.
+  - Both extensions derive status and body from AxisProblemDetailsBuilder.Build; neither reimplements the severity/suppression logic, so they cannot diverge from what a controller returns.
+  - No public member of this package pairs a synchronous X with an XAsync that performs different work; the write path is named for the effect (Write…Async) and the pure path for the computation (Build).
+  - AxisResultHttpExtensions.BuildProblemDetailsResult delegates to AxisProblemDetailsBuilder.Build and wraps the tuple in an ObjectResult; it does not reimplement the severity/suppression logic.
+  - For the same errors and traceId, AxisProblemDetailsBuilder.Build and the HttpContext.SendAsync failure path produce the same StatusCode and an equivalent ProblemDetails body (Type/Title/Status/Detail/Extensions["traceId"]).
+reference:
+  kind: framework-test
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsBuilder.cs — Build, the pure computation"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsHttpExtensions.cs — WriteProblemDetailsAsync + ToProblemDetailsResult, the two consumers"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:37 — the internal Severity() ranking Build reads"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisResultHttpExtensions.cs — BuildProblemDetailsResult, the one-line wrapper"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisProblemDetailsBuilderTests.cs — behavior coverage, including the bit-for-bit parity test against the controller render path"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisProblemDetailsHttpExtensionsTests.cs — coverage of the two consumers, including that ToProblemDetailsResult leaves the response untouched"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/problem-details-builder.md"
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A reference app had two middleware/filter consumers hand-rolling this rendering outside the
+  MVC pipeline, one of them with a latent severity bug caused by the duplication itself — the motivation
+  for extracting the builder as public. AxisErrorTypeHttpMapping stays internal (implementation detail of
+  the error->status map); only the (int, ProblemDetails) tuple is public, so exposing the builder does
+  not leak an MVC-shaped type to non-MVC callers. The consumers were first written as
+  AxisProblemDetailsBuilder.BuildAsync, which was renamed before release: Build/BuildAsync read as a
+  sync/async pair of the SAME operation, but BuildAsync returned Task (not Task<(int, ProblemDetails)>)
+  and wrote the response. Naming each member for its effect — Build computes, WriteProblemDetailsAsync
+  writes, ToProblemDetailsResult converts — also restores the honesty of the "Builder" suffix. Both
+  consumers are C# 14 extension members on HttpContext, so a middleware author finds them by typing
+  `context.`. The dedicated teaching skill for this package is axis-result-httpresponse; axis-result
+  (section "Borda HTTP") maps the whole AxisResult trail across the three packages it crosses (AxisResult,
+  AxisLogger, AxisResult.HttpResponse) without restating this package's own rules. The sibling rule
+  httpresponse-send-success-shapes covers the HttpContext.SendAsync overloads.

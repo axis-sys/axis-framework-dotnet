@@ -1,0 +1,39 @@
+id: logger-level-guard-short-circuit
+title: A write is skipped entirely when the level is disabled at the sink
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+lens: [performance, observability]
+severity: must
+status: canonical
+description: >
+  Write begins with `if (!logger.IsEnabled(level)) return;`, so when the underlying sink has that level
+  disabled nothing else happens — no scope dictionary is built, no BeginScope is opened, no log call is made.
+  The enrichment cost is only paid for entries that will actually be emitted.
+invariants:
+  - Write returns immediately when logger.IsEnabled(level) is false, before building the scope or logging.
+  - When the level is disabled, no scope dictionary is allocated and no log call is made for that entry.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:43 — if (!logger.IsEnabled(level)) return;"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:161 — Debug and Information produce no entries when the min level is Error"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/iaxislogger.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The class carries [SuppressMessage("Performance", "CA1873")] because the IsEnabled guard already makes the
+  enrichment lazy in practice; the analyzer cannot see through the short-circuit.

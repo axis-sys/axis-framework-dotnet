@@ -1,0 +1,44 @@
+id: validator-localization-packs
+title: Localization packs validate and format region data on the AxisResult railway
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  AxisValidator.Brazil and AxisValidator.Usa are optional packages that add region-specific checks. Their
+  static facades (BrazilValidator, UsaValidator) return AxisResult<string> — a validated/normalized value on
+  success or a coded AxisError on failure — so localization stays on the railway. The underlying validators
+  (CpfValidator, CellphoneValidator, SsnValidator, PhoneValidator) expose plain bool/string helpers suitable
+  for plugging into RequiredTryParse.
+invariants:
+  - The Brazil and Usa localization checks live in separate optional packages, not in the core AxisValidator abstraction.
+  - The facade methods (ValidateCpf, FormatCellphone, ValidateSsn, FormatPhone) return AxisResult<string> with a stable error code on failure.
+  - The raw validators expose bool-returning (CpfValidator.Validate, SsnValidator.Validate) or string-returning (Format/OnlyNumbers) helpers for use with RequiredTryParse or direct calls.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil/BrazilValidator.cs:5 — ValidateCpf/FormatCellphone return AxisResult<string> with a coded error"
+    - "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa/UsaValidator.cs:5 — ValidateSsn/FormatPhone return AxisResult<string> with a coded error"
+    - "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil/CpfValidator.cs:3 — CpfValidator.Validate(string?) bool for RequiredTryParse"
+    - "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa/SsnValidator.cs:3 — SsnValidator.Validate(string?) bool for RequiredTryParse"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil.UnitTests/CpfValidatorTests.cs:1 — CpfValidator.Validate accepts valid CPFs and rejects malformed ones"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/brazil.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Packs are opt-in dependencies; the core abstraction stays dependency-free. The canonical wiring is
+  RequiredTryParse(x => x.Cpf, code, CpfValidator.Validate).

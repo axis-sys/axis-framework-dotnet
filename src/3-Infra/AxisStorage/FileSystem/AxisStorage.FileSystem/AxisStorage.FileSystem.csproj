@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisStorage.FileSystem.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\0-Foundations\AxisDependencyInjections\AxisDependencyInjections.Abstractions\AxisDependencyInjections.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\..\AxisStorage\AxisStorage.csproj" />
+  </ItemGroup>
+</Project>

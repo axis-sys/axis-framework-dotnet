@@ -1,0 +1,41 @@
+id: saga-fire-and-forget-suppresses-flow
+title: The background engine run suppresses ExecutionContext flow so the caller's ambient token cannot cancel the saga
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+lens: [concurrency]
+description: >
+  A saga must outlive the caller that started it: a request handler starts it, returns 202 and disconnects.
+  The ambient CancellationToken flows as an AsyncLocal, so if captured it would cancel the saga's first
+  database call the instant the request is torn down. The mediator wraps the background Task.Run in
+  ExecutionContext.SuppressFlow(), so the engine starts with a clean ambient context — a default,
+  non-cancelable token bound to the host lifetime, not the request.
+invariants:
+  - The background engine run is launched inside ExecutionContext.SuppressFlow() so the caller's ambient AsyncLocal context is not captured.
+  - The saga's execution is bound to the host lifetime, not the starting request, so a torn-down request does not cancel the saga.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:91 — FireAndForgetExecute wraps Task.Run in ExecutionContext.SuppressFlow()"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaMediatorTests.cs:104 — the fire-and-forget run does not inherit the caller's ambient AsyncLocal"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This pairs with the ambient-cancellation model of AxisMediator: the saga engine deliberately does NOT flow
+  the request token — its cancellation signal is the execution lease, not the caller.

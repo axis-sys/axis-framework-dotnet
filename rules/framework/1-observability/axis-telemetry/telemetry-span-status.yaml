@@ -1,0 +1,44 @@
+id: telemetry-span-status
+title: AxisSpanStatus is Unset, Ok or Error, defaulting to Unset
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AxisSpanStatus is the outcome you stamp on a span with SetStatus: Unset (the default, meaning no explicit
+  outcome recorded), Ok (the operation succeeded), or Error (it failed). A span that is never given a status
+  stays Unset. On the Activity-backed adapter the three values map one-to-one onto ActivityStatusCode
+  (Unset/Ok/Error), and any unmapped value falls back to Unset. Set Ok on the success path and Error on the
+  failure path so dashboards can compute a failure rate.
+invariants:
+  - AxisSpanStatus has exactly three values — Unset, Ok, Error.
+  - The Activity adapter maps Ok to ActivityStatusCode.Ok, Error to ActivityStatusCode.Error, and everything else (including Unset) to ActivityStatusCode.Unset.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/AxisSpanStatus.cs:3 — the three-value enum"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/ActivityAxisSpan.cs:41 — MapStatus: Ok/Error mapped, default Unset"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:34 — Ok maps to ActivityStatusCode.Ok"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:94 — Unset maps to ActivityStatusCode.Unset"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/spans.md"
+    - "docs/en-us/1-Observability/AxisTelemetry/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  RecordException sets Error for you, so an explicit SetStatus(Error) is redundant after it. TelemetryBehavior
+  sets Ok/Error from result.IsSuccess automatically.

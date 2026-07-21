@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis</RootNamespace>
+    <!-- NuGet Package -->
+    <PackageId>AxisTypes</PackageId>
+    <Description>Strongly-typed value object primitives for Axis, with a source generator and analyzers that enforce their invariants at build time.</Description>
+    <PackageTags>value-object;types;source-generator;analyzer;axis;csharp;dotnet</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/0-Foundations/AxisTypes/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AxisTypes.SourceGenerator\AxisTypes.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\AxisTypes.Analyzers\AxisTypes.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="_PackAxisTypesAnalyzers" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="..\AxisTypes.SourceGenerator\bin\$(Configuration)\netstandard2.0\AxisTypes.SourceGenerator.dll">
+        <BuildAction>None</BuildAction>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </_PackageFiles>
+      <_PackageFiles Include="..\AxisTypes.Analyzers\bin\$(Configuration)\netstandard2.0\AxisTypes.Analyzers.dll">
+        <BuildAction>None</BuildAction>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+</Project>

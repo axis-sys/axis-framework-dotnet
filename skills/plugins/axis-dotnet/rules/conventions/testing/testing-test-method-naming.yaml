@@ -1,0 +1,36 @@
+id: testing-test-method-naming
+title: Name test methods {WhatItDoes}When{Condition}Async in PascalCase
+tier: convention
+concern: testing
+layer: tests
+severity: should
+status: canonical
+description: >
+  Test methods are named for the behavior they assert, in PascalCase, as {WhatItDoes}When{Condition}, with
+  the Async suffix on asynchronous tests. Test classes are named {Subject}Tests. The name reads as the
+  specification of the case under test.
+invariants:
+  - A test method name is PascalCase in the form {WhatItDoes}When{Condition}, naming the asserted behavior and its condition.
+  - An asynchronous test method carries the Async suffix.
+  - A test class is named {Subject}Tests after the unit or journey it covers.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-tests
+  hooks:
+    - AXIS0603
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the naming the testing skill prescribes; a snake_case sentence style is a divergence to correct,
+  not an alternative. Naming is a should-level convention — consistent across a suite, but not a
+  build-breaking must.

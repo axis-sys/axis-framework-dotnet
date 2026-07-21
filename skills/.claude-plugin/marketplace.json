@@ -1,0 +1,14 @@
+{
+  "name": "axis-skills",
+  "description": "Axis pattern skills that DERIVE from the canonical rule base in ../rules — each skill is a map that routes the AI to the specific rule; none restate the invariants.",
+  "owner": { "name": "axis-sys" },
+  "plugins": [
+    {
+      "name": "axis-dotnet",
+      "source": "./plugins/axis-dotnet",
+      "description": "C#/.NET backend engineering the Axis way (Hexagonal + DDD + CQRS + Vertical Slices + AxisResult). Each skill maps to the corresponding package's canonical rules in rules/framework. Start from the axis-dotnet-architect hub.",
+      "category": "engineering",
+      "keywords": ["axis", "csharp", "dotnet", "ddd", "hexagonal", "cqrs", "vertical-slices", "axisresult", "rules"]
+    }
+  ]
+}

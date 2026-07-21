@@ -1,0 +1,42 @@
+id: saga-mediator-get-by-id
+title: GetByIdAsync reads a saga's state, typed or untyped
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  GetByIdAsync has two overloads. The untyped one returns AxisResult<AxisSagaInstance> carrying the full state
+  (Status, CurrentStage, PayloadJson raw, LastErrorCode/Message, Version, CreatedAt, UpdatedAt) — use it for
+  logging or admin endpoints. The typed GetByIdAsync<TPayload> additionally deserializes the payload into
+  AxisSagaInstance<TPayload>.Payload. Missing row -> NotFound(SagaInstanceNotFound); bad stored JSON ->
+  InternalServerError(PayloadDeserializationFailed). This is how a caller polls for a terminal status.
+invariants:
+  - GetByIdAsync returns AxisResult<AxisSagaInstance> with the raw PayloadJson; GetByIdAsync<TPayload> returns AxisSagaInstance<TPayload> with the deserialized Payload.
+  - A missing instance returns AxisError.NotFound(SagaInstanceNotFound); undeserializable JSON returns InternalServerError(PayloadDeserializationFailed).
+  - AxisSagaInstance carries the full state (Status, CurrentStage, PayloadJson, LastErrorCode/Message, Version, CreatedAt, UpdatedAt) for status polling.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:55 — GetByIdAsync (untyped) and GetByIdAsync<TPayload> (deserializes payload)"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/SharedKernel/AxisSagaInstance.cs:3 — AxisSagaInstance and AxisSagaInstance<TPayload>"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaMediatorTests.cs:87 — typed GetById deserializes the payload; unknown id returns NotFound"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because StartAsync returns before the saga finishes, GetByIdAsync polling for Completed/Failed/Compensated is
+  the canonical way to await a saga (paired with the 202 + GET status endpoint pattern).

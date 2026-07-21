@@ -1,0 +1,45 @@
+id: bus-memory-registration
+title: AddAxisMemoryBus registers the in-process adapter and scans handlers
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  A single-process app enables the in-memory bus by calling AddAxisMemoryBus(). It registers IAxisBus as the
+  MemoryBusAdapter with a Scoped lifetime (one bus per request scope, sharing the scope's IServiceProvider),
+  calls AddCqrsMediator(Assembly.GetExecutingAssembly()) to discover IAxisEventHandler<> implementations, and
+  returns the same IServiceCollection for chaining. Handlers are resolved from the provider per publish, so
+  they may be scoped, transient or singleton.
+invariants:
+  - AddAxisMemoryBus registers IAxisBus -> MemoryBusAdapter with a Scoped lifetime.
+  - AddAxisMemoryBus calls AddCqrsMediator to scan an assembly for IAxisEventHandler<> implementations and register them.
+  - AddAxisMemoryBus returns the same IServiceCollection so registration can be chained.
+  - Handlers are resolved from IServiceProvider on each publish, so their own lifetime (scoped/transient/singleton) is the caller's choice.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/DependencyInjection.cs:10 — AddAxisMemoryBus: AddCqrsMediator scan, AddScoped<IAxisBus, MemoryBusAdapter>, return services"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/DependencyInjectionTests.cs:8 — resolves IAxisBus as MemoryBusAdapter and returns services for chaining"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/memory-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The scan uses Assembly.GetExecutingAssembly() — the AxisMemoryBus assembly itself — so handlers living in
+  your application assemblies must be registered by calling AddCqrsMediator(typeof(MyHandler).Assembly) (or
+  AddScoped one by one) before AddAxisMemoryBus. The DI test names the lifetime "singleton" but the
+  registration is Scoped; the test only resolves twice from the root provider, where a scoped service
+  compares equal.

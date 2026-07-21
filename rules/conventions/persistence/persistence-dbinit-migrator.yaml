@@ -1,0 +1,42 @@
+id: persistence-dbinit-migrator
+title: One {BC}DbInit per bounded context, one database-migrator adapter at the root, V1 consolidated
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Migrations are DRY and layered: each bounded context owns a {BC}DbInit exposing its Schema const and a
+  Migrations(IAxisSqlDialect) list; an aggregating migrations orchestrator composes all bounded contexts in
+  dependency order; a single database-migrator adapter implements the migrator port and runs everything
+  through the framework's migration runner. Pre-deploy, all schema changes are edited into V1 directly.
+invariants:
+  - Each bounded context has a public static {BC}DbInit with a public const string Schema and a public static Migrations(IAxisSqlDialect) returning the ordered version-and-script pairs.
+  - V1 renders every table's Define() joined in foreign-key-dependency order; while unreleased, schema changes edit V1 in place — V2 and later only after a real environment exists.
+  - The aggregating orchestrator runs the bounded contexts in cross-BC dependency order through the framework runner, one call per schema.
+  - The migration runner and the SQL dialect are a matched provider pair registered together as singletons.
+  - A single migrator adapter is the only implementation of the migrator port; it resolves the connection string by name, returns a ServiceUnavailable error when the string is missing, and wraps a failed run as an InternalServerError.
+  - Migration execution is startup I/O and runs after the host is built, invoked through the port — never inline in DI registration.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Framework-owned schemas (for example a saga store's own migrations) are initialized by the framework's own migration entry point, not by the application orchestrator.
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The runner is a port paired with the SQL dialect so the same {BC}DbInit set serves every targeted
+  provider; the DDL it renders is the dialect-rendered AST (persistence-ddl-axistable-define). Once a version
+  is applied in a real environment it is never edited — the edit-V1-in-place regime is strictly pre-deploy.
+  Schema naming (UPPER_SNAKE_CASE, one schema per bounded context) is owned by
+  persistence-sql-naming-upper-snake.

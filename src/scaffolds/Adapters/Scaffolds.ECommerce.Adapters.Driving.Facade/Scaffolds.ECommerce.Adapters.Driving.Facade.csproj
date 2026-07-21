@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="AxisMediator" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <!-- The facade adapter references only the driving contracts and the application (architecture-facade-pattern). -->
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,46 @@
+id: result-no-if-else-flow
+title: Compose result flow with operators, never if/else on IsSuccess/IsFailure
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Success and failure branching belongs to the operators, not to the caller. Then, Map, and Ensure
+  each read IsSuccess internally and short-circuit on the first failure, so a pipeline is written as
+  a single chain with no if/else on the intermediate result. Inspecting IsSuccess or IsFailure to
+  branch control flow reintroduces the boilerplate the railway model exists to delete.
+invariants:
+  - Steps are chained with operators (Then/Map/Ensure and their async forms); the outcome is not inspected between steps.
+  - No if (result.IsFailure) return result or equivalent manual short-circuit appears between operators.
+  - The branch is reported in every spelling — the direct member access, the flag laundered through a bool local (var ok = result.IsSuccess; if (ok) ...), and the property pattern (result is { IsSuccess: true }); deconstruct-then-branch inside the rail is result-deconstruct-terminal-only.
+  - Once a step fails the remaining operators are skipped automatically, so no if (result.IsSuccess) guards the next step.
+  - The only branch on outcome is inside Match or MatchAsync at the terminal, which map success and failure to a single return type.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:10 — Then switches on IsSuccess internally; callers compose, they do not branch"
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md — the why: operators are the switches, no if (result.IsFailure) return boilerplate"
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - "Branching on IsTransientFailure (a different classification axis — transient-vs-terminal retry policy, not the ROP rail) is sanctioned; see result-transient-failure-classification."
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0002
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Match and MatchAsync are the sanctioned terminal branch (AxisResult.Functional.cs lines 20 and 128);
+  everything upstream stays on the chain. The reference app rulebook states the same discipline and
+  becomes an examples.correct anchor once the convention tier is migrated.

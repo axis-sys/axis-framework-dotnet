@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The external-identity driven adapter: configures the provider schemes and implements the
+         IExternalIdentityContext port over the authenticated HttpContext. -->
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+  </ItemGroup>
+
+</Project>

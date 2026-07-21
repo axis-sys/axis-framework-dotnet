@@ -1,0 +1,49 @@
+id: bus-outbox-worker-backoff-alert
+title: A failed dispatch pass releases the row and backs the whole worker off exponentially with a critical alert
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The atomic outbox has no per-row retry, attempt count, backoff or terminal state. When a dispatch pass hits any
+  delivery failure — broker down, a handler error, an unresolvable event type, an undeserializable payload — the
+  dispatcher RELEASES that row's lease (leaving it in place so the partition head does not advance and ordering is
+  preserved) and reports the whole pass unclean. The AxisBusDispatcherWorker then backs the ENTIRE poll loop off
+  exponentially (PollInterval * 2^consecutiveFailures, capped at MaxPollBackoff) and raises a CRITICAL
+  log/telemetry alert on every failing pass, retrying indefinitely and never skipping a row — skipping is the
+  broker's job. A clean pass resets the delay to PollInterval. Backoff and alerting are worker-wide, owned by the
+  worker, not the row.
+invariants:
+  - A delivery failure releases the row's lease and leaves it in place (partition head not advanced, ordering preserved); no per-row attempt counter, backoff column or terminal status exists.
+  - The worker backs the whole loop off exponentially, PollInterval * 2^consecutiveFailures capped at MaxPollBackoff, and raises a CRITICAL alert on every failing pass; a clean pass resets the delay to PollInterval.
+  - An unresolvable event type or an undeserializable payload is treated as a failure to retry-and-alert, never skipped or marked terminal — a poison row halts its partition until the fault clears.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:55 — release the lease and report the pass unclean on a failed delivery"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusDispatcherWorker.cs:57 — exponential backoff of the whole worker capped at MaxPollBackoff"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusDispatcherWorker.cs:61 — CRITICAL alert on every failing pass; delivery halted until it clears"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+supersedes: bus-outbox-retry-backoff
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  Replaces the earlier per-row model (bus-outbox-retry-backoff and bus-outbox-terminal-failed, both superseded):
+  no ATTEMPTS column, no per-row exponential backoff, no terminal Failed state and no retention sweep. The
+  trade-off is deliberate — the outbox guarantees ordered at-least-once delivery and refuses to advance past a
+  failing head, delegating dead-lettering to the broker/operator through the critical alert rather than silently
+  skipping. Delivery is at-least-once, so handlers must stay idempotent.

@@ -1,0 +1,45 @@
+id: saga-resumer-hosted-by-framework
+title: The storage adapter hosts the resumer worker; you never hand-roll a BackgroundService
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The framework hosts crash recovery for you. Registering a storage adapter (AddAxisSagaPostgres /
+  AddAxisSagaMySql) with ResumerEnabled true (the default) adds the internal AxisSagaResumerWorker
+  BackgroundService: on startup it migrates the saga schema and upserts the in-process definitions, then polls
+  IAxisSagaResumer.RunOnceAsync every ResumerPollInterval to reclaim and re-fire stale instances. Consumers do
+  not write a BackgroundService. Set ResumerEnabled false on a process that starts/awaits sagas but must not run
+  the loop, or on tests with no live database.
+invariants:
+  - When ResumerEnabled is true (default), AddAxisSagaCore registers the AxisSagaResumerWorker hosted service; consumers do not hand-roll one.
+  - The worker migrates the schema (IAxisSagaStorageInitializer) and initializes the registered definitions on startup, then polls RunOnceAsync every ResumerPollInterval.
+  - ResumerEnabled=false opts a process out of the loop (it can still start/await sagas), e.g. tests with no live database.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/AxisSagaResumerWorker.cs:27 — ExecuteAsync: migrate schema, init definitions, poll RunOnceAsync"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/DependencyInjection.cs:36 — AddHostedService<AxisSagaResumerWorker> only when ResumerEnabled"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/AxisSagaSettings.cs:34 — ResumerEnabled default true"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md:60 — the loop is hosted for you; opt out with ResumerEnabled=false"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Hand-rolling a resumer BackgroundService is the imperative temptation this rule removes — the framework owns
+  the loop, the schema migration and the definition upsert.

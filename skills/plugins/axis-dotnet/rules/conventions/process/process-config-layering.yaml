@@ -1,0 +1,44 @@
+id: process-config-layering
+title: Layered configuration — committed defaults, local overrides, user-secrets for credentials, env vars in containers
+tier: convention
+concern: process
+layer: build
+lens: [security]
+severity: must
+status: canonical
+description: >
+  Configuration follows strict layering: committed defaults with empty secret slots, a local
+  development-overrides layer for host-specific values, user-secrets for real credentials (never
+  committed), and environment variables that win inside containers. A committed secrets-template file
+  documents exactly which keys a developer must supply out of band, so credentials stay out of source
+  control while remaining discoverable.
+invariants:
+  - Secrets (signing keys, client secrets) are never committed; the default settings ship them as empty strings and a committed secrets-template file lists every required key.
+  - Real credentials are supplied through user-secrets locally and mounted read-only into containers, never baked into the image as literal values.
+  - Provider and store selection is configuration, read only by the composition root, each key with a documented default.
+  - Connection-string names are fixed contracts, and any derived store composes its connection from the one it reuses.
+  - Host-specific values (allowed origins, longer local token lifetimes, localhost connection strings) live in the development-overrides layer; container env vars using the double-underscore convention override everything.
+  - Operational knobs (pool sizes, batch windows, poll intervals, background toggles) are configuration, not code, so they can be tuned per environment without a rebuild.
+  - A complex settings block carries an inline documentation key explaining its sizing or credential semantics.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - An intentionally empty credential block may mean ambient or managed credentials are used instead of an explicit secret; that is a deliberate non-secret configuration, not a missing one.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Layering is a security control as much as an ergonomics one: the committed layers never carry a live
+  credential, and the secrets-template makes the required keys discoverable without leaking their values.
+  Configuration read at startup is read lazily by the composition root (see process-no-startup-io), so a
+  test host can override it.

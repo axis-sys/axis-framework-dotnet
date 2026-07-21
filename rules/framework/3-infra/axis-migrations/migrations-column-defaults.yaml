@@ -1,0 +1,43 @@
+id: migrations-column-defaults
+title: Column defaults are a closed AxisDefault set with a portable UTC-now token
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  A column DEFAULT is a closed AxisDefault set (NowUtc, Bool, Int, Raw), not a raw SQL fragment except through
+  the explicit Raw escape hatch. NowUtc is the portable UTC-now token the dialect renders to each engine's
+  server-side clock, so timestamp columns default to a UTC instant without the caller writing engine SQL.
+  Raw(sql) exists for the genuinely dialect-specific default (e.g. gen_random_uuid()) and is emitted verbatim.
+invariants:
+  - AxisDefault is a closed hierarchy of NowUtcDefault, BoolDefault, IntDefault and RawDefault with a private constructor.
+  - AxisDefault.NowUtc is a shared singleton rendered to the dialect's server-side UTC-now expression, never a literal captured at declaration time.
+  - AxisDefault.Raw(sql) is an explicit escape hatch whose SQL is emitted verbatim by every dialect.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisDefault.cs:4 — closed NowUtc/Bool/Int/Raw hierarchy with singleton NowUtc"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresSqlDialect.cs:21 — NowUtc to NOW(), Raw emitted verbatim"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisDdlModelTests.cs:35 — DefaultFactoriesProduceTheRightVariants"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresDdlBuilderIntegrationTests.cs:42 — TypesAndUtcDefaultRoundTrip"
+  incorrect: []
+exceptions:
+  - Raw(sql) is deliberately non-portable — the caller owns rendering an expression that is valid on every target engine.
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/ddl.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  NowUtc renders NOW() on Postgres and (UTC_TIMESTAMP(6)) on MySQL — see migrations-postgres-rendering and
+  migrations-mysql-rendering.

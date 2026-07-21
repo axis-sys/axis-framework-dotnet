@@ -1,0 +1,44 @@
+id: saga-storage-ports-are-dialect-seam
+title: The engine talks only to storage ports; each dialect implements them and never throws
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The saga runtime is fully dialect-agnostic. The engine, mediator, resumer and janitor never spell out SQL —
+  they call four store ports (ISagaInstanceStore, ISagaStageLogStore, ISagaDefinitionStore) plus
+  IAxisSagaStorageInitializer, and each database (Postgres, MySQL, …) provides one set of implementations. The
+  instance-store contract is explicit that every method converts exceptions into AxisResult and never throws;
+  duplicate ids map to Conflict("SAGA_ID_ALREADY_EXISTS"). Adding a new backend means implementing these ports,
+  nothing in the runtime changes.
+invariants:
+  - The runtime (engine, mediator, resumer, janitor) depends only on the store ports and the storage initializer, never on dialect SQL.
+  - Store implementations return AxisResult and never throw; e.g. a duplicate id is mapped to AxisError.Conflict("SAGA_ID_ALREADY_EXISTS").
+  - A new storage backend is added by implementing the four store ports + IAxisSagaStorageInitializer; the dialect-agnostic runtime is reused unchanged.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaInstanceStore.cs:13 — the dialect seam: optimistic concurrency, lease, AxisResult, never throws"
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres/DependencyInjection.cs:28 — Postgres store ports are the only dialect-specific code"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql/DependencyInjection.cs:27 — MySQL supplies the same ports as the only dialect-specific code"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/postgres-adapter.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mysql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SagaInstanceMapper reads rows via the ADO.NET base DbDataReader (not a provider reader), so one mapper serves
+  Npgsql and MySqlConnector alike — reinforcing the single-runtime-per-many-dialects design.

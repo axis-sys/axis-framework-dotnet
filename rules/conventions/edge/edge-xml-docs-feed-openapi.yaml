@@ -1,0 +1,42 @@
+id: edge-xml-docs-feed-openapi
+title: Controllers carry full /// XML docs that feed the OpenAPI document
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  The OpenAPI document is the project's living API documentation, so the /// XML comments on controllers
+  are contract documentation, not decoration. Documentation-file generation is enabled solution-wide,
+  which pipes the comments into the generated document. This is the one place prose is expected under an
+  otherwise minimal-comment policy.
+invariants:
+  - Every controller class carries a <summary> framing the resource (tenant scoping, synchronous-vs-saga behavior).
+  - Every action carries a <summary>; non-obvious flows add <remarks> such as polling instructions or multi-step protocols.
+  - Every action documents its parameters with <param> and its outcomes with <response code="..."> lines, including the error codes (404, 403, 422) the operation can produce.
+  - Documentation-file generation is enabled solution-wide through a single build property (Directory.Build.props); no project opts out.
+  - Docs reference literals with <c>...</c> and follow the project's documentation language.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:11 — the controller class carries a /// <summary>, and every action documents <summary>/<param>/<response code>"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:30 — an action documenting <param> and multiple <response code> entries, including error responses"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-webapi-controllers
+    - axis-docs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Under a minimal-comment policy the XML docs on the documentation-visible surface are the sanctioned
+  exception, because they become the API's public contract rather than internal narration. See
+  edge-openapi-doc-hub for how the document is shaped and edge-controller-shape for the controller they
+  annotate.

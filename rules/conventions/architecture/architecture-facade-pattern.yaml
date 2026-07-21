@@ -1,0 +1,51 @@
+id: architecture-facade-pattern
+title: Each aggregate exposes a public facade whose impl is a thin internal mediator adapter
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  The Facade is the only public doorway into a bounded context's use cases. The interface lives in the
+  driving contracts and mirrors the use cases one-to-one. The implementation is internal sealed, injects
+  only the mediator, and does nothing but dispatch — no mapping, validation or branching. Controllers,
+  other bounded contexts and unit tests all enter through it.
+invariants:
+  - One public facade interface per aggregate (or per single-aggregate bounded context), named I{Entities}Facade — the plural of the aggregate entity, mirroring the I{Entities}ReaderPort / I{Entities}WritePort port naming — placed at the versioned root of the contract feature folder.
+  - Facade methods map one-to-one to use cases, are named {Verb}[{Noun}]Async, take exactly one parameter (the Command or Query contract, never a CancellationToken), and return Task of AxisResult of the use-case response.
+  - The implementation is an internal sealed {Entities}Facade that injects only the mediator via primary constructor and contains zero logic — one dispatch expression per method.
+  - Commands dispatch through the mediator command surface and queries through its query surface; the facades are the only callers of that dispatch surface.
+  - Controllers depend on the facade, never on the mediator directly; handlers never dispatch other use cases (reuse goes through factories, services or another bounded context's facade).
+  - The facade implementations live in a dedicated driving adapter project named {App}.Adapters.Driving.Facade, which references only the driving contracts and the application — never repositories, the web host or driven adapters.
+  - A single DI extension registers the mediator plus every facade as scoped.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/ICatalogFacade.cs:9 — the public interface at the versioned contract root"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Catalog/CatalogFacade.cs:11 — internal sealed, primary-constructor mediator injection, in the dedicated facade adapter project"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.ArchitectureTests/FacadeBoundaryTests.cs:35 — the architecture test proving no facade lives in the application"
+examples:
+  correct:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Catalog/CatalogFacade.cs:15 — one dispatch expression per method, zero logic"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/DependencyInjection.cs:16 — the single DI extension registering the mediator plus every facade as scoped"
+  incorrect: []
+exceptions:
+  - Read-only lookup facades may expose a single list method.
+  - A process-style facade that fronts a whole bounded context rather than one aggregate entity (e.g. IAuthFacade, ICatalogFacade, IEmailValidationFacade) is named after the bounded context or process, not an entity plural.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+    - axis-mediator
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds:
+    - catalog-facade
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-19
+notes: >
+  The facade is a boundary contract, not just an HTTP convenience: synchronous cross-bounded-context
+  calls inside the core also go through these interfaces. Handlers stay internal — the facade plus
+  assembly scanning is what makes them reachable. The mediator dispatch surface itself is governed by the
+  framework rule mediator-dispatch-surface.

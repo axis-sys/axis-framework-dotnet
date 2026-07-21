@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/3-Infra/AxisEmail/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+  </ItemGroup>
+</Project>

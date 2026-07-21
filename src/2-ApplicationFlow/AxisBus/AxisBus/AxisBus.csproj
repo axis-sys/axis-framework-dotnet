@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Axis</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/2-ApplicationFlow/AxisBus/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AxisBus.Analyzers\AxisBus.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="_PackAxisBusAnalyzer" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="..\AxisBus.Analyzers\bin\$(Configuration)\netstandard2.0\AxisBus.Analyzers.dll">
+        <BuildAction>None</BuildAction>
+        <PackagePath>analyzers/dotnet/cs</PackagePath>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+
+</Project>

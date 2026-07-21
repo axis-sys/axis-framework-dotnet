@@ -1,0 +1,43 @@
+id: saga-status-model
+title: The saga state model is AxisSagaStatus, AxisSagaStageStatus and the AxisSagaInstance record
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  A saga's lifecycle is the AxisSagaStatus enum: Pending -> Running -> Completed | Failed | (Compensating ->
+  Compensated). Completed, Failed and Compensated are terminal. Each stage attempt has an AxisSagaStageStatus:
+  Started -> Completed | Failed. The persisted state is the immutable AxisSagaInstance record (SagaId, SagaName,
+  Status, CurrentStage, PayloadJson, LastErrorCode/Message, Version, CreatedAt, UpdatedAt); the typed
+  AxisSagaInstance<TPayload> adds the deserialized Payload.
+invariants:
+  - AxisSagaStatus is Pending, Running, Completed, Failed, Compensating, Compensated; Completed/Failed/Compensated are terminal.
+  - AxisSagaStageStatus is Started, Completed, Failed — one lifecycle per stage attempt.
+  - AxisSagaInstance is the immutable state record; AxisSagaInstance<TPayload> extends it with the deserialized Payload.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/SharedKernel/AxisSagaStatus.cs:3 — the six-value status enum"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/SharedKernel/AxisSagaStageStatus.cs:3 — Started/Completed/Failed"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/SharedKernel/AxisSagaInstance.cs:3 — AxisSagaInstance and its typed variant"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md:16 — the status machine and stage-status tables"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The status is stored as its string name (SagaInstanceMapper parses it back via Enum.Parse), so the enum names
+  are part of the persisted contract.

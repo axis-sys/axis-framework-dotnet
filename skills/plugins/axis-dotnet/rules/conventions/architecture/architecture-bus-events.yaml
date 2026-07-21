@@ -1,0 +1,46 @@
+id: architecture-bus-events
+title: Bus events are sealed id-only records with a Topic const; a consumer never fails the publisher
+tier: convention
+concern: architecture
+layer: contracts
+severity: must
+status: canonical
+description: >
+  Asynchronous integration uses the IAxisBus + IAxisEvent + IAxisEventHandler<T> trio. Events are sealed
+  positional records in the driving contracts carrying identifiers only (no PII, no snapshots), each
+  declaring its own snake_case Topic const. Publishers emit after their transaction commits. Consumers are
+  internal sealed handlers in the consuming bounded context, and a consumer's failure must not propagate
+  back to the publisher's use case.
+invariants:
+  - An event is public sealed record {Thing}{PastTenseVerb}Event(...) : IAxisEvent in the driving contracts, under {BC}/v1/Events/ or, for a saga-lifecycle event, next to its payload in {BC}/{Aggregate}/v1/Sagas/{Saga}/.
+  - Each event declares a public const string Topic in snake_case and publishing always passes it.
+  - Payloads carry ids and outcome flags as strings and primitives — never emails, names or record data; PII stays out of the bus.
+  - Publish happens inside the handler chain after the write is committed, so consumers only ever see committed state.
+  - A consumer is an internal sealed {Event}Handler : IAxisEventHandler<TEvent> in the consuming bounded context returning Task<AxisResult>; it defensively TryParses incoming string ids (bus payloads are untrusted) and maps bad input to an Errors const.
+  - A fan-out consumer that does real work logs its own failures and returns Ok, keeping delivery independent of the publisher (fire-and-topology).
+  - A long-lived consumer that needs scoped services creates its own scope via the scope factory.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutHandler.cs:23 — publishes ProductCheckedOutEvent after reserving stock, before SaveChangesAsync"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/Events/ProductCheckedOutEvent.cs:10 — sealed positional record, ids-only payload (CartId/ProductId as strings, Quantity as int), its own Topic const"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/Events/ProductCheckedOutEventHandler.cs:8 — internal sealed {Event}Handler in the consuming bounded context; TryParses the untrusted string ids, logs and returns Ok on a malformed payload instead of failing the dispatcher"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The bus is a swappable infra port (architecture-swappable-infra-ports) and is one of the three sanctioned
+  cross-bounded-context channels (architecture-cross-bc-communication); the framework rule
+  mediator-events-out-of-band governs the out-of-band dispatch. The event record lives in the driving
+  contracts (architecture-contracts-location), and a saga-lifecycle event sits beside its payload
+  (architecture-saga-payloads). Fire-and-topology means the publisher never learns who consumed the event.

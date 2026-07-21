@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>Axis.Analyzers</RootNamespace>
+    <!-- NuGet Package: shipped as an analyzer (analyzers/dotnet/cs), not as a runtime lib. -->
+    <PackageId>AxisResult.Analyzers</PackageId>
+    <Authors>Fillippe Prata</Authors>
+    <Description>Roslyn analyzers that enforce AxisResult railway-oriented programming rules at build time (AXIS0001-0007). Derived from the canonical rules/ base.</Description>
+    <PackageTags>roslyn;analyzer;axis;result;railway;error-handling</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- No lib/ output means an auto-generated symbols package would be empty (NU5017) -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+</Project>

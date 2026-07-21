@@ -1,0 +1,40 @@
+id: saga-success-next-xor-finish
+title: A stage's success outcome is either NextStageOnSuccess or FinishOnSuccess, never both
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  On success a stage either advances to a named stage (NextStageOnSuccess) or terminates the chain
+  (FinishOnSuccess) — the two are mutually exclusive. The stage builder throws InvalidOperationException if you
+  call one after the other. FinishOnSuccess on a forward stage completes the saga (Completed); on an error
+  stage it ends the compensation chain (Compensated).
+invariants:
+  - Calling NextStageOnSuccess after FinishOnSuccess (or the reverse) on the same stage throws InvalidOperationException.
+  - A forward stage that finishes on success drives the saga to Completed; an error stage that finishes drives it to Compensated.
+  - A stage with neither Next nor Finish set has NextStageOnSuccess == null, which the engine treats as the end of the chain.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaStageBuilder.cs:30 — NextStageOnSuccess / FinishOnSuccess mutual-exclusion guards"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:181 — Next after Finish throws; Finish after Next throws"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The engine advances to NextStageOnSuccess when set and otherwise calls CompleteAsync/CompensateAsync — so an
+  unset success outcome is a silent finish, which is why the builder forces an explicit choice.

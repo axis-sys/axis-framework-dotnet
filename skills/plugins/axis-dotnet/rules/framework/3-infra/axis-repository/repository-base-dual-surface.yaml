@@ -1,0 +1,44 @@
+id: repository-base-dual-surface
+title: AxisRepositoryBase offers a provider-typed inheritance surface and a binder composition surface over one shared core
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AxisRepositoryBase<TCommand, TReader, TParameters> exposes two ways to run SQL over the same retry/fault
+  core. The protected provider-typed surface — ExecuteAsync/ExecuteCountAsync/GetAsync/ListAsync taking
+  Action<TParameters> and Func<TReader, T> — is for a repository that inherits a dialect base and wants the
+  provider's own parameter and reader types. The explicitly-implemented IAxisDbRepository surface takes the
+  dialect-agnostic IDbParamBinder and DbDataReader, for a shared repository that composes an injected executor.
+  Both funnel into the same private *CoreAsync methods, so classification, retry and faulting behave identically.
+invariants:
+  - AxisRepositoryBase declares protected provider-typed overloads (Action<TParameters>, Func<TReader, T>) plus no-parameter overloads.
+  - AxisRepositoryBase implements IAxisDbRepository explicitly with the IDbParamBinder / DbDataReader surface.
+  - Both surfaces delegate to the same private ExecuteCore/ExecuteCountCore/GetCore/ListCore, so retry, faulting and error mapping are shared.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:226 — protected provider-typed ExecuteAsync/GetAsync/ListAsync"
+    - "src/3-Infra/AxisRepository/AxisRepository/AxisRepositoryBase.cs:252 — explicit IAxisDbRepository.ExecuteAsync over CommandBinder"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlRepositoryBaseTests.cs:345 — ProviderTypedNoParamOverloadsWork exercises the inheritance surface"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresRepositoryBaseTests.cs:165 — the binder surface via IAxisDbRepository db = repo"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/repository-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Inherit the provider-typed base when a repository is dialect-specific and wants AddWithValue and the typed
+  reader; compose the IAxisDbRepository executor when the repository must run unchanged on more than one dialect.

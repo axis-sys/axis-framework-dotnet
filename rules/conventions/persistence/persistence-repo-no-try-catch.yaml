@@ -1,0 +1,43 @@
+id: persistence-repo-no-try-catch
+title: Repositories never try/catch; error mapping happens inside IAxisDbRepository with typed codes
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Repository methods contain zero try/catch. Exception-to-AxisResult translation is owned by the Axis
+  framework (IAxisDbRepository and the migration runner); the repository only supplies the UPPER_SNAKE_CASE
+  error code to surface for the two expected outcomes: a duplicate key on insert and not-found on a
+  single-row read.
+invariants:
+  - No try/catch appears in any repository class except the migrator boundary, which wraps a raw migration run that executes outside IAxisDbRepository.
+  - Every repository method returns Task of AxisResult or Task of AxisResult of a value; nothing throws for flow control.
+  - Inserts pass a duplicate-key code such as {ENTITY}_ALREADY_EXISTS and single-row reads pass a not-found code such as {ENTITY}_NOT_FOUND, both from the public static {Aggregate}Errors const class next to the port in the repository contracts — never a call-site literal.
+  - The contracts {Aggregate}Errors class is the single declaration of persistence-owned codes; application code that matches on them references the same const, with no cross-layer re-declaration.
+  - An error code is a contract; never rename an existing code once it has been delivered.
+  - Adapter-level failure codes live as string consts in a static errors class (or private consts) per adapter.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - The database-migrator adapter wraps its whole run in try/catch because the framework runner executes raw scripts outside IAxisDbRepository.
+derives_to:
+  skills:
+    - axis-result
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The no-throw discipline is the persistence face of the framework rule result-no-throw: the try/catch that
+  turns a driver or SDK exception into a typed AxisError lives inside IAxisDbRepository, and the repository
+  only names the two codes it wants surfaced. Application-owned use-case codes stay in their own internal
+  {Aggregate}Errors classes; the persistence-owned codes declared beside the ports are the single source
+  both layers reference.

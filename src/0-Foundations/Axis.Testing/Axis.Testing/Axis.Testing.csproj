@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis.Testing</RootNamespace>
+    <!-- NuGet Package -->
+    <PackageId>Axis.Testing</PackageId>
+    <Authors>Fillippe Prata</Authors>
+    <Description>Framework-agnostic core of the Axis test assertions: inspects AxisResult via the safe Deconstruct and builds rich, IDE-friendly failure messages. The per-framework adapters (Axis.Testing.XUnit, ...) throw the native assertion exception. No test-framework dependency.</Description>
+    <PackageTags>axis;testing;result;railway;assertions</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AxisResult\AxisResult\AxisResult.csproj" />
+    <!-- Dogfood: the ROP analyzers run here; the base uses Deconstruct, so it stays clean. -->
+    <ProjectReference Include="..\..\AxisResult\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

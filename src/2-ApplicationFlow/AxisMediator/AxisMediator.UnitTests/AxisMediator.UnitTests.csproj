@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AxisValidator\FluentValidation\AxisValidator.FluentValidation\AxisValidator.FluentValidation.csproj" />
+    <ProjectReference Include="..\AxisMediator\AxisMediator.csproj" />
+  </ItemGroup>
+
+</Project>

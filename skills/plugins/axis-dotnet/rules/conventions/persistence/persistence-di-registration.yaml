@@ -1,0 +1,45 @@
+id: persistence-di-registration
+title: Register repositories per-BC, scoped, concrete-once with port forwards; the unit of work is keyed by AppKey
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Wiring follows a fixed three-level shape: each bounded context folder has an Add{BC}Repositories
+  extension; the provider-agnostic project composes them plus the IUnitOfWork adapter; each provider project
+  adds the keyed unit of work and db repository, the dialect singletons and the migrator. The host picks a
+  provider through a single configuration switch.
+invariants:
+  - A repository class is registered scoped exactly once, and each of its ports forwards to that single registration, so the Reader and Write ports share one instance per scope.
+  - Per-entity SQL dialect implementations are stateless and registered as singletons in the provider project's per-BC registration.
+  - The framework unit of work and db repository are keyed by the application's AppKey, so the business connection pool is isolated from other consumers such as a saga store.
+  - The single IUnitOfWork implementation wraps the keyed framework unit of work resolved by that AppKey.
+  - Provider selection happens only at the host through one configuration switch; no repository code branches on the provider.
+  - Each provider entry point fails fast when its own connection string is missing.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Catalog/DependencyInjection.cs:1 — the BC-folder Add{BC}Repositories extension, internal, registering three repositories scoped with explicit port-to-implementation pairs"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/DependencyInjection.cs:1 — the provider-agnostic project composing every Add{BC}Repositories plus the IUnitOfWork adapter"
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Postgres/DependencyInjection.cs:1 — the provider project: keyed unit of work + db repository, then the shared repository layer"
+examples:
+  correct:
+    - "src/scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Customers/DependencyInjection.cs:1 and Auth/DependencyInjection.cs:1 — the same Add{BC}Repositories shape repeated per bounded context (Customers, Auth), each its own file"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-repository-postgres
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The concrete-once-with-forwards shape is what lets a Reader and a Write port that resolve to the same
+  class share a scope. Keying the unit of work and db repository by AppKey is what keeps the business pool
+  separate from the saga pool (persistence-connection-pooling-separation). This rule fixes the wiring; the
+  swappable-adapter principle it instantiates is the architecture rule architecture-swappable-infra-ports.

@@ -1,0 +1,40 @@
+id: style-declaration-formatting
+title: Keep declarations and interpolated consts on one line until they must break, then break fully
+tier: convention
+concern: style
+layer: any
+severity: should
+status: canonical
+description: >
+  A single readability convention applied repo-wide. A type declaration with a primary constructor and its
+  base list stays on one line while it fits; when the line grows too long it breaks fully — one parameter
+  per line, with the closing paren plus the base/interface list on its own single line. Interpolated string
+  consts stay on one line regardless of length. Blank lines separate multi-line members and semantic groups,
+  never consecutive one-line members of the same kind.
+invariants:
+  - A primary-constructor class or record declaration is one line when it fits (around 160 characters); this is the default.
+  - "When a declaration is too long, every constructor parameter goes on its own line and the closing `) : BaseOrInterfaces` sits on a single following line — never two or three params per line, never the base list split across lines."
+  - The base/interface list is never left dangling under a one-line parameter set, so a declaration is either fully one line or fully in the long form above.
+  - Interpolated const strings (column lists, SQL projection or where fragments) are declared on one line, not wrapped.
+  - Blank lines appear between multi-line members and between deliberate semantic groups; consecutive one-line members of the same kind are not separated by blank lines.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Generator-emitted private value-object constructors, parameterless validators and private singleton constructors keep their existing shape; there is nothing to inline.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This governs layout only — the separate requirement that handlers and similar types use primary
+  constructors lives elsewhere. Mass reformatting edits must be byte-safe (preserving encoding, BOM and
+  end-of-line) rather than run through line-based tools that can corrupt them.

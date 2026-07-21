@@ -1,0 +1,42 @@
+id: email-data-body-text-type
+title: BodyTextType selects the MIME subtype and defaults to plain
+tier: framework
+family: 3-infra
+package: AxisEmail
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  A single field, BodyTextType, chooses how Body is interpreted. It defaults to plain and is set to html for
+  HTML bodies; the adapter passes it straight to new TextPart(BodyTextType). There is no separate IsBodyHtml
+  flag — the one string is the whole switch.
+invariants:
+  - BodyTextType is a string that defaults to the value plain.
+  - Setting BodyTextType to html makes Body an HTML body; the adapter feeds the value to new TextPart(BodyTextType).
+  - The MIME subtype is carried by this one field; there is no boolean HTML flag.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisEmail/AxisEmail/AxisEmailData.cs:8 — BodyTextType defaults to plain"
+    - "src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit/AxisEmailService.cs:23 — new TextPart(emailData.BodyTextType)"
+examples:
+  correct:
+    - "src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit.UnitTests/AxisEmailTests.cs:23 — defaults to plain"
+    - "src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit.UnitTests/AxisEmailTests.cs:49 — can be overridden to html"
+  incorrect: []
+exceptions:
+  - Any MIME subtype MimeKit's TextPart accepts is technically valid, but callers should stick to plain or html.
+derives_to:
+  skills:
+    - axis-email
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisEmail/axis-email-data.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the value is passed verbatim to TextPart, an unknown subtype is the adapter's (and MimeKit's)
+  concern, not the payload's.

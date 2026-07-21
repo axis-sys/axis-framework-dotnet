@@ -1,0 +1,58 @@
+id: result-operator-selection
+title: Route by intent: pick the operator that names what the step does
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Before writing any imperative control flow over an AxisResult, route the step to the canonical
+  operator that names its intent. Every recurring imperative smell around a result maps to exactly
+  one operator; reaching for if/else, try/catch, raw .Value or manual error plumbing where an
+  operator exists is the defect this rule catches. This is the discovery entry point into the
+  AxisResult surface — the mapping below is exhaustive for the common cases.
+invariants:
+  - if/else on IsSuccess to drive flow routes to a switch operator (Then, Map, Ensure or terminal Match), never a manual branch.
+  - if(IsFailure) return between steps is redundant — Then and ThenAsync already short-circuit and propagate the failure.
+  - A try/catch at an infra edge (network, parse, SDK that throws) routes to Try or TryAsync with a typed Func<Exception, AxisError> handler.
+  - A try/catch wrapping an operation that ALREADY returns AxisResult routes to TryBind or TryBindAsync, which flattens rather than nesting AxisResult<AxisResult<T>>.
+  - Reading raw .Value to branch routes to Match (or the value Deconstruct), which forces handling both rails.
+  - if(x is null) return NotFound is not the caller's job — the port returns AxisError.NotFound and downstream Map/Then skip automatically on the failure rail.
+  - A transform that CANNOT fail routes to Map; a transform that CAN fail (returns AxisResult) routes to Then.
+  - N independent validations that must all report route to Combine (valueless) or All (typed), which accumulate every error rather than stopping at the first.
+  - Assembling 2-4 independent values into a tuple routes to Zip (sequential) or ZipParallelAsync (concurrent), accumulating errors from both sides.
+  - catch(NotFoundException) to supply a default routes to RecoverNotFound (all errors are NotFound) or RecoverWhen (by type or code); catching a duplicate-key/already-exists conflict to fetch the winner routes to RecoverConflict.
+  - if(errors.Any()) then fallback routes to OrElse (try an alternative result) or RecoverWhen (recover to a value on a matched error).
+  - Re-typing or rewrapping errors as they cross a layer boundary routes to MapError, not a rebuilt AxisResult.
+  - if(IsSuccess) log or if(IsFailure) log a side effect routes to Tap or TapError, which pass the result through unchanged.
+  - A check-then-create guard (must NOT already exist) routes to RequireNotFound followed by WithValueAsync to carry the new value forward.
+  - A conditional fallible step guarded by the value — the ternary cond ? Ok() : Step() or the guard if (!cond) return Ok() — routes to ThenUnless, which runs the step only when the predicate is false and passes the success through otherwise.
+  - A conditional SAME-TYPE transforming step — the ternary cond ? Step(x) : Ok(x) written inside a Then lambda — routes to ThenWhen, which runs the transforming next only when the predicate is true and passes the success through otherwise.
+  - A verbose AxisResult.Ok(value) at the head of a pipeline routes to value.Rop() so the chain reads as one expression.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:10 — Then, the canonical chaining switch every flow smell routes into"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:111 — Try, the exception-boundary factory the try/catch smell routes into"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md"
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  This is the discovery rule for the AxisResult cluster: each invariant is one row of the
+  smell-to-operator mapping, and every named operator is verified present in the framework source
+  (Functional, Factory, Extensions.Parallel, Extensions.Rop, AxisError). The reference app's rulebook
+  states the same routing habit; that convention-tier rule becomes an examples anchor once migrated.

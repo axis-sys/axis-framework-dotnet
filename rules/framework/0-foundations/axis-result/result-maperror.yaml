@@ -1,0 +1,41 @@
+id: result-maperror
+title: Rewrite errors at a boundary with MapError; it cannot swallow a failure
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  MapError rewrites the error(s) while staying on the failure track, so use it to translate codes or
+  types when a result crosses a layer or bounded-context boundary and low-level details must not leak.
+  It runs the mapper only on failure and always returns a failed result — it cannot turn a failure into
+  a success (that is Recover) and it must not be used merely to observe an error (that is TapError).
+invariants:
+  - MapError runs the mapper only when the result is a failure; on success it is a no-op that returns the same result unchanged.
+  - MapError always stays on the failure track — the mapped result is still a failure and can never become a success.
+  - On AxisResult<TValue> the MapError overloads preserve TValue, returning AxisResult<TValue> so the failure type is unchanged.
+  - Two shapes exist — a per-error Func<AxisError, AxisError> and a whole-list Func<IReadOnlyList<AxisError>, IEnumerable<AxisError>> — plus MapErrorAsync for async mappers.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:23 — base MapError: IsSuccess ? this : Error(mapper(Errors))"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:131 — AxisResult<TValue> MapError override preserves TValue on the failure track"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/map-errors.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The reference app documents the boundary-translation semantic in its rulebook; that rule becomes an
+  examples.correct anchor once the convention tier is migrated.

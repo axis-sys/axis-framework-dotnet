@@ -1,0 +1,46 @@
+id: storage-ambient-cancellation
+title: Storage adapters read the CancellationToken from the ambient mediator, never a parameter
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  No storage method takes a CancellationToken parameter. The in-box adapters pull the token from
+  IAxisMediatorAccessor.AxisMediator.CancellationToken and thread it into every SDK call, calling
+  ThrowIfCancellationRequested before the work. A cancelled ambient token surfaces as
+  OperationCanceledException (it propagates through AxisResult.TryAsync rather than being captured), NOT as a
+  failed AxisResult — cancellation is the one deliberate exception to the no-throw rule.
+invariants:
+  - No IAxisStorage or capability method accepts a CancellationToken parameter.
+  - Adapters obtain the token from IAxisMediatorAccessor.AxisMediator.CancellationToken and pass it to the SDK call.
+  - A cancelled ambient token throws OperationCanceledException rather than returning a failed AxisResult.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageAdapter.cs:15 — reads accessor.AxisMediator!.CancellationToken and ThrowIfCancellationRequested"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageAdapter.cs:110 — the CancellationToken helper reads the ambient token and throws if requested"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:82 — a cancelled token throws OperationCanceledException"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AzureBlob/AzureBlobStorageAdapterTests.cs:83 — the Azure adapter throws on a cancelled token"
+  incorrect: []
+exceptions:
+  - The FileSystem adapter additionally tolerates a null ambient mediator by falling back to CancellationToken.None (see storage-filesystem-null-mediator-tolerated).
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/iaxisstorage.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the storage instance of the mediator's ambient-cancellation rule: the CancellationToken is context,
+  never a method parameter. The cloud adapters dereference AxisMediator with the null-forgiving operator; the
+  filesystem adapter is the deliberate exception.

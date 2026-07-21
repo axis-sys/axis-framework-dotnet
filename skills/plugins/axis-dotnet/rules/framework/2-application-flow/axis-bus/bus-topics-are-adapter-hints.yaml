@@ -1,0 +1,41 @@
+id: bus-topics-are-adapter-hints
+title: The params topics are adapter hints, not contract semantics
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  PublishAsync takes params string[] topics, but the contract assigns them no meaning: they are hints the
+  adapter is free to interpret. The in-memory adapter ignores them entirely (every handler runs regardless).
+  A distributed adapter maps them to topic / routing key / partition key. So the publisher names intent
+  without knowing the transport, and application code stays vendor-neutral.
+invariants:
+  - topics is an optional params string[]; a publish with no topics is valid and behaves identically in-process.
+  - The in-memory adapter ignores topics — every registered handler is invoked regardless of the topics passed.
+  - A distributed adapter interprets topics as transport routing (topic / routing key / partition key); the publisher need not know which.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:10 — topics accepted, never read"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/Memory/MemoryBusAdapterTests.cs:210 — publishing with topics behaves the same as without"
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md:5 — a Kafka adapter maps topics to broker topics"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/publish.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The durable outbox adapter persists topics verbatim on the row (the OutboxEvent.Topics property; the
+  BusEventsTable.Topics column) for a downstream broker publish, but does not itself route on them.

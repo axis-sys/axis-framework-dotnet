@@ -1,0 +1,45 @@
+id: types-value-object-parsing
+title: Implicit-from-string throws on bad input; TryParse is the safe boundary parse
+tier: framework
+family: 0-foundations
+package: AxisTypes
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  The generated string conversions are not interchangeable. The implicit-from-string operator calls the
+  private constructor directly, so assigning an invalid string throws — it is a trusted-input convenience,
+  not a parse. TryParse wraps the same constructor in a try/catch and returns a bool, never throwing.
+  Convert implicitly only from already-trusted values; at any untrusted boundary use TryParse.
+invariants:
+  - The implicit-from-string operator invokes the private constructor directly, so converting an invalid or null string throws the constructor's exception.
+  - TryParse(input, out var vo) wraps the constructor in try/catch and returns false on any failure — including null input — without throwing.
+  - Constructing a value object from the implicit conversion is correct only when the string is already known valid; at an untrusted boundary the parse must go through TryParse.
+  - TryParse(null) returns false, while the implicit conversion from null throws ArgumentNullException — the two entry points differ on null by design.
+reference:
+  kind: framework-test
+  at:
+    - "src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/ValueObjectGenerator.cs:118 — implicit-from-string calls new(value) directly"
+    - "src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/ValueObjectGenerator.cs:135 — TryParse wraps new in try/catch, returning false on failure"
+    - "src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisEntityIdTests.cs:35 — TryParse rejects invalid input and null without throwing"
+    - "src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisEntityIdTests.cs:50 — the implicit conversion from null throws ArgumentNullException"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-types
+  hooks: []
+  scaffolds:
+    - sku-value-object
+  docs:
+    - "docs/en-us/0-Foundations/AxisTypes/value-object-generator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This asymmetry is the value-object counterpart of errors-as-values: parsing untrusted input must not
+  throw for control flow, so it goes through TryParse; the implicit conversion is reserved for trusted
+  in-code values. The reference app codifies the same trap as its "VO never receives null" rule.

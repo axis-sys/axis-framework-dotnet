@@ -1,0 +1,43 @@
+id: domain-aggregate-factories
+title: Create N1 aggregates through an internal {Aggregate}Factory with a nested NewArgs record
+tier: convention
+concern: domain
+layer: application
+severity: should
+status: canonical
+description: >
+  An aggregate without a full domain entity (ADR-0010 level N1) is constructed by an application factory: an
+  internal I{Aggregate}Factory interface declaring a nested sealed record NewArgs and a CreateAsync, plus an
+  internal sealed implementation that checks cross-aggregate preconditions via reader ports, builds the
+  Properties instance with a fresh value-object id, and stages it via the writer port as one railway. The
+  factory does not commit — the calling handler owns SaveChangesAsync.
+invariants:
+  - The factory lives under folder Aggregates/ at {BC}/[{Aggregate}/]Aggregates/{Aggregate}Factory.cs, with the interface and implementation in the same file.
+  - The interface nests a sealed record NewArgs with required init properties and declares CreateAsync(NewArgs) returning Task of AxisResult of I{Aggregate}EntityProperties.
+  - The implementation validates every referenced aggregate through its reader port and maps a miss to an {Aggregate}Errors code before writing.
+  - A new identity comes from the value-object factory ({Vo}Id.New); a generated business key is produced by a private static helper.
+  - The factory never injects IUnitOfWork and never calls SaveChangesAsync — the handler that invoked it owns the commit.
+  - Each factory is registered explicitly as scoped in the application DI extension.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A multi-aggregate write plan inside a saga uses a static builder class instead, because it composes several aggregates at once.
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This factory is the N1 creation seam; the aggregate levels themselves are governed by
+  domain-aggregate-levels and the entity state it builds by domain-properties-contract-pair. The handler
+  composes the factory into its railway and commits once at the end, so precondition checks and the write
+  stay inside a single AxisResult chain. When an aggregate reaches N2, creation moves to the domain
+  AggregateFactory plus AggregateApplication instead of this application-layer factory.

@@ -1,0 +1,45 @@
+id: architecture-vertical-slice-layout
+title: Lay out application code as vertical slices under {BC}/{Aggregate}/UseCases/{UseCase}/v1
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  The application project is organized bounded context, then aggregate, then use case, with an explicit v1
+  version folder. A use-case folder holds only the handler and, when input needs validation, the validator;
+  the Command/Query/Response contracts live in the driving contracts. Non-use-case code sits in sibling
+  folders per aggregate: Aggregates/ (factories), Sagas/, Services/, Policies/, and the {Aggregate}Errors
+  class.
+invariants:
+  - A use-case folder is {BC}/{Aggregate}/UseCases/{UseCase}/v1/ for a multi-aggregate bounded context, or {BC}/UseCases/{UseCase}/v1/ for a single-aggregate one.
+  - Files are named {UseCase}Handler and {UseCase}Validator; the class name equals the file name.
+  - The namespace mirrors the folder path exactly, including the trailing .v1 segment.
+  - Supporting components live outside UseCases/ — Aggregates/ (factories), Sagas/{SagaName}/, Services/, Policies/ — never inside a use-case folder.
+  - There is exactly one top-level type per file.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/UseCases/Checkout/v1/CheckoutHandler.cs:3 — {BC}/UseCases/{UseCase}/v1/ for a single-aggregate bounded context, namespace mirroring the path"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/UseCases/RequestToken/v1/RequestTokenHandler.cs:10 — the same {BC}/UseCases/{UseCase}/v1/ shape in a second bounded context (Auth)"
+  incorrect: []
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/Services/AuthTokenIssuer/AuthTokenIssuerService.cs:15 — a supporting service in the Services/ sibling, outside UseCases/"
+  incorrect: []
+exceptions:
+  - A single-aggregate bounded context omits the {Aggregate} level.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The slice folder holds behavior only; the matching Command/Query/Response contracts live in the driving
+  contracts and mirror the same tree (architecture-contracts-location, architecture-contracts-versioned-layout).
+  The handler skeleton itself is architecture-handler-shape. This one-folder-per-slice discipline is the
+  application-layer instance of architecture-one-folder-per-feature.

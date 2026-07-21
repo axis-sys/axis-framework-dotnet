@@ -1,0 +1,38 @@
+id: testing-journey-scope-per-step
+title: Integration journeys drive facades/ports with a fresh DI scope per step
+tier: convention
+concern: testing
+layer: tests
+severity: should
+status: canonical
+description: >
+  Journey tests (multi-step business flows without HTTP) resolve facades and ports from a real service
+  provider and open a new IServiceScope for every step. Each scope gets its own unit of work and connection,
+  so the journey proves the data actually committed between steps instead of riding one long-lived
+  transaction. Business steps go through the facade; deep verification of persisted shape may drop to
+  reader ports in a final scope.
+invariants:
+  - Each journey step runs inside its own using (IServiceScope scope = provider.CreateScope()); no facade or port instance outlives its scope.
+  - State carried between steps is plain data (ids, strings), never resolved services or entities.
+  - Business actions use the I{Entities}Facade contracts; direct reader-port access is reserved for asserting persisted rows or JSON in a final scope.
+  - The service provider itself is disposed per test (await using).
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A fresh scope per step is what makes the journey a real cross-transaction proof rather than one ambient
+  transaction that never commits. The shared container and one-time migration the journey runs against are
+  owned by testing-integration-fixture-per-collection.

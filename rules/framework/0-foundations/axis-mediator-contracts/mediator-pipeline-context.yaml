@@ -1,0 +1,44 @@
+id: mediator-pipeline-context
+title: Pipeline behaviors share state through AxisPipelineContext using well-known key constants
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  When one behavior needs to hand data to another, it uses the per-request AxisPipelineContext rather
+  than changing the handler signature. The context is a typed key/value bag whose keys are named
+  constants, not inline literals, and whose typed reader is forgiving — it returns a default instead of
+  throwing — so a default result is never proof that a key was set.
+invariants:
+  - Behaviors pass data down the chain through the per-request AxisPipelineContext, a typed key/value bag, rather than by changing the handler signature.
+  - Keys come from AxisPipelineContextKeys constants, never inline string literals, and the keys are ordinal case-sensitive.
+  - AxisPipelineContext.Get<T> never throws and returns default(T) for a missing key, a null value or a type mismatch, so a default result is not treated as proof that the key was set.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/Pipelines/AxisPipelineContext.cs:8 — typed key/value bag, ordinal keys, forgiving Get<T>"
+    - "src/0-Foundations/AxisMediator.Contracts/Pipelines/AxisPipelineContextKeys.cs:4 — well-known key constants"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks:
+    - AXIS0403
+  scaffolds:
+    - pipeline-behavior
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Analyzer AXIS0403 — flag a string-literal key passed to AxisPipelineContext.Get or Set and
+  suggest an AxisPipelineContextKeys constant (a literal-key to const discovery rule). Because Get<T>
+  collapses absent, null and wrong-type into one default, a behavior that needs presence semantics must
+  read AxisPipelineContext.Items directly rather than inferring absence from a default.

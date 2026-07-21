@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    # Skip on push: a release-please chore commit was already fully validated
+    # by this same workflow when its release PR ran under the pull_request event.
+    if: >
+      github.event_name == 'pull_request' ||
+      !startsWith(github.event.head_commit.message, 'chore(main): release')
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - run: dotnet restore AxisSys.slnx
+      - run: dotnet build AxisSys.slnx -c Release --no-restore
+
+  unit-tests:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - run: dotnet restore AxisSys.UnitTests.slnf
+      - run: dotnet test AxisSys.UnitTests.slnf -c Release
+
+  integration-tests:
+    name: Integration tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - run: dotnet restore AxisSys.IntegrationTests.slnf
+      - run: dotnet test AxisSys.IntegrationTests.slnf -c Release
+
+  lint-rules:
+    name: Lint rules/
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' ||
+      !startsWith(github.event.head_commit.message, 'chore(main): release')
+    steps:
+      - uses: actions/checkout@v7
+      - run: node rules/tooling/lint-rules.mjs
+      - run: node rules/tooling/check-enforcement.mjs
+      - run: node rules/tooling/sync-scaffolds.mjs --check
+      - run: node rules/tooling/check-doc-parity.mjs
+      - run: node skills/scripts/bundle-plugin.mjs --check
+      - run: node skills/scripts/lint-skills.mjs
+      - name: No per-project version overrides
+        # The canonical package version lives only in Directory.Build.props
+        # (managed by release-please); a <Version> in a csproj leaks into the
+        # NuGet publish, shipping that project at the wrong version.
+        run: |
+          hits=$(grep -rEn '<(Version|VersionPrefix|VersionSuffix|PackageVersion)>' src --include='*.csproj' || true)
+          if [ -n "$hits" ]; then
+            echo "::error::Per-project version overrides found — version packages only via Directory.Build.props:"
+            echo "$hits"
+            exit 1
+          fi
+
+  scaffolds-smoke:
+    name: Scaffolds dogfooding smoke test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - run: dotnet restore src/scaffolds/Scaffolds.slnx
+      - run: dotnet build src/scaffolds/Scaffolds.slnx -c Release --no-restore -warnaserror
+      - run: dotnet test src/scaffolds/Scaffolds.slnx -c Release --no-build

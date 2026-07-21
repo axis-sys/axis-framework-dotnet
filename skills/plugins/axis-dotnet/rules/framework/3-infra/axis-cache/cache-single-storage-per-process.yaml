@@ -1,0 +1,40 @@
+id: cache-single-storage-per-process
+title: A process registers exactly one AxisCache storage adapter
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AddAxisCachePostgres and AddAxisCacheMySql each guard against double registration: if an
+  AxisCacheRepositorySettings is already in the container they throw InvalidOperationException. AxisCache
+  supports a single durable storage per process by design, so the storage adapter must be registered exactly
+  once at startup — you cannot wire both the Postgres and the MySQL cache, nor register the same one twice.
+invariants:
+  - AddAxisCachePostgres / AddAxisCacheMySql throws InvalidOperationException if an AxisCache storage adapter is already registered.
+  - A process wires exactly one durable AxisCache storage adapter, called once at startup.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/Postgres/AxisCache.Postgres/DependencyInjection.cs:18 — throws if AxisCacheRepositorySettings already registered"
+    - "src/3-Infra/AxisCache/Repository/MySql/AxisCache.MySql/DependencyInjection.cs:18 — the same single-storage guard for MySQL"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The guard keys on the presence of AxisCacheRepositorySettings, which AddAxisCacheRepositoryCore registers
+  as a singleton — so any core-backed storage adapter trips it. Mirrors the equivalent guard in AxisBus and
+  AxisSaga. The in-memory AddAxisMemoryCache carries no such guard.

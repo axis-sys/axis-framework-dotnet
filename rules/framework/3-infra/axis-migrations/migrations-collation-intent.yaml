@@ -1,0 +1,44 @@
+id: migrations-collation-intent
+title: Collation is declared as an intent so MySQL matches Postgres comparison semantics
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AxisCollation pins the comparison intent of a string column (Default, CaseAccentSensitive,
+  CaseInsensitiveAccentSensitive) rather than a raw collation name, because the two engines diverge by default:
+  Postgres compares case- and accent-sensitively, while MySQL's server default folds both. The dialect closes
+  that gap — Postgres emits no COLLATE (its default already matches), MySQL emits an explicit COLLATE so a
+  unique key or equality on a pinned column behaves the same on both engines.
+invariants:
+  - A string column's comparison behaviour is declared as an AxisCollation intent, never as a raw collation name.
+  - The Postgres dialect emits no COLLATE clause because its default comparison is already case- and accent-sensitive.
+  - The MySQL dialect emits an explicit COLLATE (utf8mb4_0900_as_cs / utf8mb4_0900_as_ci) so pinned columns match the Postgres semantics.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/AxisRepository/Ddl/AxisCollation.cs:9 — Default / CaseAccentSensitive / CaseInsensitiveAccentSensitive intent enum"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlSqlDialect.cs:36 — RenderCollation maps intent to utf8mb4_0900_as_cs / as_ci"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresSqlDialect.cs:36 — RenderCollation returns empty on Postgres"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlDdlBuilderIntegrationTests.cs:95 — CaseAndAccentSensitiveCollationTreatsCaseAsDistinct"
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresSqlDialectRenderTests.cs:33 — EmitsNoCollation"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/ddl.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The intent (not the collation name) is portable — a future engine can map the same three intents to its own
+  collations without changing any table declaration.

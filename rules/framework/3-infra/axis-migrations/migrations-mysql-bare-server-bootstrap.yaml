@@ -1,0 +1,43 @@
+id: migrations-mysql-bare-server-bootstrap
+title: The MySQL runner connects at server level so it can bootstrap a bare server
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  MySQL refuses a connection whose default database does not yet exist (ERROR 1049), so a migration runner that
+  must bootstrap a bare server cannot connect to its own target database. The MySQL runner therefore strips the
+  Database from the connection string and connects at the server level, then creates everything from there with
+  fully qualified names — both the connection's own named database (so the application can later open
+  connections against it) and the migration schema (a MySQL SCHEMA is a database), each with
+  CREATE SCHEMA IF NOT EXISTS.
+invariants:
+  - The MySQL runner clears the Database from the connection string and connects at the server level so it can bootstrap even when no database exists yet.
+  - It creates the connection's own named database (when named and distinct from the schema) so the application can later connect to it.
+  - It creates the migration schema (a MySQL SCHEMA is a database) and references every object with a fully qualified name.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlMigrationRunner.cs:38 — clear builder.Database, connect at server level (ERROR 1049 rationale)"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlMigrationRunner.cs:47 — create the connection database plus the schema, fully qualified"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlDdlBuilderIntegrationTests.cs:156 — BootstrapsOnABareServerWhenTheConnectionDatabaseDoesNotExist"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/migrations.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Postgres needs no equivalent — Npgsql connects to the maintenance database and CREATE SCHEMA IF NOT EXISTS
+  suffices, so only the MySQL runner carries the server-level bootstrap.

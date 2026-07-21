@@ -1,0 +1,40 @@
+id: persistence-sql-parameterized-pure
+title: Pure parameterized SQL only — no ORM, no user-value interpolation
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Persistence is hand-written SQL executed through IAxisDbRepository (its execute, count, get and list
+  helpers) with a parameter-binder lambda. No ORM, no query-builder library. Runtime values ALWAYS travel
+  as bound parameters; interpolation into SQL is reserved for compile-time consts (column and table names,
+  domain status codes) and dialect-generated fragments whose own parameters are themselves bound.
+invariants:
+  - No ORM or micro-ORM package is referenced by the repository projects.
+  - Every runtime value is bound via the binder lambda; JSON payloads go through the binder's JSON add.
+  - Interpolated SQL fragments may only come from consts ({Entities}Columns members, domain code consts) or from a per-entity SQL dialect member.
+  - A variable-length IN list generates one named parameter per element and binds each; an empty list degenerates to a constant predicate (a false or true literal), never to malformed SQL.
+  - A dynamic WHERE builder returns both the SQL fragment and its bindings as data, so the repository binds them uniformly.
+  - Value objects are bound through their string form; a nullable value object binds its string form or null.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Trusted compile-time consts (status codes, column and table names) may be interpolated; anything sourced from a caller must be a bound parameter.
+derives_to:
+  skills:
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The binder and execution helpers come from the framework's IAxisDbRepository, consumed as-is; the
+  repository writes SQL and supplies bindings, never opening a connection itself. Provider-specific SQL
+  differences ride a per-entity dialect seam whose fragments are still bound through the same binder.

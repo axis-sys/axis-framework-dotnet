@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/2-ApplicationFlow/AxisValidator/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisDependencyInjections\AxisDependencyInjections.Abstractions\AxisDependencyInjections.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+  </ItemGroup>
+</Project>

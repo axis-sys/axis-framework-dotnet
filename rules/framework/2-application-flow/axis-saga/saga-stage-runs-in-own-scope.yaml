@@ -1,0 +1,42 @@
+id: saga-stage-runs-in-own-scope
+title: Each stage runs in its own fresh DI scope
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The invoker opens a fresh DI scope per stage (scopeFactory.CreateAsyncScope) and disposes it the moment the
+  stage returns. A saga has no single ACID transaction by design: each stage is an independent unit of work, so
+  each gets its own scoped infrastructure — most importantly a unit of work owning one connection + transaction
+  for that scope. Sharing one scope across the saga would let a forward stage that faults its unit of work (a
+  duplicate key aborting the transaction) poison every later stage, including the compensation chain, which
+  could then never run.
+invariants:
+  - The invoker creates a new DI scope per stage invocation and disposes it when the stage returns.
+  - Scoped infrastructure (e.g. a unit of work owning a connection + transaction) is fresh per stage and never shared across stages.
+  - A faulted unit of work in one stage cannot poison a later stage or the compensation chain, because each stage's scope is isolated.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaStageHandlerInvoker.cs:24 — await using scope = scopeFactory.CreateAsyncScope() per stage"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/StageScopeIsolationTests.cs:79 — compensation stage runs in a fresh scope not poisoned by the failed forward stage"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is why "a saga is not a transaction": durability is per-stage, and compensation (not rollback) is how a
+  multi-stage process is undone.

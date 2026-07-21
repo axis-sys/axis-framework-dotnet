@@ -1,0 +1,38 @@
+id: testing-aaa-structure
+title: Structure every test as Arrange-Act-Assert separated by blank lines
+tier: convention
+concern: testing
+layer: tests
+severity: should
+status: canonical
+description: >
+  Tests follow Arrange-Act-Assert implicitly: setup, a single action (or a named journey of actions),
+  then assertions, with blank lines between the phases. There are no // Arrange comments — the phases are
+  conveyed by whitespace and by extracting setup into private Build()/factory helpers at the top of the
+  class. Comments explain a non-obvious intent or footgun only, never label a phase.
+invariants:
+  - Arrange, act and assert phases are separated by blank lines, not by phase comments.
+  - Repeated arrangement is extracted into private static helpers (Build(...), Command(), Request(...)) inside the test class.
+  - Assertions use the built-in xUnit Assert API only (Assert.True on result.IsSuccess, Assert.Equal, Assert.Contains, Assert.Single, Assert.All), never a fluent-assertion library.
+  - Failure-path assertions check the typed error code (Assert.Contains(result.Errors, e => e.Code == ...)), not a message string.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Journey tests (integration and E2E) chain multiple act+assert blocks in one method; each step still keeps its own act/assert grouping.
+derives_to:
+  skills:
+    - axis-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Phases are read from whitespace and from setup extracted into private Build()/factory helpers, not from
+  labels. The ban on fluent-assertion libraries and the concrete xUnit Assert surface are governed by
+  testing-allowed-packages; this rule only fixes the AAA layout.

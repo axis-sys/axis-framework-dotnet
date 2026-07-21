@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AxisSaga\AxisSaga.csproj" />
+  </ItemGroup>
+
+</Project>

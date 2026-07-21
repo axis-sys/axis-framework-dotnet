@@ -1,0 +1,43 @@
+id: saga-skip-completed-stage-on-resume
+title: On resume the engine skips stages already logged Completed and reloads the persisted payload
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Before running a stage the engine asks the stage-log store whether that stage already completed
+  (IsCompletedAsync). If it did — a prior run finished it before the process died — the engine skips it and,
+  because the in-memory payload is stale after a restart, reloads the persisted PAYLOAD_JSON so the next stage
+  sees the same view it would have had then. This is the engine-level half of crash recovery: completed stages
+  are not re-run; only a stage interrupted before its Completed log re-executes (hence the handler idempotency
+  contract).
+invariants:
+  - The engine calls IsCompletedAsync before a stage and skips it when a prior run already logged it Completed.
+  - When skipping a completed stage on resume, the engine reloads the persisted payload JSON so the next stage sees the correct view.
+  - A stage that started but was interrupted before its Completed log is NOT skipped and re-runs on resume.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:255 — TrySkipCompletedStageAsync checks IsCompleted and reloads the payload"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaStageLogStore.cs:9 — the Started -> Completed|Failed log that drives the skip"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md:96 — the stage-log rows the resumer uses to know what already ran"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The skip is best-effort recovery, not a correctness guarantee: because a stage can be interrupted mid-flight,
+  the handler still must be idempotent (saga-stage-handler-idempotent).

@@ -1,0 +1,41 @@
+id: process-provider-switches
+title: Database providers are selected by config switches with a default; only the composition root knows
+tier: convention
+concern: process
+layer: build
+severity: must
+status: canonical
+description: >
+  When an application supports more than one database engine, the provider is chosen by configuration
+  switches read only by the composition root: one switch selects the business-repository provider and,
+  where a separate store exists (such as the saga store), an independent switch selects it. Each switch has
+  a default provider, compares case-insensitively, and maps to the matching Add* DI registration. No
+  repository, handler or controller ever branches on the provider — the choice lives only in composition.
+invariants:
+  - A configuration switch selects the business-repository provider; when unset it falls back to the default provider, and the comparison is case-insensitive.
+  - Each independently-provisioned store (for example the saga store) has its own switch with the same default-and-comparison contract, so stores can run on different engines.
+  - Each provider's DI extension exposes its connection-string name as a constant; a derived store reuses the connection of its chosen provider.
+  - Pool sizing per store is configuration, applied in the composition root, so independent stores keep independent connection pools.
+  - No repository, handler or controller branches on the provider; the switch exists only in the composition root.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Applications that support a single database engine need no provider switch; this rule applies only where more than one engine is offered.
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Keeping the provider choice in one place is what lets the rest of the code stay provider-agnostic and
+  return AxisResult uniformly. Separate stores are given separate pools deliberately, because a shared pool
+  can be exhausted by fan-out on one store while starving another. Provider names are illustrative, not a
+  fixed catalogue — the set of supported engines is an application decision.

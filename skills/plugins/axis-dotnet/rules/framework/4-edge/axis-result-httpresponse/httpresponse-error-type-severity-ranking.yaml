@@ -1,0 +1,50 @@
+id: httpresponse-error-type-severity-ranking
+title: A fixed AxisErrorType severity ranking decides which error's status wins a multi-error failure
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  A failed AxisResult can carry many errors; the response must have ONE status. AxisErrorTypeHttpMapping.Severity
+  assigns each AxisErrorType an integer rank, and the builder selects the status of the highest-ranked error
+  (ties keep the first-seen maximum). The ranking is fixed: InternalServerError 100 is most severe, then
+  ServiceUnavailable 90, GatewayTimeout 85, Timeout 80, Unauthorized 70, Forbidden 65, Conflict 60,
+  BusinessRule 55, NotFound 50, TooManyRequests 45, and ValidationRule 40 is least severe. Any type without an
+  explicit arm (e.g. Mapping) ranks 95 via the default — above every category except InternalServerError. This
+  is why a request that trips both a ValidationRule and an InternalServerError is reported as 500, not 400.
+invariants:
+  - Severity ranks the types InternalServerError=100 > ServiceUnavailable=90 > GatewayTimeout=85 > Timeout=80 > Unauthorized=70 > Forbidden=65 > Conflict=60 > BusinessRule=55 > NotFound=50 > TooManyRequests=45 > ValidationRule=40.
+  - Any AxisErrorType without an explicit Severity arm (including Mapping) ranks 95 via the default — below only InternalServerError (100).
+  - The builder picks the status of the error with the maximum Severity; on equal severity it keeps the first such error encountered in list order (strictly-greater comparison).
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:37 — Severity switch, InternalServerError=100 down to ValidationRule=40"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:50 — default arm => 95 (e.g. Mapping)"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisProblemDetailsBuilder.cs:51 — foreach picks maxType where severity strictly greater than the running max (first-seen wins on ties)"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisErrorTypeHttpMappingTests.cs:44 — SeverityValuesMatchExpected asserts every rank incl. Mapping=95"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResultHttpExtensionsTests.cs:79 — Failure_picks_most_severe_error_status (ValidationRule + InternalServerError -> 500)"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResultHttpExtensionsTests.cs:173 — Severity_higher_type_wins theory"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/error-status-mapping.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The severity ranking is a separate table from the per-type status map (httpresponse-error-type-status-map):
+  status answers "which HTTP code for this type", severity answers "which type wins when several are present".
+  Note the default rank of 95 sits ABOVE ServiceUnavailable (90) despite the status default being 500 — an
+  unmapped type is treated as nearly the most severe. The tie-break is order-sensitive because the comparison is
+  strictly greater-than, so the first error of the winning severity keeps the win.

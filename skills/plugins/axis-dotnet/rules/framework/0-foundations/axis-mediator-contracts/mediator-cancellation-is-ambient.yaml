@@ -1,0 +1,47 @@
+id: mediator-cancellation-is-ambient
+title: CancellationToken is ambient on IAxisMediator and never a method parameter
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The request cancellation token travels with the ambient execution context, not through method
+  signatures. Handlers, ports, factories and facades read it from IAxisMediator.CancellationToken;
+  none of them declares a CancellationToken parameter. This keeps signatures clean and removes the risk
+  of threading the wrong token when a scope is nested or replaced.
+invariants:
+  - The request cancellation token is read from IAxisMediator.CancellationToken, never received as a method parameter.
+  - No handler HandleAsync and no IAxisMediatorHandler dispatch method declares a CancellationToken parameter.
+  - Application ports, factories and facade methods do not add a CancellationToken parameter; they read the ambient token from the mediator.
+  - IAxisMediator.CancellationToken is backed by an AsyncLocal populated by application middleware, and an unset token is CancellationToken.None (a valid, never-cancelling token) rather than null.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/IAxisMediator.cs:8 — CancellationToken is a read-only ambient property"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Commands/IAxisCommandHandler.cs:7 — HandleAsync takes only the command, no CT"
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Handlers/IAxisMediatorHandler.cs:9 — no dispatch method carries a CT"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/MediatorContextAccessor.cs:10 — CancellationToken slot is AsyncLocal, seeded by middleware"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks:
+    - AXIS0400
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/README.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the canonical home of the "CancellationToken is ambient" rule; axis-result reinforces the same
+  point in monadic composition. Analyzer AXIS0400 — flag a CancellationToken parameter on a
+  method of a type implementing an Axis handler interface. The default(CancellationToken) == None trap
+  means a missing middleware seed is silent, so it cannot be null-checked.

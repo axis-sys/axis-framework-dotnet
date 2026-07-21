@@ -1,0 +1,44 @@
+id: result-trybind-flatten
+title: Use TryBind when the wrapped operation itself returns AxisResult
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: driven
+severity: should
+status: canonical
+description: >
+  Try wraps a callback that returns a plain value; when the boundary operation BOTH throws
+  (network, deserialization) AND reports controlled failures as an AxisResult, Try would nest the
+  outcome into AxisResult<AxisResult<T>>. TryBind and TryBindAsync catch the exceptions and flatten
+  the returned result, so the caller keeps a single AxisResult<T>. It is a distinct method name, not
+  a Try overload, because AxisResult<T> derives from AxisResult and the two overloads would collapse.
+invariants:
+  - Use TryBind/TryBindAsync when the guarded callback itself returns AxisResult or AxisResult<T>.
+  - TryBind returns the callback's AxisResult directly; it never wraps it as AxisResult<AxisResult<T>>.
+  - A controlled AxisError returned by the callback passes through unchanged; a thrown exception is caught and mapped.
+  - TryBind and TryBindAsync are distinct names, not Try overloads, because AxisResult<T> deriving from AxisResult would collapse the overloads (CS0121).
+  - TryBindAsync has only a Task form, no ValueTask sibling, because async lambda inference is ambiguous (CS0121).
+  - TryBind applies the same IsCritical rethrow rules as Try, so critical exceptions are not converted to an AxisError.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:144 — TryBind flattens the callback's AxisResult"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Factory.cs:133 — rationale: distinct name and Task-only by design"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/boundary-and-try.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Pairs with the Try boundary rule: Try for callbacks returning a plain value, TryBind for callbacks
+  already returning AxisResult. The CS0121 base-type collapse is recorded as framework learning L0001.

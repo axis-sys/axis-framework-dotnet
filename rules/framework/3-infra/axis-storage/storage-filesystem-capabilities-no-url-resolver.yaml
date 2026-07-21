@@ -1,0 +1,46 @@
+id: storage-filesystem-capabilities-no-url-resolver
+title: The FileSystem adapter implements container and lister but not URL resolution
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AxisStorage.FileSystem implements IAxisStorage, IAxisStorageContainer and IAxisStorageLister but
+  deliberately NOT IAxisStorageUrlResolver — a file:// path is meaningless to a remote client, and serving a
+  file over HTTP is the job of whatever fronts the disk. Its DI binds only those three interfaces.
+  GetPresignedUrlAsync returns a file:// URI (a local path reference, not an HTTP URL), and
+  IsPubliclyAccessibleAsync returns Ok(true) because a filesystem has no signed-URL concept.
+invariants:
+  - FileSystemStorageAdapter implements IAxisStorage, IAxisStorageContainer and IAxisStorageLister, and does not implement IAxisStorageUrlResolver.
+  - AddAxisFileSystemStorage binds only those three interfaces; there is no IAxisStorageUrlResolver registration.
+  - GetPresignedUrlAsync returns a file:// URI and IsPubliclyAccessibleAsync returns Ok(true).
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/FileSystemStorageAdapter.cs:6 — implements the three interfaces, not IAxisStorageUrlResolver"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/FileSystemStorageAdapter.cs:47 — GetPresignedUrlAsync returns a file:// URI"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem/DependencyInjection.cs:15 — DI binds only IAxisStorage, IAxisStorageContainer and IAxisStorageLister"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/DependencyInjectionTests.cs:33 — container and lister resolve to the same instance; no URL resolver"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/FileSystemStorageAdapterTests.cs:122 — GetPresignedUrlAsync returns a file:// URI"
+    - "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/FileSystemStorageAdapterTests.cs:147 — IsPubliclyAccessibleAsync returns Ok(true)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/filesystem.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the canonical example that an adapter may implement only a subset of the optional capabilities
+  (see storage-optional-capabilities-separate-interfaces). The intended future extension is to implement
+  IAxisStorageUrlResolver over a configurable base URL.

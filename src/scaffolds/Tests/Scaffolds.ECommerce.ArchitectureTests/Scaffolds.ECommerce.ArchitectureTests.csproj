@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- References the inward assemblies it inspects; forbidden dependencies are checked by name, not referenced. -->
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="../../Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <ProjectReference Include="../../Host/Scaffolds.ECommerce.Host/Scaffolds.ECommerce.Host.csproj" />
+  </ItemGroup>
+
+</Project>

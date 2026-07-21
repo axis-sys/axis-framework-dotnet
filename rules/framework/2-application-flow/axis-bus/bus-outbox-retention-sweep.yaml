@@ -1,0 +1,43 @@
+id: bus-outbox-retention-sweep
+title: Terminal rows are retained then swept, not deleted on completion
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: should
+status: superseded
+superseded_by: bus-outbox-lease-claim
+description: >
+  Reaching a terminal status (Processed or Failed) does not delete the row: the store sets DELETE_NOT_BEFORE
+  to now + RetainForSeconds (default 7 days) so the row stays inspectable for a retention window. Every
+  RunOnceAsync then opportunistically deletes up to BatchSize rows whose DELETE_NOT_BEFORE has passed. So the
+  outbox self-prunes without a separate cleanup job while keeping recent history.
+invariants:
+  - Marking a row Processed or Failed sets DELETE_NOT_BEFORE = now + RetainForSeconds rather than deleting it.
+  - The default retention window is 604800 seconds (7 days).
+  - Each RunOnceAsync deletes up to BatchSize rows whose DELETE_NOT_BEFORE has passed (an opportunistic sweep).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:57 — DeleteExpiredAsync runs at the end of every pass"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/Persistence/BusEventsTable.cs:32 — DefaultRetainForSeconds = 604_800 (7 days)"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SUPERSEDED by bus-outbox-lease-claim. The atomic-outbox redesign removed retention entirely: there is no
+  terminal Processed/Failed status, no DELETE_NOT_BEFORE and no RetainForSeconds. A dispatched row is DELETED
+  immediately (delete-after-dispatch) and a failed row keeps its place for re-claim — the presence of a row is
+  the pending state. Kept for history.

@@ -1,0 +1,45 @@
+id: result-cancellation
+title: CancellationToken is a parameter of the CT-aware overloads, present only for a subset
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  The async operators expose CancellationToken-aware overloads whose delegate takes the token as its
+  last argument and whose own ct parameter defaults to default and is forwarded onward, so the token
+  flows through the pipeline without being captured in closures. These overloads exist only for a
+  subset of operators; an application that carries the token ambiently rarely needs to thread it.
+invariants:
+  - A CT-aware overload passes the CancellationToken to the delegate as its last argument and forwards it via an operator ct parameter that defaults to default.
+  - CT-aware overloads exist only for Then, Map, Tap, Ensure, Zip, ZipParallel and ToAxisResultAsync.
+  - ToAxisResultAsync has a CT-aware overload on Task only; there is no ValueTask CT-aware variant.
+  - No CT-aware overload exists for Recover, MapError, Match, TapError, OrElse or RequireNotFound.
+  - The CT-less overloads remain alongside the CT-aware ones, so a token may be closed over by a lambda or both styles mixed in one chain.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.Cancellation.cs:10 — CT-aware instance overloads, delegate takes ct last, operator ct = default"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResultExtensions.Cancellation.cs:10 — CT-aware extensions on Task/ValueTask; ToAxisResultAsync Task-only"
+    - "docs/en-us/0-Foundations/AxisResult/cancellation.md — operators with a CT variant and the ambient/DI preference"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/cancellation.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Recover, MapError, Match, TapError, OrElse and RequireNotFound act on the error side or terminate the
+  chain and never receive the token. The reference-app convention prefers registering the request token
+  as a scoped service so handlers read it ambiently rather than threading it, reserving the CT-aware
+  overloads for explicit-threading cases.

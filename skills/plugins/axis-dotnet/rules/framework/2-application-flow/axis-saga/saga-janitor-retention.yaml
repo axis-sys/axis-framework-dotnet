@@ -1,0 +1,41 @@
+id: saga-janitor-retention
+title: A retention window lets the janitor delete terminal sagas after they expire
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: may
+status: canonical
+description: >
+  StartAsync's retainedFor overload sets a retention window (persisted as RETAIN_FOR_SECONDS and, once terminal,
+  DELETE_NOT_BEFORE). The IAxisSagaJanitor deletes terminal sagas whose retention window has elapsed, in bounded
+  batches (SagaJanitor uses a batch size of 200), via ISagaInstanceStore.DeleteExpiredAsync. RunOnceAsync
+  returns the number deleted. Without a retention window a terminal saga is retained indefinitely.
+invariants:
+  - retainedFor on StartAsync persists the retention window (RETAIN_FOR_SECONDS -> DELETE_NOT_BEFORE once terminal).
+  - IAxisSagaJanitor.RunOnceAsync deletes terminal sagas past their DELETE_NOT_BEFORE in bounded batches and returns the count deleted.
+  - A terminal saga with no retention window is retained indefinitely (the janitor never deletes it).
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaJanitor.cs:6 — RunOnceAsync -> DeleteExpiredAsync in batches of 200"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaInstanceStore.cs:67 — DeleteExpiredAsync deletes terminal sagas whose retention window elapsed"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The janitor only ever touches terminal sagas, so retention is orthogonal to execution — an in-flight saga is
+  never a deletion candidate.

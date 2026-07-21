@@ -1,0 +1,37 @@
+id: style-entity-suffix-naming
+title: Name mutable entities I{X}EntityProperties and reader-only lookups plain I{X}Properties
+tier: convention
+concern: style
+layer: domain
+severity: should
+status: canonical
+description: >
+  The Properties interface name signals the aggregate level. I{X}EntityProperties marks a real entity — one
+  created and mutated by use cases and backed by a WritePort — while plain I{X}Properties without the Entity
+  segment marks a reader-only seeded lookup. Only the interface name carries the level signal; the concrete
+  record name is identical for both.
+invariants:
+  - An entity that has a WritePort names its properties interface I{X}EntityProperties.
+  - A reader-only seeded lookup, reached only through a ReaderPort, names its properties interface I{X}Properties with no Entity segment.
+  - The concrete internal record drops both the leading I and the Entity segment, so {X}Properties implements I{X}EntityProperties for entities and I{X}Properties for lookups.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Do not rename a deviating interface retroactively without a coordinated sweep; it is referenced across ports, repositories and tests.
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the concrete-record name ({X}Properties) is the same at both levels, the Entity segment lives only
+  on the interface. The lookup versus writable-entity split follows the aggregate-level model (N0 lookup
+  versus N2 entity) owned by the domain-modelling skill.

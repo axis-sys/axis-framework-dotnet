@@ -1,0 +1,42 @@
+id: logger-behavior-registration
+title: AddLoggingBehavior registers the open-generic LoggingBehavior as transient pipeline behaviors
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  AddLoggingBehavior() is the opt-in that turns on automatic per-request logging. It registers
+  TimeProvider.System as a Singleton (so the logger's UtcTime enrichment works) and both open-generic
+  behaviours — LoggingBehavior<> and LoggingBehavior<,> — as Transient IAxisPipelineBehavior, so the mediator
+  resolves one per request type. It is separate from AddAxisLogger; enabling request logging means calling
+  both.
+invariants:
+  - AddLoggingBehavior registers TimeProvider.System as a Singleton.
+  - AddLoggingBehavior registers IAxisPipelineBehavior<> -> LoggingBehavior<> and IAxisPipelineBehavior<,> -> LoggingBehavior<,>, both Transient and open-generic.
+  - AddLoggingBehavior is independent of AddAxisLogger; automatic request logging requires calling it in addition to AddAxisLogger.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/DependencyInjection.cs:17 — AddSingleton(TimeProvider.System) plus two AddTransient(IAxisPipelineBehavior<...>, LoggingBehavior<...>)"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/logging-behavior.md"
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Transient open generics let the mediator materialise one behaviour instance per request type. Registering
+  TimeProvider.System here is also what makes a bare AddAxisLogger() + AddLoggingBehavior() pair resolvable —
+  see the TimeProvider gotcha in logger-registration-scoped.

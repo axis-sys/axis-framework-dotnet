@@ -1,0 +1,52 @@
+id: httpresponse-error-type-status-map
+title: Each AxisErrorType maps to one canonical HTTP status, unmapped types falling back to 500
+tier: framework
+family: 4-edge
+package: AxisResult.HttpResponse
+concern: package-mechanics
+layer: driving
+severity: must
+status: canonical
+description: >
+  AxisErrorTypeHttpMapping.ToHttpStatusCode is the single translation from the domain-decided AxisErrorType to
+  an HTTP status code, applied by the builder to the most severe error. The full map is fixed: ValidationRule
+  400, Unauthorized 401, Forbidden 403, NotFound 404, Conflict 409, BusinessRule 422, TooManyRequests 429,
+  InternalServerError 500, ServiceUnavailable 503, and BOTH Timeout and GatewayTimeout 504. Any type without an
+  explicit arm (e.g. Mapping) falls through to 500. The mapping type is internal — it is documented, not part
+  of the public surface — so callers rely on the status the builder emits rather than on the table directly.
+invariants:
+  - ToHttpStatusCode maps ValidationRule->400, NotFound->404, Conflict->409, BusinessRule->422 (UnprocessableEntity), Unauthorized->401, Forbidden->403, ServiceUnavailable->503.
+  - ToHttpStatusCode maps both Timeout and GatewayTimeout to 504 (GatewayTimeout); the two error types collapse to the same status.
+  - ToHttpStatusCode maps TooManyRequests to 429 via an explicit (HttpStatusCode)429 cast, since HttpStatusCode has no named 429 member.
+  - Any AxisErrorType without an explicit arm (including Mapping) falls through the default arm to InternalServerError (500).
+  - AxisErrorTypeHttpMapping is internal; the error->status map is an implementation detail of the package, not a public API — consumers read the resolved status off the ProblemDetails/builder, not the table.
+reference:
+  kind: framework-source
+  at:
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:7 — ToHttpStatusCode switch over AxisErrorType"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:17 — TooManyRequests => (HttpStatusCode)429"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:19 — default arm => InternalServerError"
+    - "src/4-Edge/AxisResult.HttpResponse/AxisErrorTypeHttpMapping.cs:5 — the class is internal static"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisErrorType.cs:3 — the 12 AxisErrorType categories being mapped"
+examples:
+  correct:
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisErrorTypeHttpMappingTests.cs:7 — ToHttpStatusCodeMapsKnownTypes covers every mapped type incl. Mapping->500"
+    - "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisErrorTypeHttpMappingTests.cs:22 — ToHttpStatusCodeMapsTooManyRequestsTo429"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result-httpresponse
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/error-status-mapping.md"
+    - "docs/en-us/4-Edge/AxisResult.HttpResponse/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Gotchas worth remembering: Timeout and GatewayTimeout are two distinct AxisErrorType values that render to the
+  SAME 504, and TooManyRequests needs the numeric cast because System.Net.HttpStatusCode predates 429. Mapping
+  has no arm and therefore reports 500. The status selection across a multi-error failure is governed by the
+  severity ranking (httpresponse-error-type-severity-ranking); this rule is only the per-type status.

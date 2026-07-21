@@ -1,0 +1,43 @@
+id: di-reexport-shim
+title: AxisDependencyInjections is a source-less project that transitively re-exports the Microsoft DI package
+tier: framework
+family: 0-foundations
+package: AxisDependencyInjections
+concern: package-mechanics
+layer: build
+severity: must
+status: canonical
+description: >
+  AxisDependencyInjections and AxisDependencyInjections.Abstractions carry no code of their own. Each project's
+  whole content is a single PackageReference to the matching Microsoft.Extensions.DependencyInjection package,
+  re-exported transitively. Referencing the Axis project is a compile-time equivalent of referencing the
+  Microsoft package directly, under an Axis-owned project name.
+invariants:
+  - Both AxisDependencyInjections and AxisDependencyInjections.Abstractions ship zero C# types; each project's entire content is one PackageReference to the matching Microsoft.Extensions.DependencyInjection[.Abstractions] package.
+  - The PackageReference declares no PrivateAssets, so the referenced Microsoft DI assembly flows transitively to every project that references the Axis project.
+  - Referencing the Axis project is therefore equivalent, at compile time, to referencing the Microsoft package directly; the shim contributes an Axis-owned project name, not any new type or member.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections.Abstractions/AxisDependencyInjections.Abstractions.csproj:8 — the abstractions project is only a PackageReference, no source"
+    - "src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections/AxisDependencyInjections.csproj:3 — the concrete project is only a PackageReference, no source"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/AxisStorage.CloudflareR2.csproj:10 — an adapter gets IServiceCollection in scope via the shim ProjectReference"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dependency-injections
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The shim is optional and only partially adopted: AxisValidator, AxisValidator.FluentValidation and the three
+  AxisStorage adapters reference it, while AxisBus, AxisSaga and AxisCache reference the
+  Microsoft.Extensions.DependencyInjection packages directly. So the project is a naming/indirection point, not a
+  mandated single dependency gateway. Both projects are packable (Directory.Build.props only marks test projects
+  IsPackable=false) and inherit TargetFramework net10.0 from Directory.Build.props.
