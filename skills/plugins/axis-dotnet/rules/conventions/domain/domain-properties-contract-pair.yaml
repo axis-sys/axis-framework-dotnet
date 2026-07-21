@@ -25,6 +25,7 @@ examples:
   incorrect: []
 exceptions:
   - Unit tests use a Fake{Entity} record implementing the interface because the concrete record is internal (see axis-unit-tests).
+  - An N2 domain entity may remain internal non-sealed, never public, when it declares at least one protected member — the Rules an application-layer AggregateApplication subclass (domain-aggregate-levels) inherits. Protected is the only accessibility a subclass in another assembly can reach, so its presence — not an actually-observed subclass, which lives in a downstream project no single-compilation analyzer can see — is what the AXIS0604 analyzer checks.
 derives_to:
   skills:
     - axis-domain-modeling
