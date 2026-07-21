@@ -1,0 +1,43 @@
+id: telemetry-prefer-port-over-activitysource
+title: Instrument through IAxisTelemetry/IAxisMetrics, not raw ActivitySource or Meter
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: any
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  Application and adapter code should reach for IAxisTelemetry.StartSpan / IAxisMetrics rather than
+  System.Diagnostics.ActivitySource.StartActivity or a raw Meter/Counter/Histogram. Calling the BCL
+  primitives directly re-introduces the boilerplate AxisTelemetry exists to remove: manual try/finally around
+  the Activity, hand-translating an AxisResult outcome to a status, and no automatic Trace/Journey tagging.
+  Depending on the port also keeps the sink swappable (Null in tests, OpenTelemetry in production) without
+  touching the call site.
+invariants:
+  - Reaching for ActivitySource.StartActivity or a raw Meter/Counter<T>/Histogram<T> in a handler or adapter is the smell — inject IAxisTelemetry/IAxisMetrics instead.
+  - Only the OpenTelemetryAdapter owns the ActivitySource and Meter; other code observes them through the ports.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:11 — the only place that owns the ActivitySource/Meter primitives"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisTelemetry.cs:5 — StartSpan is the sanctioned entry point"
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - The OpenTelemetryAdapter itself, which is the one component allowed to construct and drive ActivitySource/Meter.
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/why-axistelemetry.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The discovery-layer rule: it routes an author away from the imperative BCL API before they write it. The
+  why-axistelemetry comparison page states the three rough edges of calling ActivitySource/Meter directly.

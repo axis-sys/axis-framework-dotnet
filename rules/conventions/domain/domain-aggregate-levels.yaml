@@ -1,0 +1,44 @@
+id: domain-aggregate-levels
+title: Classify each aggregate as N0 lookup or N1 CRUD, and upgrade to N2 only when the first real domain rule appears
+tier: convention
+concern: domain
+layer: domain
+severity: should
+status: canonical
+description: >
+  Every aggregate sits at one of the three ADR-0010 levels. N0 lookups expose only a Properties interface
+  plus a reader port. N1 CRUD aggregates add an internal {Aggregate}Factory in the application layer with a
+  nested NewArgs record. N2 is the behavior-rich shape — a domain entity with its Rules in the domain
+  project plus an AggregateFactory and AggregateApplication in the application layer — and is the target the
+  moment an aggregate carries a real invariant. Do not build the N2 chain before a rule forces it.
+invariants:
+  - N0 (lookup) aggregates expose only a public I{Entity}Properties interface and an I{Entities}ReaderPort — no factory and no write port.
+  - N1 (CRUD) aggregates add an internal {Aggregate}Factory in the application layer under folder Aggregates/{Aggregate}; the factory shape and its invariants are owned by domain-aggregate-factories.
+  - N2 (behavior-rich) aggregates add a domain entity with its Rules in the domain project plus an AggregateFactory and AggregateApplication in the application layer, and this is the shape any rule-bearing aggregate must reach.
+  - The first business rule that guards a decision on an aggregate's state is the bright-line trigger to introduce that aggregate's N2 shape in the same change — never hide the rule inside a handler, a factory or a policy to dodge the upgrade.
+  - Pure, stateless domain computation that belongs to no single aggregate lives in an internal static domain service inside the domain project, never bolted onto an entity.
+  - A cross-cutting rule that guards a decision across aggregates is an internal policy/service (interface plus implementation in the application layer), not a method added to an unrelated entity.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - An aggregate created only through a saga may build its Properties inside the saga's stage handlers or services instead of a dedicated factory class.
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  N0 and N1 are the common resting altitudes; the N2 shape (a behavior-rich entity plus Rules in the domain
+  project, AggregateFactory plus AggregateApplication in the application layer) is the target pattern for a
+  rule-bearing aggregate and is described here as the shape to reach for rather than scaffolded preemptively.
+  Treat any new "if" about business state as the moment to introduce the first N2 aggregate, deciding its
+  shape then. The N1 factory is governed by domain-aggregate-factories and entity state by
+  domain-properties-contract-pair.

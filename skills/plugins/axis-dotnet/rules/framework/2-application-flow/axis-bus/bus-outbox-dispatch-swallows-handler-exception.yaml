@@ -1,0 +1,42 @@
+id: bus-outbox-dispatch-swallows-handler-exception
+title: The dispatcher never lets a handler exception escape the poll loop
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  DispatchRowAsync wraps the whole per-row dispatch in try/catch. A handler that throws (surfacing as a
+  reflection TargetInvocationException) is caught and treated as an ordinary dispatch failure — the row's lease
+  is released and its place kept, exactly like a handler that returned a failed AxisResult — so it never
+  propagates to AxisBusDispatcherWorker's loop and never crashes the host; the worker then backs off and raises
+  a critical alert (bus-outbox-worker-backoff-alert). This is the deliberate opposite of the in-memory adapter,
+  which lets a throwing handler escape.
+invariants:
+  - Every per-row dispatch is wrapped in try/catch; a thrown handler exception is caught, not propagated to the worker loop.
+  - A caught exception is treated as a normal delivery failure (lease released, row kept for re-claim), never a crash and never a terminal skip.
+  - This durability contrasts with the in-memory adapter, where a throwing handler escapes PublishAsync.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:107 — catch (Exception ex) treats a throwing handler as a normal delivery failure (return false -> release)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/BusDispatcherTests.cs:183 — a throwing handler does not escape and the row is released for re-claim"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  The catch also absorbs reflection failures (bad handler ctor, TargetInvocationException). Contrast
+  bus-memory-no-exception-isolation; a durable adapter can afford to catch because the row survives to re-deliver.

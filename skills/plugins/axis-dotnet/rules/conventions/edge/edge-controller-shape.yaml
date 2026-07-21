@@ -1,0 +1,47 @@
+id: edge-controller-shape
+title: Controllers are sealed ControllerBase classes with the canonical attribute stack
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  Every HTTP endpoint lives in a sealed controller that inherits ControllerBase (never the view-aware
+  Controller), uses a primary constructor for injection, and carries a fixed attribute stack on the
+  class: the API-controller marker, a bounded-context tag, the authorization attribute (bare or a
+  policy), an optional tenant marker, the API version and the versioned route. Controllers are grouped
+  in one folder per bounded context.
+invariants:
+  - Controller classes are sealed and inherit ControllerBase through a primary constructor; they never inherit the view-aware Controller base.
+  - The class attribute stack appears in a fixed order — API-controller marker, bounded-context tag, authorization, optional tenant marker, API version, route.
+  - The route template carries the version segment and a plural kebab-case resource name.
+  - Actions are expression-bodied Task<IActionResult> methods named {Verb}[{Noun}]Async, one action per use case.
+  - Every action declares its HTTP verb attribute and a ProducesResponseType for the success shape.
+  - Route parameters are bound as string (never a domain id type) and merged into the command or query via with-expressions or object initializers; value-object parsing happens in validators, not the controller.
+  - Controllers live under one folder per bounded context, mirroring the bounded context they serve.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:12 — fixed class attribute stack over a sealed ControllerBase with a primary constructor"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:26 — expression-bodied Task<IActionResult> {Verb}Async, one per use case, with verb attr + ProducesResponseType"
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:48 — route param bound as string and merged into the command via a with-expression"
+  incorrect: []
+exceptions:
+  - Controllers protected by a policy or a specific scheme replace the bare authorization attribute with the policy or scheme form.
+  - Purely diagnostic edge reads may expose synchronous actions returning a plain IActionResult.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks:
+    - AXIS0602
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 2b82174
+  reviewed_on: 2026-07-18
+notes: >
+  The framework leaves authentication, URL versioning and OpenAPI to the application; this rule records
+  the shape the edge converges on. See edge-controller-facade-injection for what may be injected,
+  edge-url-versioning for the version segment, and edge-axisresult-render for how each action terminates.

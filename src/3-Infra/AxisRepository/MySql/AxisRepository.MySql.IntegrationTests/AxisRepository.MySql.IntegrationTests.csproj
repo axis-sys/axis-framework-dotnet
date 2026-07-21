@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Testcontainers.MySql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AxisRepository.MySql\AxisRepository.MySql.csproj" />
+  </ItemGroup>
+
+</Project>

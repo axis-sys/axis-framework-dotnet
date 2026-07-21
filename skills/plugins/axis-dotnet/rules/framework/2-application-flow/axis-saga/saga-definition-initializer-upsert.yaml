@@ -1,0 +1,41 @@
+id: saga-definition-initializer-upsert
+title: The definition initializer upserts a hash-guarded snapshot of each registered saga
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: may
+status: canonical
+description: >
+  On startup the SagaDefinitionInitializer serializes each registered AxisSagaDefinition to a snapshot (saga
+  name, payload type, stage topology), hashes it with SHA-256, and upserts it into SAGA_DEFINITIONS through
+  ISagaDefinitionStore — writing only when the hash actually changed. The row is purely
+  informational/auditing: a catalogue of the registered topology, not something the engine reads to execute (the
+  in-memory registry is the runtime source). It returns the number of rows written.
+invariants:
+  - The initializer upserts one SAGA_DEFINITIONS snapshot per registered definition, guarded by a SHA-256 hash so an unchanged definition writes nothing.
+  - The definition row is informational/auditing only; the engine resolves the runtime definition from the in-memory registry, not from this table.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaDefinitionInitializer.cs:17 — InitializeAsync serializes, hashes and upserts each definition"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaDefinitionStore.cs:8 — UpsertAsync writes only on a real hash change"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaDefinitionInitializerTests.cs:33 — first run inserts; same definition is idempotent; a changed definition updates the hash"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The registry (saga-define-entrypoint) is the runtime authority; SAGA_DEFINITIONS is the persisted audit trail
+  of what topology each process registered.

@@ -1,0 +1,43 @@
+id: validator-use-helpers-over-rulefor
+title: Reach for the Axis helper vocabulary before raw RuleFor
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  The Axis-flavoured helpers (NotNullOrEmpty, RequiredEmail, RequiredGuid7, RequiredSlug,
+  RequiredWithMaxLength, RequiredTryParse, Range, RequiredCollection, MaxCount, Satisfies, EachSatisfies,
+  DependentRules, UsesValidator, EachUsesValidator) are the discovery layer over FluentValidation: each
+  wires the required-plus-format check and attaches the error code in one call. When a helper exists for
+  the intent, use it instead of hand-rolling RuleFor(...).Must(...).WithErrorCode(...); raw RuleFor is the
+  escape hatch for a custom check no helper expresses.
+invariants:
+  - A check expressible by an Axis helper is written with that helper, not with a hand-rolled RuleFor chain.
+  - Raw RuleFor / RuleForEach / Must / When from FluentValidation is reserved for custom checks that no helper covers.
+reference:
+  kind: framework-test
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:432 — raw RuleFor used only inside a dependentRules lambda for a custom check"
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:13 — the helper vocabulary each wraps a RuleFor chain"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md:117 — RuleFor(...).GreaterThan(0) as the escape hatch alongside helpers"
+  incorrect: []
+exceptions:
+  - Custom checks with no matching helper (e.g. GreaterThan, a bespoke When) use RuleFor directly, typically inside a helper's dependentRules lambda.
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the selection rule that routes an author to the clean helper before imperative RuleFor code is
+  written; the per-helper semantics live in the sibling validator-required-* / validator-* rules.

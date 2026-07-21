@@ -1,0 +1,40 @@
+id: persistence-unit-of-work-contract
+title: Commit through the single IUnitOfWork — SaveChangesAsync once per use case, RenewAsync only for lock-refresh reads
+tier: convention
+concern: persistence
+layer: contracts
+severity: must
+status: canonical
+description: >
+  There is exactly one unit-of-work contract for all repositories, at the root of the driven
+  repository-contracts project. Write ports enlist their work in the ambient transaction and connection,
+  and the handler (or saga stage) calls SaveChangesAsync once at the end. RenewAsync exists solely to
+  restart the underlying transaction so a read-after-lock sees a fresh snapshot; it is not a second commit
+  path.
+invariants:
+  - A single IUnitOfWork lives at the repository-contracts root namespace and has exactly two members, SaveChangesAsync and RenewAsync, both returning Task of AxisResult.
+  - The single-commit discipline (who calls SaveChangesAsync, when and how often) is owned by persistence-unit-of-work; the contract only declares the members.
+  - RenewAsync is called only before a locked read-then-act sequence that must not consume a stale snapshot, never as a substitute for SaveChangesAsync.
+  - No repository port declares its own Save, Commit or Flush member; transactional commit belongs exclusively to this one contract.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-domain-modeling
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  RenewAsync exists because relational engines differ on read isolation: under a repeatable-read snapshot
+  a later non-locking read can see stale data that a read-committed engine would have refreshed, so a
+  read-then-act-under-lock sequence must restart the transaction first. That cross-provider concern is owned
+  by persistence-dual-provider-concurrency-traps; the commit itself stays single per use case.

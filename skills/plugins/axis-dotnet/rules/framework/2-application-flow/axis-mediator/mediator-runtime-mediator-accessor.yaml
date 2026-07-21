@@ -1,0 +1,43 @@
+id: mediator-runtime-mediator-accessor
+title: AxisMediatorAccessor publishes the current mediator through a static AsyncLocal
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  AxisMediatorAccessor stores the current IAxisMediator in a static AsyncLocal, so the mediator is reachable
+  from anywhere in the same async flow without being injected. The AxisMediator constructor publishes itself
+  into the accessor and Dispose clears it. Registered Singleton, the accessor holds no per-request state of
+  its own — the AsyncLocal carries the flow-scoped instance and disposing the scope removes it.
+invariants:
+  - AxisMediatorAccessor backs its AxisMediator property with a static AsyncLocal, so the value flows with the async context, not with the singleton instance.
+  - The AxisMediator constructor publishes itself into the accessor on construction; Dispose sets the accessor value back to null.
+  - Setting the accessor value to null clears it, so a disposed request scope leaves no dangling mediator in the AsyncLocal.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorAccessor.cs:7 — static AsyncLocal holds the current IAxisMediator"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediator.cs:27 — constructor publishes this into the accessor; Dispose at line 38 clears it"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:191 — accessor round-trips the mediator instance and clears on null"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:143 — disposing the scope clears the accessor mediator"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/mediator-and-accessors.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The singleton lifetime is safe because the state lives in the static AsyncLocal, which is per async flow;
+  the accessor lets adapters outside the DI scope reach the current mediator.

@@ -1,0 +1,40 @@
+id: result-linq-query-syntax
+title: LINQ query syntax is supported but fluent chains are the house style
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: may
+status: canonical
+description: >
+  AxisResult<T> implements Select and SelectMany, so C# query comprehension (from x in r1 from y in r2
+  select ...) works over results: each additional from is a failable Then, and the final select is a
+  Map. The syntax is available sugar, but the idiomatic Axis style is the fluent Then/Map chain, and
+  async pipelines have no query-syntax form — use ThenAsync/MapAsync.
+invariants:
+  - Select(selector) delegates to Map, so from x in result select f(x) equals result.Map(f).
+  - SelectMany short-circuits on the first failing result and propagates its errors without invoking the projector.
+  - Query syntax is synchronous only; async composition uses the fluent ThenAsync/MapAsync chain (SelectManyAsync exists but has no query-syntax lowering).
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:223 — Select delegates to Map; SelectMany/SelectManyAsync enable query syntax"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - line-total
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/linq-query-syntax.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Select and SelectMany are the LINQ hooks; Then and Map are the underlying operators. Reach for query
+  syntax only when several named intermediate values read better as a comprehension than as a chain.

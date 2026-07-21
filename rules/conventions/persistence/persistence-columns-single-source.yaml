@@ -1,0 +1,42 @@
+id: persistence-columns-single-source
+title: Column names and the SELECT projection have a single source in {Entities}Columns
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  Every table splits its metadata across two static classes in the same folder: {Entities}Columns holds
+  one const per column plus an All const concatenating every column in reader-ordinal order, while
+  {Entities}Table owns the Table const next to its Define(). Columns never carries Table. Repositories
+  build SQL exclusively by interpolating these consts — never inline table or column literals — and every
+  full-row SELECT projects {Entities}Columns.All.
+invariants:
+  - Each persisted table has a {Entities}Columns static class with one public const string per column.
+  - The Table const lives in {Entities}Table, formed from the schema const and the table name; {Entities}Columns never declares Table.
+  - {Entities}Columns exposes a public const string All on ONE line, listing every column in the exact order the DbEntity FromReader reads ordinals.
+  - Repositories declare a single Select const from {Entities}Columns.All and reuse it for all full-row queries.
+  - SQL references the table via {Entities}Table.Table and columns via {Entities}Columns consts; no raw identifier literals in repository SQL, and no reference to another table through its Columns class.
+  - Partial projections (COUNT, aggregates, joins picking specific columns) still name columns through the consts.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Seed-only lookup tables that have no repository may omit the All const; the Table const still lives in {Entities}Table.
+derives_to:
+  skills:
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The All order is load-bearing because the DbEntity reads by ordinal in exactly that order
+  (persistence-dbentity-fromreader-ordinal): reordering All without reordering FromReader silently mis-maps
+  rows — change both together, always. Table has exactly one home, beside Define(), so the schema DDL
+  (persistence-ddl-axistable-define) and the runtime SQL both reference the same const.

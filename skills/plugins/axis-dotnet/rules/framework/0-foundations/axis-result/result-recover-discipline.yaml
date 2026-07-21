@@ -1,0 +1,60 @@
+id: result-recover-discipline
+title: Recover turns failure into success on purpose; know the ALL vs ANY nuance
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  Recover and its relatives operate on the failure rail, converting a failure back to success in a
+  deliberate and explicit way. Recover replaces any failure with a value; RecoverWhen filters by a
+  predicate, by error type, or by code; RecoverNotFound and RequireNotFound act only when every error
+  is NotFound; RecoverConflict acts only when every error is Conflict (the ensure's create branch:
+  "it already exists" recovers by fetching the winner); OrElse tries an alternative producer and can
+  accumulate both error lists. Recovery must
+  be a conscious narrowing choice — never blanket-Recover a port call whose infrastructure failures
+  must surface.
+invariants:
+  - Recover replaces a failure with a success value for any error, and returns the result unchanged when it is already successful.
+  - RecoverWhen(AxisErrorType) and RecoverWhen(string code) recover when ANY error in the list matches the given type or code.
+  - RecoverWhen(predicate) recovers only when the predicate over the full error list returns true, otherwise the failure passes through.
+  - RecoverNotFound recovers only when ALL errors are AxisErrorType.NotFound; a mixed failure list is left untouched.
+  - RecoverConflict mirrors RecoverNotFound for AxisErrorType.Conflict — ALL errors must be Conflict — and, like it, offers value-returning and result-returning (fallible) recovery overloads.
+  - RequireNotFound returns Ok only when ALL errors are NotFound, and fails with the supplied error when the upstream was already successful.
+  - OrElse runs an alternative producer on failure; with combineErrors true it concatenates the error lists of both sides when the alternative also fails.
+  - Recovery is a deliberate narrowing; do not blanket-Recover a port call whose infrastructure failures must surface.
+  - Every Recover/RecoverWhen/RecoverNotFound/RecoverConflict/OrElse overload returns the result unchanged when it is already successful — none of them touch the success rail. The type-changing convergence case (map found + NotFound default into a new type) is NOT part of this family; see result-else-notfound.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:158 — Recover overloads, any-failure recovery to a value"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:165 — RecoverWhen by predicate, by type (Errors.Any), by code (Errors.Any); RecoverNotFound below uses Errors.All"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:187 — RecoverConflict family, Errors.All on Conflict, value and result recovery"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Functional.cs:30 — OrElse alternative producer with optional error combination"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds:
+    - register-product
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/recover.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Mirrors the operator table in recover.md. The ALL vs ANY split is load-bearing: RecoverWhen(type)
+  and RecoverWhen(code) use Errors.Any, while RecoverNotFound and RequireNotFound use Errors.All. The
+  RecoverNotFound (AxisResult.Functional.cs:162) and RequireNotFound (AxisResult.Functional.cs:50)
+  implementations were confirmed but sit outside the anchor set given for this rule. The reference app
+  rulebook documents the same recover discipline; that rule becomes an examples.correct anchor once
+  the convention tier is migrated. A type-changing overload was first prototyped as RecoverNotFound<TNew>
+  and reverted: it silently broke the "success unchanged" invariant every sibling in this family upholds
+  (it also runs map() on success), so it was renamed to ElseNotFound and moved to its own rule
+  (result-else-notfound) instead of overloading this operator's name.

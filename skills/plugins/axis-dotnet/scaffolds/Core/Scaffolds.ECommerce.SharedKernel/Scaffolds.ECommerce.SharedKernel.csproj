@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="AxisTypes.SourceGenerator" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+    <!-- AxisTypes [ValueObject] generator: materializes the value objects (ProductId, Sku) in this project. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisTypes\AxisTypes.SourceGenerator\AxisTypes.SourceGenerator.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Applies the AxisTypes analyzer (AXIS0004) at build: proves the value objects are readonly-clean. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisTypes\AxisTypes.Analyzers\AxisTypes.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- Simulates the consumer of the AxisResult package: applies the ROP analyzers at build for this project. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisResult\AxisResult.Analyzers\AxisResult.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\0-Foundations\AxisTypes\AxisTypes\AxisTypes.csproj" />
+  </ItemGroup>
+
+</Project>

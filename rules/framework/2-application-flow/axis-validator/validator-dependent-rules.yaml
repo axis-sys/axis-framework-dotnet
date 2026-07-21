@@ -1,0 +1,40 @@
+id: validator-dependent-rules
+title: DependentRules requires both fields then runs a cross-field AxisResult check
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  DependentRules<T1,T2> expresses a cross-field rule. First the first property must be non-null (else it
+  fails with errorCode1), then the second must be non-null (else errorCode2), and only when both are present
+  does the supplied Func<T1, T2, AxisResult> run. A failed cross-field AxisResult surfaces as a failure under
+  errorCode2. The checks are staged so a later step never fires on a missing earlier field.
+invariants:
+  - The first property must be non-null or the rule fails with errorCode1.
+  - The second property must be non-null or the rule fails with errorCode2.
+  - When both are present the cross-field Func<T1,T2,AxisResult> runs, and its failure is reported under errorCode2.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:43 — staged NotNull(code1) -> NotNull(code2) -> custom AxisResult check adding a failure with errorCode2"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:288 — null-first -> code1, null-second -> code2, cross-field failure -> code2, both valid passes"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The cross-field delegate returns an AxisResult so the same railway type composes the check; only the first
+  error code of a failed result is used for the message, and the failure is attributed to errorCode2.

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Testcontainers.Minio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AxisStorage.CloudflareR2\AxisStorage.CloudflareR2.csproj" />
+  </ItemGroup>
+
+</Project>

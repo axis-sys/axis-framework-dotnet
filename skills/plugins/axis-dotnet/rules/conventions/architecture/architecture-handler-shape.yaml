@@ -1,0 +1,47 @@
+id: architecture-handler-shape
+title: Handlers are internal sealed classes with primary constructors returning a Task of AxisResult
+tier: convention
+concern: architecture
+layer: application
+severity: must
+status: canonical
+description: >
+  A use-case handler is an internal sealed class using a primary constructor for port injection,
+  implementing the Axis command or query handler interface. Its single public member, HandleAsync,
+  composes ports as one railway chain and maps to the response at the end. Railway operator semantics are
+  owned by the AxisResult rules — this rule only fixes the handler skeleton.
+invariants:
+  - Handler class is internal sealed, named {UseCase}Handler, one per use case.
+  - Dependencies are injected via primary constructor; no field or constructor-body boilerplate.
+  - HandleAsync takes the Command or Query as its only parameter and returns a Task of AxisResult of the response (or Task of AxisResult for valueless commands), and never throws for flow control.
+  - HandleAsync takes no CancellationToken — cancellation is ambient via the mediator.
+  - Value-object casts from the already-validated input happen at the top of HandleAsync; the rest of the method is a single railway pipeline; private helpers are static where possible.
+  - The response is built in the final map step; handlers never return domain entities or property interfaces.
+  - Wall-clock time comes from an injected TimeProvider, never from DateTime.Now or DateTimeOffset.Now.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/UseCases/EnsureCustomer/v1/EnsureCustomerHandler.cs:8 — internal sealed {UseCase}Handler with a primary constructor implementing the Axis handler interface"
+examples:
+  correct:
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/UseCases/MarkEmailValidated/v1/MarkEmailValidatedHandler.cs:11 — a single HandleAsync(command) returning Task<AxisResult<Response>> with no CancellationToken"
+    - "src/scaffolds/Core/Scaffolds.ECommerce.Application/Customers/UseCases/MarkEmailValidated/v1/MarkEmailValidatedHandler.cs:27 — static private helper; the response is built in the final map"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+    - axis-result
+    - axis-mediator
+  hooks:
+    - AXIS0600
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Railway composition semantics (Then/Map/Ensure, the valueless-Then value-preservation trap, Try,
+  pipeline entry) are defined by the AxisResult framework rules; handlers only consume them. No-throw and
+  no-if-else-flow are the framework rules result-no-throw and result-no-if-else-flow;
+  cancellation-is-ambient is the framework rule mediator-cancellation-is-ambient.

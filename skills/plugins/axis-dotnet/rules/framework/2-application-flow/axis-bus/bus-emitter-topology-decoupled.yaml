@@ -1,0 +1,41 @@
+id: bus-emitter-topology-decoupled
+title: The emitter does not know its consumers (fire-and-topology)
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+description: >
+  Publishing is fire-and-topology: the emitter states that a fact happened and hands it to IAxisBus, which
+  resolves the registered handlers from the container at publish time. The publisher never references a
+  consumer type, so adding, removing or changing a reaction is a change to a handler and its registration —
+  never an edit to the publisher. This is the decoupling the bus exists to provide.
+invariants:
+  - The emitter references only IAxisBus and the event type, never any IAxisEventHandler implementation.
+  - Handlers are discovered from the service container at publish time, not named by the caller.
+  - Adding or removing a reaction to an event is a handler + registration change, with no edit to the publishing code.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus/MemoryBusAdapter.cs:12 — handlers pulled from IServiceProvider, not from the caller"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/events-and-handlers.md:73 — a fourth reaction is a new class, not a refactor"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/why-axisbus.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The headline reason to reach for the bus over a direct call: side effects across bounded contexts decouple
+  the fact (emitter) from the reactions (consumers). Contrast axis-saga, where the orchestrator DOES name and
+  sequence the stages it drives.

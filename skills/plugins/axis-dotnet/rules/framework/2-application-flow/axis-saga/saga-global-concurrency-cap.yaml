@@ -1,0 +1,45 @@
+id: saga-global-concurrency-cap
+title: A single process-wide cap in the database bounds how many sagas hold a live lease
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: should
+status: canonical
+lens: [concurrency]
+description: >
+  A single process-wide ceiling lives in the database, not in settings: the AXIS_SAGA.SAGA_SETTINGS singleton
+  row holds MAX_CONCURRENT_SAGAS (seeded to 20, NULL = unbounded), adjustable at runtime with a plain UPDATE and
+  no redeploy. The cap is enforced atomically inside AcquireLeaseAsync — a claim succeeds only while fewer than
+  the cap hold a live lease. The resumer pre-trims its batch to the free slots (an optimization; the atomic gate
+  is the authority), and a completing run pumps the Pending sagas the cap had deferred, so a burst drains as
+  slots free rather than waiting on the periodic poll.
+invariants:
+  - The cap is MAX_CONCURRENT_SAGAS in the SAGA_SETTINGS singleton row (seeded 20, NULL = unbounded), changeable at runtime with an UPDATE.
+  - AcquireLeaseAsync enforces the cap atomically — a claim is admitted only while fewer than the cap hold a live lease; the count is by live lease, not by status.
+  - The resumer fetches at most the number of free slots per pass, and a run that completes pumps the deferred Pending sagas up to the free capacity.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Persistence/Scripts/SagaSettingsTable.cs:11 — single-row MAX_CONCURRENT_SAGAS seeded to 20, NULL = unbounded"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:128 — PumpNextAsync fires deferred Pending sagas up to the free capacity on completion"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaResumer.cs:35 — ClaimStaleAsync trims the batch to free slots"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/SagaGlobalConcurrencyTests.cs:74 — denies at the cap and admits when a slot frees; counts by lease liveness; null cap is unbounded; excess drains via the resumer"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the cap gates on live leases (not status), a crashed owner's lease frees a slot as soon as it expires,
+  and the resumer/pump reclaim it — no orphaned capacity.

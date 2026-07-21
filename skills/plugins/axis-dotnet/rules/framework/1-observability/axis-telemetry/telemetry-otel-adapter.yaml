@@ -1,0 +1,47 @@
+id: telemetry-otel-adapter
+title: OpenTelemetryAdapter is the production sink over BCL ActivitySource and Meter
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  OpenTelemetryAdapter is the bundled production implementation of both ports over the BCL primitives
+  System.Diagnostics.ActivitySource and System.Diagnostics.Metrics.Meter — not the OpenTelemetry SDK types,
+  so any listener (the OTel SDK, Application Insights, Sentry, a custom collector) can consume the data.
+  StartSpan calls ActivitySource.StartActivity(name, MapKind(kind)) and wraps the result in an
+  ActivityAxisSpan; CurrentTraceId/CurrentSpanId read from Activity.Current; and MapKind translates each
+  AxisSpanKind to its ActivityKind one-to-one.
+invariants:
+  - OpenTelemetryAdapter implements IAxisTelemetry and IAxisMetrics over ActivitySource and Meter (BCL types, not the OpenTelemetry SDK).
+  - StartSpan calls ActivitySource.StartActivity(name, MapKind(kind)) and returns an ActivityAxisSpan wrapping the Activity.
+  - CurrentTraceId/CurrentSpanId are Activity.Current?.TraceId/SpanId as strings.
+  - MapKind maps Server/Client/Producer/Consumer to the matching ActivityKind and everything else to ActivityKind.Internal.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:7 — implements both ports over ActivitySource + Meter"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:17 — StartSpan wraps StartActivity in ActivityAxisSpan"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:38 — MapKind AxisSpanKind -> ActivityKind"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/OpenTelemetryAdapterTests.cs:25 — StartSpan creates an Activity with the given name"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/OpenTelemetryAdapterTests.cs:79 — CurrentTraceId/CurrentSpanId reflect the active Activity"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/opentelemetry-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Staying on the BCL primitives (rather than OpenTelemetry.Trace.Tracer) is the deliberate decoupling that
+  lets a different sink listen without re-wiring application code.

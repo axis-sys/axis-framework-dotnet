@@ -1,0 +1,42 @@
+id: process-xml-doc-policy
+title: Write XML docs only on the driving DTOs that become OpenAPI; keep everything else comment-free
+tier: convention
+concern: process
+layer: contracts
+severity: should
+status: canonical
+description: >
+  The comment policy is minimal-aggressive: /// XML docs exist only because they feed the OpenAPI/reference
+  documentation, so they live on the HTTP-facing DTOs — the commands, queries, responses and their
+  sub-DTOs in the driving contracts — with a summary on the type and on each property, plus an example
+  where a sample value helps the docs UI. Domain, kernel, driven contracts and facades carry no XML docs
+  at all.
+invariants:
+  - Every command, query and response type in the driving contracts has a type-level summary describing behavior, and each property has a summary (plus an example where a sample value helps the docs UI).
+  - Facade interfaces, driven ports, domain properties interfaces and kernel types carry no XML docs.
+  - XML docs are justified only by what renders in the OpenAPI/reference documentation; a type that never reaches that surface is documented nowhere.
+  - Integration/event DTOs and saga payloads are not part of the HTTP surface and need no docs.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/Checkout/CheckoutCommand.cs:3 — type-level summary plus per-property summary and example on a driving command"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Customers/v1/EnsureCustomer/EnsureCustomerCommand.cs:3 — same treatment on a cross-BC command"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/ICatalogFacade.cs:9 — the facade interface carries no XML docs, per the policy"
+  incorrect: []
+exceptions:
+  - Architecture/boundary tests may carry an explanatory summary because it encodes intent for reviewers.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This rule governs only the surviving /// XML docs and where they may appear; the blanket ban on inline //
+  comments is process-comment-policy. Because the docs live on the DTOs, the type's summary is the place to
+  explain behavior a reader would otherwise want a comment for.

@@ -1,0 +1,42 @@
+id: bus-outbox-retry-backoff
+title: A failed dispatch retries with capped exponential backoff
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: superseded
+superseded_by: bus-outbox-worker-backoff-alert
+description: >
+  When a dispatch fails below MaxAttempts, the dispatcher increments ATTEMPTS, releases the lease, and
+  reschedules the row by pushing AVAILABLE_AT to now + min(2^attempts seconds, 60s) so the next poll retries
+  it later. A successful pass never increments ATTEMPTS. Backoff is enforced by the store's AVAILABLE_AT <=
+  now claim filter, evaluated in the database, not against the app clock.
+invariants:
+  - A failure below MaxAttempts increments ATTEMPTS, releases the lease, and sets AVAILABLE_AT to now + the backoff.
+  - The backoff is exponential, min(2^attempts, 60) seconds — capped at 60s.
+  - A successful dispatch marks the row Processed and never increments ATTEMPTS.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:125 — FailAsync: increment, cap backoff at 60s, MarkFailedRetryableAsync"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:39 — MaxBackoff = 60s"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SUPERSEDED by bus-outbox-worker-backoff-alert. The atomic-outbox redesign removed the per-row ATTEMPTS/backoff
+  model this rule described — there is no ATTEMPTS column, no per-row AVAILABLE_AT reschedule and no 60s cap;
+  backoff is now worker-wide (PollInterval * 2^failures, capped at MaxPollBackoff). Kept for history.

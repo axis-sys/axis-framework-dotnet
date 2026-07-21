@@ -1,0 +1,42 @@
+id: storage-lister-capability
+title: IAxisStorageLister lists every key under a prefix
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  IAxisStorageLister.ListAsync(prefix) returns AxisResult<IReadOnlyList<string>> holding every key under
+  prefix. The in-box adapters paginate the backend internally (an S3 ContinuationToken loop, an Azure async
+  pageable, a filesystem recursive enumeration) so the caller sees one complete list, not a page. Use it for
+  import/reconciliation jobs that enumerate what is stored, not to fetch a known key.
+invariants:
+  - IAxisStorageLister.ListAsync(prefix) returns every key under prefix as one IReadOnlyList<string>.
+  - The adapter paginates the backend internally; the caller receives the complete list, not a single page.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/AxisStorage/IAxisStorageLister.cs:5 — ListAsync(prefix) -> Task<AxisResult<IReadOnlyList<string>>>"
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageAdapter.cs:159 — ListObjectsV2 paginated via a ContinuationToken loop"
+    - "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob/AzureBlobStorageAdapter.cs:100 — GetBlobsAsync enumerated over the async pageable"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:625 — the adapter follows the continuation token across pages"
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.IntegrationTests/CloudflareR2StorageAdapterIntegrationTests.cs:340 — returns every key under the prefix"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/iaxisstorage.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The S3 adapter also coalesces a null S3Objects page to empty (see storage-r2-list-null-s3objects), a
+  divergence some S3-compatible providers exhibit.

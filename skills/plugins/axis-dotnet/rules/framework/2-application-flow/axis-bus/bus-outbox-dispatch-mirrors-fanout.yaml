@@ -1,0 +1,43 @@
+id: bus-outbox-dispatch-mirrors-fanout
+title: The outbox dispatcher reproduces the in-memory fan-out via reflection
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  For each claimed row the dispatcher resolves the CLR event type, deserializes the payload, closes
+  IAxisEventHandler<> over that type and invokes every registered handler exactly as MemoryBusAdapter does —
+  all handlers started, then Task.WhenAll, then AxisResult.Combine. Because TEvent is known only at runtime,
+  invocation goes through reflection rather than a closed generic, but the fan-out semantics are identical: no
+  registered handler means the row is a trivial success and is deleted, matching the in-memory zero-handlers Ok().
+invariants:
+  - The dispatcher resolves handlers for the row's runtime event type and invokes them all, then Task.WhenAll + AxisResult.Combine.
+  - Fan-out is via reflection on IAxisEventHandler<>.HandleAsync because the event type is only known at runtime.
+  - A claimed row whose event type has no registered handler is a trivial success and is deleted, matching the in-memory zero-handlers Ok().
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:104 — invoke all handlers, Task.WhenAll, AxisResult.Combine"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:84 — no handler -> return true (trivial success, the row is deleted)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/BusDispatcherTests.cs:110 — a registered handler that succeeds delivers the row and it is deleted"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  Handlers of one event still fan out in parallel; rows within a drained batch are dispatched sequentially on
+  purpose (simplest correct option, no shared-scope race), revisitable with a bounded Parallel.ForEachAsync.

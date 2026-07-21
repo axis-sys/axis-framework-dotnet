@@ -1,0 +1,45 @@
+id: persistence-dual-database-parity
+title: When an app targets multiple providers, every persistence change ships and is tested on all of them
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  An application may choose to run the same code on more than one relational provider by composition: a
+  provider-agnostic repository project plus one thin adapter project per engine. When it does, the parity is
+  total — the provider is a runtime switch, never a compile-time fork, and every persistence change is
+  written once and tested on each targeted engine.
+invariants:
+  - Repository logic lives once in the provider-agnostic repository project; each per-engine adapter project contains only provider wiring and dialect seams, and the host references every targeted provider.
+  - Provider selection is configuration only; there is no conditional compilation and no provider-branching code path in the core.
+  - No repository references a provider-specific driver type; repositories are written once against the provider-agnostic abstractions (IAxisDbRepository, DbDataReader) with provider-specific SQL behind per-entity dialect seams.
+  - Central package versions carry every targeted driver and every targeted test-container module.
+  - Integration tests reference every targeted provider; any invariant involving locking, transactions or ordering is asserted against each engine through dual fixtures.
+  - A session that stores UTC timestamps runs with a UTC session, and read-then-act-under-lock code is verified per engine because snapshot semantics differ.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - An application that targets a single relational provider ships and tests against that one engine only; the multi-engine invariants do not apply.
+  - End-to-end tests may exercise a single provider while the multi-engine matrix is proven at the integration layer.
+derives_to:
+  skills:
+    - axis-repository-postgres
+    - axis-migrations
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is a conditional convention: targeting multiple providers is an application decision, and the
+  framework enables it (a single-sourced DDL AST rendered per dialect, provider-agnostic execution) without
+  mandating it. When two engines are in play, deterministic tie-breaking in ORDER BY and per-engine
+  verification of lock-sensitive code are the concrete traps — those patterns are owned by
+  persistence-dual-provider-concurrency-traps.

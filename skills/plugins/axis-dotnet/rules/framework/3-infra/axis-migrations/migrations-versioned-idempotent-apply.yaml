@@ -1,0 +1,43 @@
+id: migrations-versioned-idempotent-apply
+title: A recorded version is never re-applied and each applied version is recorded on success
+tier: framework
+family: 3-infra
+package: AxisRepository
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The runner applies migrations as an ordered, idempotent, versioned batch. For each (Version, Script) it first
+  checks the MIGRATIONS control table; if the version is already recorded it is SKIPPED, otherwise the script
+  runs and the version is inserted into MIGRATIONS on success. A version is therefore applied at most once ever,
+  making the whole batch safe to run on every startup — already-applied versions are no-ops and only genuinely
+  new ones execute.
+invariants:
+  - Before applying a version the runner checks MIGRATIONS and skips any version already recorded.
+  - An unrecorded version's script runs and the version is inserted into MIGRATIONS on success.
+  - The versioned batch is idempotent and safe to re-run at every startup — applied versions never run twice.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres/PostgresMigrationRunner.cs:41 — per-version SELECT-then-skip, run script, INSERT VERSION"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql/MySqlMigrationRunner.cs:73 — the same skip-run-record loop"
+examples:
+  correct:
+    - "src/3-Infra/AxisRepository/Postgres/AxisRepository.Postgres.IntegrationTests/PostgresDdlBuilderIntegrationTests.cs:131 — SeedIsAppliedOnceAndIsIdempotent (migrate twice, single row)"
+    - "src/3-Infra/AxisRepository/MySql/AxisRepository.MySql.IntegrationTests/MySqlDdlBuilderIntegrationTests.cs:138 — SeedIsAppliedOnceAndIsIdempotent (second run records nothing new)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisRepository/migrations.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A version is an immutable unit — evolve a schema by appending V2, V3, ... never by editing an already-shipped
+  version's script, which the runner would never re-run.

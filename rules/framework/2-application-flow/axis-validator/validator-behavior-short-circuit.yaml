@@ -1,0 +1,43 @@
+id: validator-behavior-short-circuit
+title: ValidationBehavior runs before the handler and short-circuits on failure
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  ValidationBehavior is the pipeline behavior that enforces validation automatically. It resolves
+  IAxisValidator<TRequest> from the container; if none is registered it is a no-op that calls next. Otherwise
+  it awaits ValidateAsync and, on failure, short-circuits by returning the errors WITHOUT invoking the
+  handler; on success it calls next. The valued overload converts the failure to result.Errors.ToArray() so
+  a typed handler pipeline still receives the AxisError values.
+invariants:
+  - ValidationBehavior resolves IAxisValidator<TRequest> and, when none is registered, calls next without validating.
+  - On a failed validation the behavior returns the failure and does not call next (the handler never runs).
+  - On a successful validation the behavior calls next to continue the pipeline.
+  - The valued overload ValidationBehavior<TRequest,TResponse> propagates the failure as result.Errors.ToArray() so the typed rail still carries the codes.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/ValidationBehavior.cs:12 — valueless overload: no-op when null, short-circuit on failure, else next"
+    - "src/2-ApplicationFlow/AxisValidator/AxisValidator/ValidationBehavior.cs:33 — valued overload propagates result.Errors.ToArray()"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/Pipelines/ValidationBehaviorTests.cs:37 — passes calls next, fails does not, no validator calls next, errors propagate"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validation-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  There are two overloads — one for valueless requests and one for requests with a response — mirroring the
+  two IAxisPipelineBehavior overloads; AddAxisValidator registers both.

@@ -1,0 +1,40 @@
+id: logger-behavior-logs-handling
+title: LoggingBehavior logs "Handling {RequestName}" before next() and nothing about the outcome
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: should
+status: canonical
+description: >
+  Both LoggingBehavior<TRequest> and LoggingBehavior<TRequest, TResponse> do exactly one thing before
+  delegating: LogInformation($"Handling {requestName}.", ("RequestName", requestName)), then await next().
+  They do NOT wrap next() in try/catch, do NOT log the outcome and do NOT time anything — pair with LogResult
+  (manual or your own behaviour) for the outcome side of the request.
+invariants:
+  - Each LoggingBehavior variant logs "Handling {RequestName}." at Information with a RequestName property, using typeof(TRequest).Name.
+  - The behaviour logs before calling next() and then just awaits it; it adds no try/catch, no outcome log and no timing.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/LoggingBehavior.cs:14 — LoggingBehavior<TRequest> logs Handling then returns await next()"
+    - "src/1-Observability/AxisLogger/AxisLogger/LoggingBehavior.cs:28 — LoggingBehavior<TRequest, TResponse> logs the same shape"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/logging-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The behaviour brackets the top of every request; LogResult (see logger-log-result-outcome) brackets the
+  bottom. Together they wrap each request with TraceId/OriginId/JourneyId without per-handler boilerplate.

@@ -1,0 +1,42 @@
+id: email-port-single-method
+title: IAxisEmailService is a one-method port — SendAsync(AxisEmailData)
+tier: framework
+family: 3-infra
+package: AxisEmail
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The whole email port is a single method. IAxisEmailService (namespace Axis) exposes
+  Task<AxisResult> SendAsync(AxisEmailData data) and nothing else — no overloads, no subscribe/receive, no
+  configuration surface. Every recipient, header, subject and body travels inside the one AxisEmailData
+  argument; the return is the non-generic Task<AxisResult>.
+invariants:
+  - IAxisEmailService declares exactly one member — Task<AxisResult> SendAsync(AxisEmailData data) — in namespace Axis.
+  - The method returns the non-generic Task<AxisResult> (not ValueTask, not AxisResult<T>).
+  - The entire email payload is the single AxisEmailData parameter; the port has no other parameters or members.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisEmail/AxisEmail/IAxisEmailService.cs:3 — interface IAxisEmailService"
+    - "src/3-Infra/AxisEmail/AxisEmail/IAxisEmailService.cs:5 — Task<AxisResult> SendAsync(AxisEmailData data)"
+examples:
+  correct:
+    - "docs/en-us/3-Infra/AxisEmail/iaxisemailservice.md:5 — the whole port is one method"
+    - "docs/en-us/3-Infra/AxisEmail/api-reference.md:9 — the single-method contract table"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-email
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisEmail/iaxisemailservice.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  A provider-specific feature (categories, tracking) is never added as an extra parameter here; it goes on a
+  new interface the adapter also implements (see email-adapter-swappable-port).

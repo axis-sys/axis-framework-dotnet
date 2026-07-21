@@ -1,0 +1,43 @@
+id: saga-stage-handler-idempotent
+title: Stage handlers must be idempotent because the engine is at-least-once
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The saga runtime is at-least-once: on crash-resume, or when an execution lease lapses under load and the
+  resumer re-fires the saga, the same stage can run again — or briefly run concurrently. A stage handler MUST
+  therefore be idempotent: it should short-circuit when the work is already done (e.g. the payload already
+  carries the id this stage would create), so a re-run is a harmless no-op. Idempotency is the handler's
+  responsibility, not the engine's.
+invariants:
+  - A stage handler must be idempotent — re-running it on the same payload yields the same result or is a no-op.
+  - A handler should detect already-done work (upstream state check, or an idempotency key derived from SagaId+StageName) and short-circuit.
+  - Idempotency covers both crash-resume re-execution and the brief concurrent re-fire when a lease lapses under load.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/IAxisSagaStageHandler.cs:8 — the contract's idempotency requirement on ExecuteAsync"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md:104 — RefundStock returns Ok when there is nothing to refund (idempotent compensation)"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md:44 — the resumer re-fires stale sagas, so handlers must be idempotent"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The engine's stage log lets it skip stages already logged Completed (saga-skip-completed-stage-on-resume),
+  but a stage that started and was interrupted before logging Completed WILL re-run — hence the contract.

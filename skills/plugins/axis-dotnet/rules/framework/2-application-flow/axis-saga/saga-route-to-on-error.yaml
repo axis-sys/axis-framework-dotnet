@@ -1,0 +1,43 @@
+id: saga-route-to-on-error
+title: RouteToOnError names the compensation stages to walk on failure; an empty route fails the saga
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  RouteToOnError(params errorStageNames) declares the compensation chain the engine walks when the stage
+  fails. If the list is non-empty, the engine sets status Compensating and runs the listed error stages; if it
+  is empty (RouteToOnError never called on that stage), the saga ends in Failed and stops. A null array throws
+  ArgumentNullException and an empty/whitespace entry throws ArgumentException.
+invariants:
+  - RouteToOnError(params) records the ordered compensation chain run when the stage returns a failure.
+  - A stage with no RouteToOnError entries ends the saga in Failed on that stage's failure (no compensation runs).
+  - RouteToOnError(null) throws ArgumentNullException; an empty or whitespace entry throws ArgumentException.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Core/AxisSagaStageBuilder.cs:59 — RouteToOnError accumulates the chain and validates entries"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:126 — empty RouteToOnError => FailAsync; else begin compensation"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/Configuration/AxisSagaConfiguratorTests.cs:124 — RouteToOnError sets the compensation chain"
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/MySqlSagaLifecycleTests.cs:70 — forward failure routes to compensation and reaches Compensated"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/concepts.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The order of the names is significant — see saga-compensation-listed-order: the engine walks them exactly as
+  listed, with no automatic reversal.

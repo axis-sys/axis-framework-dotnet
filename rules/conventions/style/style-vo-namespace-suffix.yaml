@@ -1,0 +1,38 @@
+id: style-vo-namespace-suffix
+title: Declare BC-scoped value objects in a .ValueObjects namespace that the folder path omits
+tier: convention
+concern: style
+layer: domain
+severity: should
+status: canonical
+description: >
+  Shared-kernel value objects are declared in a namespace ending in .ValueObjects
+  ({Kernel}.{BC}[.{Aggregate}].ValueObjects) even though the folder on disk stops at the aggregate segment.
+  This keeps usings explicit about what is a value object while keeping the folder tree shallow.
+  Cross-cutting kernel types stay outside any ValueObjects namespace.
+invariants:
+  - A [ValueObject] type for bounded context {BC} and aggregate {Aggregate} lives under the {BC}/{Aggregate}/ folder yet declares the namespace {Kernel}.{BC}.{Aggregate}.ValueObjects.
+  - The aggregate segment is optional in the namespace, so a BC-level value object may declare {Kernel}.{BC}.ValueObjects.
+  - A value object used by every BC lives in the shared namespace ({Kernel}.Shared) and is the deliberate exception to the per-BC placement.
+  - Non-value-object kernel types (auth records, ambient accessors, code-constant classes) never use the .ValueObjects suffix.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A cross-BC value object lives in the shared namespace ({Kernel}.Shared) instead of a per-BC .ValueObjects namespace.
+derives_to:
+  skills:
+    - axis-domain-modeling
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The .ValueObjects suffix is reserved for [ValueObject]-generated types; reusing it as a plain-DTO folder
+  or namespace name collides with this convention and should be avoided. The value objects themselves are
+  produced by the [ValueObject] source generator covered by the domain-modelling skill.

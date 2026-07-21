@@ -1,0 +1,41 @@
+id: bus-outbox-scope-per-row
+title: The dispatcher resolves handlers in a fresh service scope per row
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  For every outbox row the dispatcher creates a new IServiceScope from the injected IServiceScopeFactory and
+  resolves that row's handlers from it — never from the dispatcher's own scope. This gives each row's handlers
+  the same isolation a normal request-scoped PublishAsync would get: one row's handlers never share scoped
+  state (a DbContext, a unit of work) with another row's.
+invariants:
+  - The dispatcher opens a new IServiceScope per row via IServiceScopeFactory and resolves the row's handlers from it.
+  - One row's handlers never share scoped dependencies with another row's handlers.
+  - The poll worker likewise runs each pass in its own fresh scope, never the container's root scope.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:74 — using IServiceScope scope = scopeFactory.CreateScope(); resolve handlers from it"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusDispatcherWorker.cs:35 — the worker resolves IBusDispatcher from a fresh per-pass scope"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/BusDispatcherTests.cs:74 — a real container exercises the exact GetServices(handlerType) scope resolution"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Mirrors the isolation a per-request scope gives an in-process publish; the runner token that guards the
+  claim/mark mutations is per pass, not per row.

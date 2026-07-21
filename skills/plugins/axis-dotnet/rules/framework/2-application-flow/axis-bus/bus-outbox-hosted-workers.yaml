@@ -1,0 +1,43 @@
+id: bus-outbox-hosted-workers
+title: Two opt-out hosted workers bootstrap the schema and drain the outbox
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: should
+status: canonical
+description: >
+  The core registers two BackgroundService workers, each behind a settings flag. AxisBusStorageInitializerWorker
+  creates the outbox schema once on startup, registered only when RunStartupMigration is set.
+  AxisBusDispatcherWorker is the poll loop: every PollInterval it opens a fresh scope and calls
+  IBusDispatcher.RunOnceAsync, registered only when DispatcherEnabled is set. A failed pass is logged and
+  retried on the next tick rather than crashing the host.
+invariants:
+  - AxisBusStorageInitializerWorker is registered only when RunStartupMigration is true and creates the schema idempotently on startup.
+  - AxisBusDispatcherWorker is registered only when DispatcherEnabled is true and calls IBusDispatcher.RunOnceAsync each PollInterval in a fresh scope.
+  - A dispatcher pass that throws is caught, logged, and retried on the next poll — it never faults the host.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/DependencyInjection.cs:34 — conditional AddHostedService for initializer and dispatcher"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/AxisBusDispatcherWorker.cs:29 — poll loop: fresh scope, RunOnceAsync, catch-and-retry, Task.Delay(PollInterval)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/TestSupport.cs:29 — tests disable both workers and drive RunOnceAsync explicitly"
+  incorrect: []
+exceptions:
+  - Publish-only hosts set DispatcherEnabled=false so they never drain the outbox; hosts that must not touch the DB at boot set RunStartupMigration=false (e.g. faked-port test hosts).
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Unlike AxisSagaResumerWorker, the dispatcher worker does NOT call the storage initializer itself — schema
+  bootstrap is its own dedicated hosted service, so duplicating the call would just re-run an idempotent no-op.

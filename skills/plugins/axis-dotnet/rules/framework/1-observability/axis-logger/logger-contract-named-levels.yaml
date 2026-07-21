@@ -1,0 +1,48 @@
+id: logger-contract-named-levels
+title: IAxisLogger exposes six named log-level methods plus LogResult, never a generic Log(level, ...)
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  IAxisLogger<in T> is the surface every consumer depends on: six named severity methods — LogDebug,
+  LogInformation, LogWarning, LogError(string), LogError(Exception, string) and LogCritical — plus the
+  railway-aware LogResult. It deliberately exposes named methods, not a generic Log(LogLevel, ...), so the
+  interface stays decoupled from Microsoft.Extensions.Logging and illegal levels are unrepresentable. T is
+  the contravariant category (same role as ILogger<T>'s T); the concrete AxisLogger<T> is internal, so code
+  depends on the interface and obtains it from DI rather than newing it up.
+invariants:
+  - IAxisLogger<in T> declares exactly LogDebug, LogInformation, LogWarning, LogError(string), LogError(Exception, string), LogCritical and LogResult — nothing else, and no generic Log(LogLevel, ...) member.
+  - The interface is contravariant in T (declared IAxisLogger<in T>); T is the Microsoft.Extensions.Logging category.
+  - Each named method maps to one fixed LogLevel (Debug, Information, Warning, Error, Error, Critical) that the caller cannot select.
+  - The concrete AxisLogger<T> is internal; consumers depend on IAxisLogger<T> and resolve it from the container.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/IAxisLogger.cs:9 — IAxisLogger<in T> with its six named methods and LogResult"
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisLogger.cs:8 — the internal AxisLogger<T> that pins each method to its LogLevel"
+examples:
+  correct:
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:80 — LogInformation writes at Information; sibling tests pin each level"
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLoggerTests.cs:124 — LogCritical writes at Critical"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-logger
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/iaxislogger.md"
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Named methods over a generic Log(level, ...) is the same design choice AxisFailureLogSeverity /
+  AxisSuccessLogSeverity make for the LogIf* extensions (see logger-result-log-if): keep IAxisLogger
+  decoupled from MEL's LogLevel and make illegal severities unrepresentable.

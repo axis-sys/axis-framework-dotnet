@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AxisTestProject>true</AxisTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.Net" />
+    <Using Include="System.Net.Http.Json" />
+    <Using Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <!-- Real databases (testing-e2e-hermetic-provider-pinning): each provider's factory owns its own container. -->
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.MySql" />
+    <!-- The only test project that references the web-host driving adapter (testing-pyramid-four-projects). -->
+    <ProjectReference Include="..\..\Host\Scaffolds.ECommerce.Host\Scaffolds.ECommerce.Host.csproj" />
+  </ItemGroup>
+
+</Project>

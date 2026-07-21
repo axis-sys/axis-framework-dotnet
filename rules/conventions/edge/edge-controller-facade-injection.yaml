@@ -1,0 +1,44 @@
+id: edge-controller-facade-injection
+title: Controllers depend on driving facades, never on the mediator or ports
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  A controller's only doorway into the core is a driving facade interface (I{Entities}Facade, defined
+  in the driving contracts and implemented internally in the facade adapter). Controllers never inject
+  the mediator, repositories, driven ports or application services. A controller may inject more than
+  one facade when its resource spans use cases owned by different aggregates.
+invariants:
+  - Every controller constructor parameter is an I{Entities}Facade; a controller may take several facades when its resource spans aggregates.
+  - No controller references IAxisMediator, an I{Entities}ReaderPort or I{Entities}WritePort, a repository type, or an application service directly.
+  - Facade interfaces live in the versioned driving contracts; their implementations are internal to the facade adapter.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:17 — the sole constructor parameter is the driving facade"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.ArchitectureTests/FacadeBoundaryTests.cs:60 — the architecture test asserting every controller constructor parameter is a facade"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Auth/AuthController.cs:20 — a controller spanning aggregates takes several facades"
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:23 — the action dispatches through the facade, never the mediator or a port"
+  incorrect: []
+exceptions:
+  - Pure edge reads with no use case behind them (reading the ambient tenant/identity accessor or claims directly) may inject that accessor instead of a facade, provided the controller documents the deviation and still renders through the AxisResult HTTP-render extension.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+    - axis-use-case-cqrs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The facade plus assembly scanning is what makes the internal handlers reachable; injecting the
+  mediator, a port or an application service from a controller bypasses the boundary. Inputs that cannot
+  travel through a CQRS contract (for example a multipart upload stream) still belong behind a facade
+  method rather than reaching an application service from the controller. See architecture-facade-pattern
+  for the facade contract and edge-axisresult-render for rendering.

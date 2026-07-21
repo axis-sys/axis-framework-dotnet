@@ -1,0 +1,52 @@
+id: result-deconstruct-terminal-only
+title: Deconstruct is a terminal exit — never inside a method that returns AxisResult
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  The positional Deconstruct (and its pattern forms — the positional pattern and a switch over the
+  result) is the sanctioned way to LEAVE the railway at the terminal edge: a controller, a test, a
+  worker loop that collapses the outcome into another type. Inside the rail — a method that itself
+  returns AxisResult, AxisResult<T> or Task/ValueTask thereof — deconstructing the result and
+  branching on the extracted flag launders `if (result.IsFailure) return` through a tuple,
+  re-implementing by hand the short-circuit that Then/Map/Ensure already provide and detaching the
+  value from the proof of success (the deconstructed value is default(T) on failure).
+invariants:
+  - A method whose return type is AxisResult/AxisResult<T> (or Task/ValueTask of them) does not deconstruct an intermediate result; it chains it with operators.
+  - var (ok, value, errors) = result followed by a guard on ok inside the rail is the manual short-circuit result-no-if-else-flow forbids, whatever the spelling.
+  - A positional pattern (result is (true, var v, _)) or a switch over a result inside the rail is the same exit in pattern form; a switch that reproduces both arms is a hand-rolled Match.
+  - At the terminal — a method that returns any other type — the Deconstruct and the positional pattern remain the sanctioned exits alongside Match.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.cs:31 — non-generic Deconstruct (isSuccess, errors)"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Generic.cs:11 — generic Deconstruct (isSuccess, value, errors); value is default(T) on failure"
+    - "docs/en-us/0-Foundations/AxisResult/ergonomics.md — the Deconstruct as a safe TERMINAL exit"
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md — operators are the switches inside the rail"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0006
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/ergonomics.md"
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md"
+ledger:
+  reviewed_against: cc41921
+  reviewed_on: 2026-07-16
+notes: >
+  Born from a field case: a client processor deconstructed every intermediate result
+  (var (ok, value, errors) = await step) and guarded with if (!ok) return, silently escaping
+  AXIS0002 (which sees only IsSuccess/IsFailure member access) while abandoning the rail. The
+  analyzer inspects how the extracted flag is consumed and suggests the fitting operator in the
+  diagnostic message (guard-return -> Then/ThenAsync; log-in-guard -> TapError/LogIfFailure;
+  two-arm ternary -> Match/MatchAsync).

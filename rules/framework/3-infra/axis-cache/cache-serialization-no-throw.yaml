@@ -1,0 +1,41 @@
+id: cache-serialization-no-throw
+title: Cache value (de)serialization never throws — exceptions become an AxisError
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The two-tier adapter stores values as JSON in L2 through AxisCacheSerializer, which centralises
+  (de)serialization with System.Text.Json Web defaults and never lets an exception escape. A serialization
+  failure becomes AxisError.InternalServerError(AXIS_CACHE_SERIALIZATION_FAILED); a deserialization failure
+  or a null result becomes AXIS_CACHE_DESERIALIZATION_FAILED. Bad data on the wire is a value on the failure
+  rail, not a thrown exception.
+invariants:
+  - AxisCacheSerializer.Serialize/Deserialize wrap System.Text.Json (Web defaults) and never throw — exceptions are returned as an AxisError.
+  - A serialize failure yields AXIS_CACHE_SERIALIZATION_FAILED; a deserialize failure or a null deserialized value yields AXIS_CACHE_DESERIALIZATION_FAILED.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCacheSerializer.cs:7 — try/catch around JsonSerializer, returns AxisError on failure"
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCacheErrors.cs:5 — the SERIALIZATION_FAILED / DESERIALIZATION_FAILED error codes"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/RepositoryCacheAdapter.cs:38 — GetAsync deserializes the L2 payload and propagates a serializer failure"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Only the two-tier SQL adapter serializes — the in-memory adapter stores the live object in IMemoryCache
+  and never round-trips through JSON.

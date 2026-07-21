@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="System.Text.Json.Serialization" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisMediator.Contracts.CQRS" />
+    <Using Include="AxisMediator.Contracts.CQRS.Commands" />
+    <Using Include="AxisMediator.Contracts.CQRS.Events" />
+    <Using Include="AxisMediator.Contracts.CQRS.Queries" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driving.Catalog.v1._Shared" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Brings AxisResult and AxisTypes (AxisEntityId) transitively; contracts see only the kernel + mediator contracts. -->
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,45 @@
+id: types-value-object-equality
+title: Generated equality is case-insensitive over the backing string, with a matching GetHashCode
+tier: framework
+family: 0-foundations
+package: AxisTypes
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  When CaseInsensitiveEquals is on (the default), the generator emits Equals and a matching GetHashCode
+  that compare the backing property case-insensitively, so two value objects differing only in case are
+  equal and hash equally. The comparison is Ordinal by default, or InvariantCulture when UseInvariantCulture
+  is set, and the Equals signature differs for value versus reference types.
+invariants:
+  - With CaseInsensitiveEquals on, the generator emits Equals and GetHashCode that compare the backing property with a case-insensitive StringComparison.
+  - The comparison is OrdinalIgnoreCase by default and InvariantCultureIgnoreCase when UseInvariantCulture is set.
+  - A value-type value object gets Equals(T other); a reference-type value object gets a virtual Equals(T? other) guarded against null.
+  - GetHashCode uses the same case-insensitive comparer as Equals, so equal values always produce equal hash codes.
+reference:
+  kind: framework-test
+  at:
+    - "src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/ValueObjectGenerator.cs:120 — the case-insensitive Equals and GetHashCode emission block"
+    - "src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/ValueObjectGenerator.cs:122 — Ordinal vs InvariantCulture chosen by UseInvariantCulture"
+    - "src/0-Foundations/AxisTypes/AxisTypes.SourceGenerator/ValueObjectGenerator.cs:124 — value-type Equals(T) vs reference-type virtual Equals(T?)"
+    - "src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisEntityIdTests.cs:64 — equality and GetHashCode are case-insensitive"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-types
+  hooks: []
+  scaffolds:
+    - sku-value-object
+  docs:
+    - "docs/en-us/0-Foundations/AxisTypes/value-object-generator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Case-insensitive equality is why a value object backing a Guid string treats the lower- and upper-case
+  renderings of the same id as one value; turning it off (CaseInsensitiveEquals=false) falls back to the
+  record's default structural equality.

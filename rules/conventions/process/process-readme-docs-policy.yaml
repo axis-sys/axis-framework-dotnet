@@ -1,0 +1,41 @@
+id: process-readme-docs-policy
+title: Lean README that links; the docs UI is the documentation hub
+tier: convention
+concern: process
+layer: any
+severity: should
+status: canonical
+description: >
+  The README covers only how to RUN, TEST and NAVIGATE the repository. Everything else — the domain model,
+  architecture, bounded contexts, authentication and the always-current HTTP contract — lives in the
+  generated API documentation UI (the OpenAPI reference), fed by the OpenAPI description text and the ///
+  XML docs. A docs/ folder holds only deep-dives that do not fit an API reference, and the README links to
+  those sources instead of duplicating them.
+invariants:
+  - The README holds only a short pitch, a pointer to the docs UI as the full picture, the repository layout, run instructions, test instructions, any tooling pointer, and a documentation map — nothing else.
+  - Domain, architecture and auth prose is written once in the OpenAPI description text (rendered by the docs UI) and is never re-explained in the README.
+  - The docs/ inventory is small and purposeful — deep-dives and walk-throughs that cannot live in an API reference — and it links out rather than restating what the reference already carries.
+  - Tool docs live next to the tool and are linked from the README documentation map.
+  - When the project topology changes, the README repository-layout block changes in the same pull request.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A generated coverage or route-map doc maintained alongside test work may lag the code by a single pull request.
+derives_to:
+  skills:
+    - axis-docs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The organizing principle is link, don't duplicate — the single source for each concern (decisions in
+  ADRs, the model and diagram in the architecture model, the HTTP contract in the OpenAPI reference) is
+  referenced once, and the README is a lean map to them. The docs UI is whatever renders the OpenAPI
+  reference; this rule does not mandate a specific renderer.

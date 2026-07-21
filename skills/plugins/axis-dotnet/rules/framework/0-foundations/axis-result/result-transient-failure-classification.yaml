@@ -1,0 +1,51 @@
+id: result-transient-failure-classification
+title: IsTransientFailure classifies retry-worthiness, a different axis than IsSuccess/IsFailure
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  A poll loop or background worker routinely needs to ask "is this failure worth a silent retry,
+  or is it terminal?" — a question about Errors, not about IsSuccess/IsFailure. IsTransientFailure
+  answers it directly instead of every call site re-deriving
+  `result.IsFailure && result.Errors.All(e => e.IsTransient)` by hand. Branching on it is the
+  sanctioned way to drive retry/backoff control flow, and is deliberately NOT covered by
+  result-no-if-else-flow: that rule governs the two-rail ROP pipeline shape, while a retry loop's
+  "keep waiting or move on" decision is a stateful reducer over a stream of outcomes across time,
+  not a pipeline.
+invariants:
+  - IsTransientFailure is true only when IsFailure is true and every error in Errors has IsTransient == true.
+  - IsTransientFailure is false on success (there is nothing to retry).
+  - IsTransientFailure is false when at least one error is non-transient, even if others are transient (a hard failure among the batch makes the whole outcome terminal, not retry-worthy).
+  - Branching on IsTransientFailure (if/ternary/loop) is a sanctioned exception to result-no-if-else-flow — it is not policed by AXIS0002.
+reference:
+  kind: framework-test
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.cs:29 — the property"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisError.cs:24 — the per-error IsTransient it aggregates"
+    - "src/0-Foundations/AxisResult/AxisUnitTests/IsTransientFailureTests.cs — behavior coverage"
+    - "src/0-Foundations/AxisResult/AxisResult.Analyzers.UnitTests/ResultBranchingAnalyzerTests.cs — proves AXIS0002 does not fire on it"
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Branching on IsTransientFailure to decide retry/backoff in a poll loop or background worker is sanctioned; it is not an if/else on the ROP rail.
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/errors-and-types.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Sibling rule to result-no-if-else-flow (AXIS0002): that rule's own exceptions field cross-references
+  this one. ResultBranchingAnalyzer excludes "IsTransientFailure" by member-name check (not just by
+  omission) — see the comment at ResultBranchingAnalyzer.cs's Analyze method. Discovered while reviewing
+  a reference-app background worker (ReconcilerPollLoop) that hand-rolled the same
+  IsFailure && Errors.All(e => e.IsTransient) check for retry/backoff control flow.

@@ -1,0 +1,41 @@
+id: persistence-tenant-scoped-queries
+title: Every query against a tenant-scoped table filters by the tenant key
+tier: convention
+concern: persistence
+layer: driven
+lens: [security]
+severity: must
+status: canonical
+description: >
+  In a multi-tenant application, tenant isolation is enforced in SQL, per statement: a tenant-scoped table
+  carries a tenant-key column and every SELECT, UPDATE and DELETE predicate — including EXISTS subqueries
+  and joins — repeats the tenant filter. Reader and Write port signatures take the tenant key explicitly,
+  so a repository cannot be called without it.
+invariants:
+  - A tenant-scoped port method takes the tenant key as an explicit parameter, and the repository binds it in the WHERE of every statement it issues.
+  - A row lookup by primary key still adds the tenant-key predicate; the primary key alone is not a tenant guard.
+  - Subqueries and EXISTS clauses re-apply the tenant filter on the inner table, never relying on the outer filter alone.
+  - Any table under a tenant-scoped schema that carries the tenant-key column is tenant-scoped; deliberately global tables are the explicit exception.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A single-tenant application is exempt; there is no tenant-key column to filter on.
+  - Deliberately cross-tenant tables (global identity, seeded lookup and status tables) and a reconciler scan that must span tenants are exempt by design.
+derives_to:
+  skills:
+    - axis-repository-postgres
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is a conditional convention scoped to multi-tenant applications; multi-tenancy is an application
+  choice, not a framework mandate. The tenant key originates from an ambient scoped accessor in the
+  application and is already a validated value object by the time it reaches a port — the port signature
+  simply makes the filter impossible to forget.

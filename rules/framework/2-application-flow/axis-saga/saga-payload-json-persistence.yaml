@@ -1,0 +1,44 @@
+id: saga-payload-json-persistence
+title: The payload is a reference type, serialized as JSON, and carried forward stage to stage
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  A saga payload (TPayload : class) is the state threaded through the stages. It is (de)serialized centrally
+  by SagaPayloadSerializer using JsonSerializerDefaults.Web (unindented) and persisted as the PAYLOAD_JSON
+  column. Each stage returns an AxisResult<TPayload> whose value the engine persists as the new payload before
+  advancing, so the next stage sees the updated view. Serialization/deserialization failures are turned into
+  typed AxisError codes (never thrown): PayloadSerializationFailed / PayloadDeserializationFailed.
+invariants:
+  - The payload is a reference type (TPayload : class) serialized with the Web JSON defaults and stored in PAYLOAD_JSON.
+  - The engine persists the AxisResult value a stage returns as the new payload before advancing, so the next stage reads the updated payload.
+  - Payload (de)serialization goes through SagaPayloadSerializer and yields a typed AxisError (PayloadSerializationFailed / PayloadDeserializationFailed) on failure, never a thrown exception.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/Json/SagaPayloadSerializer.cs:11 — Serialize/Deserialize wrap JsonSerializer and map exceptions to AxisError"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/Json/AxisSagaJsonOptions.cs:7 — JsonSerializerDefaults.Web, WriteIndented=false"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:193 — the returned payload is serialized and persisted as the new PAYLOAD_JSON"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/PostgresSagaMediatorTests.cs:87 — GetByIdAsync<TPayload> deserializes the stored payload"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Centralising (de)serialization in one place keeps option choices and error handling consistent across the
+  engine and the mediator; the payload can be enriched between stages (add a token, an id).

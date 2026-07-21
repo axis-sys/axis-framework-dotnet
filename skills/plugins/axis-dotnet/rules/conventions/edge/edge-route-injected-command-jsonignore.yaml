@@ -1,0 +1,42 @@
+id: edge-route-injected-command-jsonignore
+title: A command property fed from the route is JsonIgnore so the body cannot also supply it
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  When a controller binds a route parameter as string and merges it into a command via a with-expression
+  (command with { Id = routeId }), the target property must carry [JsonIgnore]. Otherwise the request body
+  can also send that property: the deserializer fills it, the with-expression then overwrites it with the
+  route value, and the body value is dropped silently. The caller cannot tell which id won, so the
+  route-bound member is removed from the wire contract with [JsonIgnore] and set only by the edge.
+invariants:
+  - A command or query property assigned from a controller method parameter through a with-expression carries [System.Text.Json.Serialization.JsonIgnore].
+  - The route-bound property is nullable with an init accessor so the body omits it and the edge sets it via the with-expression.
+  - The value is never accepted from both the route and the body — the route is the single source of truth for a route-bound id.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/Checkout/CheckoutCommand.cs:15 — [JsonIgnore] on the route-injected ProductId, nullable with an init accessor"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:49 — the route id is merged via command with { ProductId = productId }, the single source of truth"
+  incorrect: []
+exceptions:
+  - A command whose id is only ever sent in the body (no route segment) keeps the property serializable and needs no JsonIgnore.
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks:
+    - AXIS0605
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 2b82174
+  reviewed_on: 2026-07-18
+notes: >
+  Complements edge-controller-shape, which already binds route parameters as string and merges them with a
+  with-expression; this rule closes the body-versus-route ambiguity that convention leaves open. The scaffold
+  marks the route-injected ProductId [JsonIgnore] (CheckoutCommand.cs:15) and the controller sets it only via
+  the with-expression (CatalogController.cs:49), so the body cannot send a shadow value — the case AXIS0605 enforces.

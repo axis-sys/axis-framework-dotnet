@@ -1,0 +1,45 @@
+id: telemetry-behavior-rethrows
+title: On an exception the behavior records it and rethrows — it never swallows
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  TelemetryBehavior is observation, not error handling. If next() throws, the catch block records the
+  exception on the span (RecordException, which also flips the status to Error), increments the
+  axis.handler.exceptions counter, and then RETHROWS the original exception with a bare throw — it does not
+  convert it to an AxisResult and does not swallow it. The span is opened with `using`, so it still closes on
+  the exception path. Telemetry stays transparent to the control flow: whatever the handler throws propagates
+  unchanged.
+invariants:
+  - The catch block calls span.RecordException(ex) and increments axis.handler.exceptions before rethrowing.
+  - It rethrows the original exception (bare throw) — the behavior never swallows it nor turns it into an AxisResult.
+  - The span closes on the exception path because it is opened with `using`.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:41 — catch: RecordException, increment exceptions, then throw"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:98 — the valued overload rethrows identically"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:81 — the InvalidOperationException propagates out of the valueless overload"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:116 — the valued overload also rethrows"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/telemetry-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Rethrowing keeps AxisTelemetry consistent with the framework's no-swallow stance — the behavior measures
+  the failure but leaves handling it to the caller (or the outer exception boundary).

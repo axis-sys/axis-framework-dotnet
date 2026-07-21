@@ -1,0 +1,38 @@
+id: persistence-sql-naming-upper-snake
+title: Database identifiers are UPPER_SNAKE_CASE; one schema per bounded context; tables are plural
+tier: convention
+concern: persistence
+layer: driven
+severity: must
+status: canonical
+description: >
+  All physical database identifiers follow one convention so scripts and SQL read uniformly on every
+  provider: UPPER_SNAKE_CASE columns and tables, plural table names, one schema per bounded context, index
+  names prefixed IX_, unique constraints UX_ and foreign keys FK_.
+invariants:
+  - Column names are UPPER_SNAKE_CASE.
+  - Table names are plural UPPER_SNAKE_CASE, including a relation table named for the two sides it joins.
+  - Each bounded context owns exactly one schema, declared as a public const string Schema in its {BC}DbInit.
+  - Index names are IX_{TABLE}_{QUALIFIER}, partial unique constraints UX_{TABLE}_{QUALIFIER} and foreign keys FK_{TABLE}_{TARGET}.
+  - SQL parameter names are camelCase mirroring the C# property.
+  - Lookup and status primary-key values are stable domain codes seeded from the DDL, in English only.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-migrations
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Table names are unique per schema, not globally, so two bounded contexts may each own a similarly named
+  table under their own schema. The Schema const declared here is the same one the migrations orchestrator
+  runs against (persistence-dbinit-migrator) and the DDL AST is built under (persistence-ddl-axistable-define).

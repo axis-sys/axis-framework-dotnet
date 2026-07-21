@@ -1,0 +1,45 @@
+id: telemetry-behavior-result-outcome
+title: The behavior tags the result outcome and, on failure, the error codes
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: application
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  When next() returns, TelemetryBehavior records the AxisResult outcome on the span. It tags
+  axis.result_success with result.IsSuccess and sets the span status to Ok on success or Error on failure.
+  If the result is a failure it additionally tags axis.error_codes with the comma-joined Code of every
+  AxisError in result.Errors — the codes, not the messages. This runs for a returned failure (e.g. a
+  validation error), which is distinct from a thrown exception; a returned failure never records an
+  exception event.
+invariants:
+  - On completion the behavior tags ResultSuccess = result.IsSuccess and sets span status Ok (success) or Error (failure).
+  - On a failed result it tags ErrorCodes with the comma-separated result.Errors[*].Code.
+  - A returned failure is tagged as an Error result but is NOT recorded as an exception.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:34 — RecordResult tags ResultSuccess and sets Ok/Error status"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/TelemetryBehavior.cs:36 — on failure tags ErrorCodes = string.Join of e.Code"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:69 — a failed result is marked Error"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/TelemetryBehaviorTests.cs:104 — the valued overload tags error codes on failure"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/telemetry-behavior.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because error codes come from the returned result, an exception (which never returns a result) produces no
+  axis.error_codes tag — only the exception event and the exceptions counter.

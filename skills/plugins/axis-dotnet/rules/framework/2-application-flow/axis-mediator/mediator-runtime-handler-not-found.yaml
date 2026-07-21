@@ -1,0 +1,44 @@
+id: mediator-runtime-handler-not-found
+title: A missing command or query handler returns AxisError.NotFound; a missing stream handler throws
+tier: framework
+family: 2-application-flow
+package: AxisMediator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  When the dispatcher resolves a handler with GetService and finds none, the two railway shapes (ExecuteAsync
+  and QueryAsync) return a failed AxisResult carrying AxisError.NotFound with the code
+  HANDLER_NOT_FOUND_{RequestName} — they never throw. StreamAsync is the deliberate asymmetry: because it
+  returns a bare IAsyncEnumerable it cannot carry an AxisError, so a missing stream handler throws
+  InvalidOperationException with the same message.
+invariants:
+  - ExecuteAsync and QueryAsync resolve the handler with GetService and, when it is null, return AxisError.NotFound as a failed AxisResult rather than throwing.
+  - The not-found error code is the literal HANDLER_NOT_FOUND_ followed by the request type name.
+  - StreamAsync throws InvalidOperationException with the same HANDLER_NOT_FOUND_ message when its handler is missing, because a bare IAsyncEnumerable cannot carry an AxisError.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:20 — null handler returns AxisError.NotFound(HandlerNotFoundMessage)"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:46 — StreamAsync throws InvalidOperationException on a missing handler"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator/AxisMediatorHandler.cs:111 — HandlerNotFoundMessage builds HANDLER_NOT_FOUND_{Name}"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:90 — ExecuteAsync returns a failed result whose code starts with HANDLER_NOT_FOUND_"
+    - "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/CQRS/AxisMediatorTests.cs:41 — StreamAsync throws InvalidOperationException when the handler is missing"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/dispatching.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The throw-vs-NotFound split is the one runtime surprise of the dispatcher; the contracts rule
+  mediator-dispatch-surface flags the same stream asymmetry from the contract side.

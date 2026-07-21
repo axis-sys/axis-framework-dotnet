@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Axis</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../../../docs/en-us/2-ApplicationFlow/AxisSaga/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisSaga.UnitTests" />
+    <InternalsVisibleTo Include="AxisSaga.Postgres" />
+    <InternalsVisibleTo Include="AxisSaga.Postgres.UnitTests" />
+    <InternalsVisibleTo Include="AxisSaga.Postgres.IntegrationTests" />
+    <InternalsVisibleTo Include="AxisSaga.MySql" />
+    <InternalsVisibleTo Include="AxisSaga.MySql.UnitTests" />
+    <InternalsVisibleTo Include="AxisSaga.MySql.IntegrationTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\0-Foundations\AxisMediator.Contracts\AxisMediator.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\1-Observability\AxisLogger\AxisLogger\AxisLogger.csproj" />
+    <ProjectReference Include="..\..\..\3-Infra\AxisRepository\AxisRepository\AxisRepository.csproj" />
+  </ItemGroup>
+</Project>

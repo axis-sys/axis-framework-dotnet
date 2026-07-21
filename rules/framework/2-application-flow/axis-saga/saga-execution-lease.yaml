@@ -1,0 +1,47 @@
+id: saga-execution-lease
+title: Single execution is enforced by a heartbeat-renewed lease, not a held lock
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+lens: [concurrency]
+description: >
+  A saga run claims exclusive execution with a connection-less LEASE rather than a held advisory lock: the run
+  stamps CLAIMED_BY / CLAIMED_UNTIL via AcquireLeaseAsync, a background heartbeat renews the lease every
+  ResumeAfter / 4 while stages execute, and every persist is guarded by lease ownership so a run that lost its
+  lease cannot mutate the saga. AcquireLeaseAsync returning null (gone, terminal, held by a live run, or the
+  cap is full) makes the run a no-op. This is what makes crash recovery and multi-node execution safe without a
+  long-held database lock.
+invariants:
+  - A run acquires the instance with AcquireLeaseAsync (stamping CLAIMED_BY/CLAIMED_UNTIL); a null result means the run claims nothing and stops.
+  - A background heartbeat extends the lease every ResumeAfter/4 while stages execute; losing the extension cancels the run.
+  - Every store mutation is guarded by lease ownership, so a run whose lease lapsed cannot mutate the saga.
+  - ResumeAfter doubles as the lease duration and should be set comfortably above the worst-case single-stage duration.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:34 — AcquireLeaseAsync claim + null short-circuit"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:66 — HeartbeatAsync extends the lease every ResumeAfter/4"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Ports/ISagaInstanceStore.cs:21 — lease/ownership contract on AcquireLease/ExtendLease"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/Postgres/AxisSaga.Postgres.IntegrationTests/SagaLeaseConcurrencyTests.cs:65 — two concurrent runs of the same saga execute the stage exactly once"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/resumer.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/database-schema.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The lapsed lease is exactly the "stuck" signal the resumer keys on (saga-resumer-claims-stale-leases); the
+  lease also gates the global concurrency cap (saga-global-concurrency-cap).

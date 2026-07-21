@@ -1,0 +1,46 @@
+id: process-multi-bc-implementation-parallelization
+title: Parallelize BC implementation only across nodes with no pending consumption dependency
+tier: convention
+concern: process
+layer: application
+lens: [concurrency]
+severity: must
+status: proposed
+description: >
+  When a plan spans multiple bounded contexts and work is split across parallel agents/developers, the
+  planner must first build a dependency graph of which BC CONSUMES which cross-BC channel from which other
+  BC (a synchronous facade, a saga stage read via reader port, or a bus event subscription — the three
+  channels of architecture-cross-bc-communication). Two BCs may only be assigned to parallel execution when
+  there is no consumption edge between them in that graph. A BC with a pending consumption dependency on
+  another BC may only start implementation once the specific piece it consumes (the facade method, the saga
+  stage, or the event contract) is done in the producing BC — it does not need to wait for the whole
+  producing BC to finish.
+invariants:
+  - Before proposing parallel execution across bounded contexts, the planner builds a dependency graph whose edges are consumption relationships — a BC calling another BC's facade, a saga stage reading another BC's reader port, or a BC subscribing to another BC's bus event.
+  - Two bounded contexts are assigned to parallel agents/execution only if no consumption edge exists between them in either direction in that graph.
+  - A bounded context with a consumption edge onto another bounded context may begin implementation only once the specific consumed contract (the facade member, the saga stage, or the event definition) is done in the producing BC, not the entire producing BC.
+  - The dependency graph and the resulting parallel waves/ondas are stated explicitly in the implementation plan, not left implicit.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - A BC with no consumption edge onto another BC in scope may start immediately regardless of the other BC's progress, even if it will later be consumed BY that other BC.
+  - Read-only access to another BC's shared kernel (value objects, shared constants) is not a consumption edge for this rule — see the equivalent exception in architecture-cross-bc-communication.
+derives_to:
+  skills:
+    - axis-systems-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: TBD
+  reviewed_on: 2026-07-19
+notes: >
+  Discovered while orchestrating a real multi-BC implementation (Auth/Identity/DataPrivacy) across parallel
+  agents in a client repo: naively parallelizing by BC caused a consumer BC to start before the facade/stage/
+  event it depended on existed in the producer BC. This rule formalizes the invariant at the process/
+  planning level; the channel taxonomy itself is owned by architecture-cross-bc-communication — this rule
+  only adds the ordering/parallelism consequence for IMPLEMENTATION SEQUENCING, not runtime topology.

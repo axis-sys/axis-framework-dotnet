@@ -1,0 +1,41 @@
+id: testing-fake-entity-property-records
+title: Seed domain data with Fake{Entity} records implementing I{Entity}EntityProperties
+tier: convention
+concern: testing
+layer: tests
+severity: should
+status: canonical
+description: >
+  Domain entities are internal, so tests cannot construct them. The canonical scaffold is a positional
+  record Fake{Entity}(...) : I{Entity}EntityProperties. Write ports accept the properties interface, so the
+  fake feeds repositories and factories exactly like the real entity would. The same pattern serves unit
+  tests (canned reader results) and integration tests (seeding rows through write ports).
+invariants:
+  - Test entity data is a sealed record named Fake{Entity} implementing I{Entity}EntityProperties.
+  - The record is positional, one constructor parameter per interface property, in interface order.
+  - Fakes are declared close to the tests that use them (typically private inside the single test class), not injected into the internal domain assembly.
+  - Tests never construct or reflect into the internal domain Entity types.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - Port- and facade-level fakes swapped into the host DI (fake repositories, fake unit of work, fake facades for test auth) are a different concern from entity-property records and may live in a shared fakes folder.
+derives_to:
+  skills:
+    - axis-unit-tests
+    - axis-integration-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Because the domain entity is internal, the properties interface is the only seam the test can build
+  against; the write port consuming that interface is what lets the fake stand in for the real entity end
+  to end. Where the fakes physically live is an application choice; the shape (Fake{Entity} :
+  I{Entity}EntityProperties, positional, interface order) is the invariant. Container composition that
+  consumes these fakes is covered by testing-integration-di-provider.

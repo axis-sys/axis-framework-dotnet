@@ -1,0 +1,46 @@
+id: bus-outbox-write-read-split
+title: The durable outbox adapter splits the write path from the read/dispatch path
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  The AxisBus.Repository adapter turns a publish into a durable outbox. RepositoryBusAdapter is the write side:
+  PublishAsync ENQUEUES the event on the request-scoped queue and returns — it never invokes a handler and never
+  writes a row itself; the unit of work drains the queue into its own transaction at commit
+  (bus-outbox-enqueue-in-uow-transaction). BusDispatcher is the read side: it claims a partition head, delivers
+  it, then deletes it on success or releases the lease on failure. The two sides never call each other. This
+  trades the in-memory adapter's synchronous fan-out for durability and atomicity — the event is committed with
+  the triggering state change and survives a process crash before dispatch.
+invariants:
+  - RepositoryBusAdapter.PublishAsync enqueues the event on the request-scoped queue and returns without invoking any handler; the row is written by the unit of work's drain, not by PublishAsync.
+  - BusDispatcher reads the outbox (claim, deliver, delete/release) and invokes the handlers; it is a separate component from the write-side adapter.
+  - The write side and the read side never call each other.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/RepositoryBusAdapter.cs:22 — write side: enqueue on the scoped queue, never invoke a handler"
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/BusDispatcher.cs:24 — read side: drain the outbox and invoke handlers"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisBus/Repository/Postgres/AxisBus.Postgres.IntegrationTests/EndToEndDispatchTests.cs:27 — publish enqueues, the unit of work commits the row, a later RunOnceAsync delivers it and deletes it"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 8fd99f5
+  reviewed_on: 2026-07-12
+notes: >
+  This is the transactional-outbox shape sketched in custom-adapter.md, shipped as a first-party adapter over
+  Postgres/MySQL. Choose it when producers and consumers span processes or an event must survive a crash. Unlike
+  the textbook two-connection outbox, the write is atomic with the business state (one transaction), not a
+  separate autocommit insert.

@@ -1,0 +1,51 @@
+id: testing-e2e-hermetic-provider-pinning
+title: Pin the E2E database provider at compile time and the connection string to the factory's own container
+tier: convention
+concern: testing
+layer: tests
+severity: must
+status: canonical
+description: >
+  The provider under test is a compile-time decision, not an environment lookup: a shared DefaultProvider
+  constant pins it, and each provider's coverage class derives a [Fact(Skip)] guard from that constant, so
+  a disabled provider skips whole and visibly. Startup I/O that runs before builder.Build() only observes
+  process environment and build-time configuration — an E2E factory that only layers in-memory config
+  after the fact can silently run against a developer's real database. The DB-backed factory therefore
+  owns a Testcontainers instance and points the connection string at it (environment variable set in
+  InitConnectionAsync and nulled on dispose, mirrored in the boot configuration).
+invariants:
+  - The database provider under test is pinned at compile time by the shared DefaultProvider constant; each provider's coverage class computes a const [Fact(Skip)] guard from it, so a disabled provider's whole collection skips visibly.
+  - The DB-backed factory combines WebApplicationFactory<Program> with IAsyncLifetime, owns its Testcontainers instance, points the connection string at it (environment variable set in InitConnectionAsync, reset to null on dispose, mirrored in the boot configuration) and runs all migrations once at startup; its sharing topology follows testing-integration-fixture-per-collection.
+  - The saga runtime is wired identically in E2E and in production — the same AddAxisSagaPostgres/MySql call, resumer included; a test-only in-process or resumer-disabled saga would hide bugs the real hosted worker (schema bootstrap, crash recovery) would otherwise catch.
+  - Configuration that only needs to exist before builder.Build() (auth keys, token lifetimes, bootstrap admin ids, a placeholder connection string) lives in the factory's boot-configuration dictionary, not in scattered UseSetting calls.
+  - Any Testcontainers-fragile tuning (for example capping a fan-out window that would saturate the container pool) is applied for the test run with a comment stating why.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/ECommerceWebAppFactory.cs:23 — the DB-backed base factory: WebApplicationFactory<Program> + IAsyncLifetime, owning nothing but the provider seam (StartContainerAsync/StopContainerAsync/ProviderName)"
+examples:
+  correct:
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/ECommerceWebAppFactory.cs:33 — InitializeAsync starts the container, sets ConnectionStrings__ECommerce and Database__Provider as environment variables, then calls CreateClient() once to force the host (and its startup migration) to build while those variables are still set"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/ECommerceWebAppFactory.cs:43 — DisposeAsync nulls both environment variables before stopping the container"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/PostgresECommerceWebAppFactory.cs:1 — a concrete per-provider factory + its own [CollectionDefinition(DisableParallelization = true)] (mirrored by MySqlECommerceWebAppFactory.cs)"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Fixtures/Factories/ECommerceProviderPin.cs:8 — the shared DefaultProvider constant"
+    - "src/scaffolds/Tests/Scaffolds.ECommerce.E2ETests/PostgresCoverageTests.cs:17 — the const Skip guard computed from ECommerceProviderPin.DefaultProvider, applied to every [Fact] in the class (mirrored by MySqlCoverageTests.cs)"
+  incorrect: []
+exceptions:
+  - A DB-less E2E factory may compose the host's in-memory driven adapter (or swap ports for fakes in ConfigureTestServices) instead of owning a container, when the bounded context under test has no real repository at all.
+derives_to:
+  skills:
+    - axis-e2e-tests
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 6eb31e5
+  reviewed_on: 2026-07-18
+notes: >
+  The load-bearing trap: startup I/O before builder.Build() sees only environment and build-time config,
+  which is why the container-owned connection string is exported as an environment variable inside
+  InitializeAsync, not layered as UseSetting afterward. DisableParallelization on both provider collections
+  exists for exactly this reason: InitializeAsync mutates process-wide environment state, and xUnit runs
+  different collections in parallel by default. Fixture topology is owned by
+  testing-integration-fixture-per-collection.

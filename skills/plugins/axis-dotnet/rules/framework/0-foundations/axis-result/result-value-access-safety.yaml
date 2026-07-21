@@ -1,0 +1,50 @@
+id: result-value-access-safety
+title: Leave the railway with Match or Deconstruct, never bare .Value
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  AxisResult<T>.Value is a partial getter: it returns the value on success but throws
+  NoAccessValueOnErrorResultException on failure, so reading it without proving success reintroduces
+  the exception-driven control flow the rail exists to remove. Extract the value only through Match,
+  which runs exactly one branch and forces both to be handled, or through the positional Deconstruct,
+  which never throws and yields default(T) on failure.
+invariants:
+  - Value returns the underlying value on success and throws NoAccessValueOnErrorResultException on failure.
+  - Match runs exactly one of onSuccess or onFailure and returns the collapsed final value.
+  - The positional Deconstruct never throws; on a failed result value is default(T) and errors is populated.
+  - Reaching the value at the edge uses Match or the Deconstruct, not a bare .Value read.
+  - A deconstructed value is not consumed through the null-forgiving operator (value!) without a prior read of the success component; unproven forgiveness is .Value in disguise, deferring the throw to a NullReferenceException.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Generic.cs:7 — Value getter throws on failure"
+    - "src/0-Foundations/AxisResult/AxisResult/NoAccessValueOnErrorResultException.cs:3 — exception thrown by Value on a failed result"
+    - "docs/en-us/0-Foundations/AxisResult/match.md — Match collapses the rail, running one branch"
+    - "docs/en-us/0-Foundations/AxisResult/ergonomics.md — safe deconstruction yields default(T) on failure"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0001
+    - AXIS0007
+  scaffolds:
+    - order-summary
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/match.md"
+    - "docs/en-us/0-Foundations/AxisResult/ergonomics.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The Deconstruct is safe because AxisResult<T> stores the value in a TValue? field and copies it out
+  unconditionally, so no success check is needed before pattern matching. The reference app carries the
+  matching convention-tier rule that will supply examples.correct once that tier is migrated.

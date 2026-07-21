@@ -1,0 +1,39 @@
+id: validator-required-try-parse
+title: RequiredTryParse requires a present string that a custom parse predicate accepts
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  RequiredTryParse is the extension point for custom format checks. When the value is null it fails the
+  presence check; when present it must be present AND the supplied Func<object?, bool> parse must return true.
+  The predicate receives the boxed property value, so a validator plugs in any TryParse-style function
+  (int.TryParse, CpfValidator.Validate, SsnValidator.Validate, ...).
+invariants:
+  - A null value fails RequiredTryParse with the presence check.
+  - A present value must additionally make the supplied parse predicate return true.
+  - The parse delegate receives the property value as object? and decides validity.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation/AxisValidatorBase.cs:150 — When null presence; when present presence + Must(parse)"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidatorBaseTests.cs:356 — int.TryParse predicate: valid passes, null and non-integer fail"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the hook the localization packs use, e.g. RequiredTryParse(x => x.Cpf, code, CpfValidator.Validate).

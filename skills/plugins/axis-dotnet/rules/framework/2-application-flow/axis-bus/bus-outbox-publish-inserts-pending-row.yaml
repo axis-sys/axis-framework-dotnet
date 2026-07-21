@@ -1,0 +1,45 @@
+id: bus-outbox-publish-inserts-pending-row
+title: Durable publish serializes the event and inserts one Pending row
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: driven
+severity: must
+status: superseded
+superseded_by: bus-outbox-enqueue-in-uow-transaction
+description: >
+  RepositoryBusAdapter.PublishAsync serializes the event to JSON, and on success builds a BusEventRow and
+  hands it to IBusEventStore.InsertAsync. The row is stamped with a GUID v7 EventId, the event's
+  AssemblyQualifiedName as EventType, Pending status, zero Attempts, CreatedAt = AvailableAt = the injected
+  TimeProvider's now, the params topics, and the default retention. If serialization fails the failure
+  short-circuits and the store is never called.
+invariants:
+  - The event is serialized to JSON first; a serialization failure returns that error and InsertAsync is never called.
+  - The inserted row has EventId = Guid.CreateVersion7(), EventType = typeof(TEvent).AssemblyQualifiedName, Status = Pending, Attempts = 0.
+  - CreatedAt and AvailableAt are both the injected TimeProvider's current UTC instant, so the row is immediately due.
+  - The row carries the publish's params topics and the default RetainForSeconds; ClaimedBy, ClaimedUntil, ProcessedAt and DeleteNotBefore start null.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository/RepositoryBusAdapter.cs:21 — serialize, short-circuit on failure, build row, InsertAsync"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/custom-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  SUPERSEDED by bus-outbox-enqueue-in-uow-transaction. PublishAsync no longer inserts a row: it enqueues the
+  event on the request-scoped queue, and the unit of work's drain writes it into the same transaction at commit.
+  There is no Pending status, Attempts, RetainForSeconds, ProcessedAt or DeleteNotBefore — the schema dropped
+  those columns (bus-outbox-schema). EventType is still the AssemblyQualifiedName, rehydrated by the dispatcher
+  via Type.GetType at drain time. Kept for history.

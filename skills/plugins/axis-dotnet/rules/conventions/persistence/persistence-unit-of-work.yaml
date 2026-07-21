@@ -1,0 +1,42 @@
+id: persistence-unit-of-work
+title: One SaveChangesAsync per unit of work, called at the end of the chain by the component that owns it
+tier: convention
+concern: persistence
+layer: application
+severity: must
+status: canonical
+description: >
+  Write ports stage changes; nothing commits transactionally until the owning application component
+  calls IUnitOfWork.SaveChangesAsync exactly once at the tail of its railway chain. The owners are
+  command handlers, saga stage handlers and application services that act as an entry point
+  (orchestration or reconcilers). Query handlers never inject IUnitOfWork; domain factories and ports
+  never commit.
+invariants:
+  - IUnitOfWork is injected only where a business transaction completes — command handlers, saga stage handlers and service entry points; never in query handlers, validators or factories.
+  - SaveChangesAsync appears once per logical transaction, after every writer-port call, inside the railway chain (the success arm of the terminal Then or Match).
+  - Side effects that must survive independently of the transaction (for example publishing a bus event) happen after SaveChangesAsync in the chain, never before it.
+  - Multiple writes in one use case share the single commit; a use case that mutates several aggregates still calls SaveChangesAsync exactly once.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions:
+  - An orchestration service that deliberately commits per iteration to release a per-row transactional lock may call SaveChangesAsync more than once, when each commit is a required lock boundary.
+  - An idempotent no-op branch that stages nothing skips SaveChangesAsync entirely; there is nothing to commit.
+derives_to:
+  skills:
+    - axis-domain-modeling
+    - axis-use-case-cqrs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the application-side counterpart of the unit-of-work contract (persistence-unit-of-work-contract):
+  the contract fixes the interface and its two members, this rule fixes who calls the commit and when.
+  Railway composition (Then, Map, Match) is owned by the AxisResult framework rules; this rule only fixes
+  where the single commit sits in the chain.

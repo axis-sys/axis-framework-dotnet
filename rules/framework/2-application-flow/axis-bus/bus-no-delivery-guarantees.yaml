@@ -1,0 +1,42 @@
+id: bus-no-delivery-guarantees
+title: The contract guarantees neither durability, ordering, nor retries
+tier: framework
+family: 2-application-flow
+package: AxisBus
+concern: package-mechanics
+layer: application
+lens: [concurrency]
+severity: must
+status: canonical
+description: >
+  IAxisBus guarantees only that a publish returns an AxisResult aggregating handler outcomes. It does not
+  promise the event survives a process crash, that handlers run in any particular order, or that a failed
+  handler is retried — those are properties of the chosen adapter. The in-memory adapter has none of them;
+  the durable outbox adapter adds persistence and retry; a broker adapter adds its own delivery semantics.
+invariants:
+  - Delivery durability is not a contract guarantee — the in-memory adapter loses in-flight events on process exit.
+  - Cross-handler ordering is not guaranteed; handlers may run concurrently.
+  - Retry is not a contract guarantee — failures are reported in the AxisResult, not retried, unless the adapter adds retry.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisBus/AxisBus/IAxisBus.cs:5 — the port doc: routing/transport are adapter concerns"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/iaxisbus.md:40 — what the contract does not guarantee"
+  incorrect: []
+exceptions:
+  - The durable outbox adapter (AxisBus.Repository) provides at-least-once delivery and retry/backoff; the guarantee comes from that adapter, not the contract.
+derives_to:
+  skills:
+    - axis-bus
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisBus/iaxisbus.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Choose the adapter for the guarantee you need: AddAxisMemoryBus for in-process best-effort, AddAxisBusPostgres
+  / AddAxisBusMySql for a durable outbox, a custom adapter for a broker.

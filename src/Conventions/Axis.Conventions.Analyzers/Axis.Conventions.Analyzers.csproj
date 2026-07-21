@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>Axis.Conventions.Analyzers</RootNamespace>
+    <!-- NuGet Package: shipped as an OPT-IN and SEPARATE analyzer (never folded into a primitive's package);
+         governs how to build an app on Axis (convention-tier). See ADR-0004. -->
+    <PackageId>Axis.Conventions.Analyzers</PackageId>
+    <Authors>Fillippe Prata</Authors>
+    <Description>Opt-in Roslyn analyzers that enforce Axis convention rules (hexagonal/CQRS/handler discipline, AXIS0600+) at build time. Derived from the canonical rules/ base.</Description>
+    <PackageTags>roslyn;analyzer;axis;conventions;architecture;hexagonal;cqrs</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- No lib/ output means an auto-generated symbols package would be empty (NU5017) -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+</Project>

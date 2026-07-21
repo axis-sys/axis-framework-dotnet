@@ -1,0 +1,41 @@
+id: di-abstractions-vs-implementation
+title: The Abstractions variant re-exports the DI contracts; the unsuffixed variant re-exports the container
+tier: framework
+family: 0-foundations
+package: AxisDependencyInjections
+concern: package-mechanics
+layer: build
+severity: must
+status: canonical
+description: >
+  The package ships in two variants that mirror Microsoft's own abstractions/implementation split.
+  AxisDependencyInjections.Abstractions re-exports the DI contracts; AxisDependencyInjections re-exports the
+  container implementation on top of them. A project picks the abstractions variant to name only IServiceCollection
+  and the unsuffixed variant only to construct or inspect the container itself.
+invariants:
+  - AxisDependencyInjections.Abstractions depends only on Microsoft.Extensions.DependencyInjection.Abstractions, re-exporting the DI contracts (IServiceCollection, IServiceProvider, ServiceLifetime and the ServiceCollection registration-extension helpers) without the container implementation.
+  - AxisDependencyInjections depends on Microsoft.Extensions.DependencyInjection, re-exporting the container implementation (ServiceCollection, ServiceProvider, BuildServiceProvider) on top of those contracts.
+  - A project references the Abstractions variant to declare an AddAxis*(this IServiceCollection) registration extension, and needs the unsuffixed variant only when it must build or inspect the container itself.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections.Abstractions/AxisDependencyInjections.Abstractions.csproj:8 — PackageReference Microsoft.Extensions.DependencyInjection.Abstractions (contracts)"
+    - "src/0-Foundations/AxisDependencyInjections/AxisDependencyInjections/AxisDependencyInjections.csproj:3 — PackageReference Microsoft.Extensions.DependencyInjection (container)"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/AxisStorage.CloudflareR2.csproj:10 — an AddAxis* adapter references the Abstractions variant"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dependency-injections
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The sole consumer of the unsuffixed variant, AxisValidator.FluentValidation, uses only abstraction-level helpers
+  (AddScoped/AddTransient live in the Abstractions package), so its reference to the container variant is not
+  strictly required. The abstractions/implementation selection is a design intent, not yet enforced by any hook.

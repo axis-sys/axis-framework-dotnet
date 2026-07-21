@@ -1,0 +1,47 @@
+id: result-no-throw
+title: Fallible operations return AxisResult and never throw for control flow
+tier: framework
+family: 0-foundations
+package: AxisResult
+concern: package-mechanics
+layer: any
+severity: must
+status: canonical
+description: >
+  An expected failure is a value on the failure rail, never a thrown exception used for control flow.
+  A fallible operation returns AxisResult or AxisResult<T>, and the library itself never throws from its
+  own factories — a null, empty or whitespace error code becomes the MissingCodeSentinel rather than an
+  ArgumentException. The only sanctioned throws are critical/programmer-bug exceptions, which Try rethrows,
+  and reading .Value on a failed result, which surfaces caller misuse.
+invariants:
+  - A fallible operation returns AxisResult or AxisResult<T> and encodes expected failure as an AxisError, not a thrown exception.
+  - AxisError factories never throw on a null, empty or whitespace code; they substitute the sentinel "AXIS_ERROR_CODE_MISSING".
+  - Try, TryAsync, TryBind and TryBindAsync convert only non-critical exceptions into an AxisError.
+  - Critical exceptions (OperationCanceledException, StackOverflowException, OutOfMemoryException, ThreadAbortException, NullReferenceException, ArgumentNullException) are never swallowed by Try and propagate to the caller.
+  - Reading .Value on a failed AxisResult<T> throws NoAccessValueOnErrorResultException; guard with IsSuccess or Match before access.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisResult/AxisResult/AxisError.cs:9 — MissingCodeSentinel; the private ctor substitutes the sentinel instead of throwing on a null/empty/whitespace code"
+    - "src/0-Foundations/AxisResult/AxisResult/AxisResult.Generic.cs:7 — Value throws NoAccessValueOnErrorResultException when read on a failed result"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks:
+    - AXIS0003
+  scaffolds:
+    - checkout
+  docs:
+    - "docs/en-us/0-Foundations/AxisResult/railway-oriented-programming.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The railway-oriented-programming doc frames the motivation: "Customer not found isn't an exception".
+  The Try critical-exception list lives in AxisResult.Factory.cs (Try/TryAsync/TryBind guarded by
+  when (!IsCritical(ex))); the reference-app rulebook expresses the same rule as no-throw-for-control-flow,
+  which becomes an examples.correct anchor once the convention tier is migrated.

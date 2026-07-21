@@ -1,0 +1,44 @@
+id: architecture-contracts-versioned-layout
+title: Lay out driving contracts as {BC}/{Aggregate}/v1/{UseCase}/ with the namespace mirroring the path
+tier: convention
+concern: architecture
+layer: contracts
+severity: must
+status: canonical
+description: >
+  Every driving contract sits in a vertical-slice folder: bounded context, aggregate, an explicit version
+  segment (v1), then one folder per use case holding the command/query, its response and any sub-DTOs.
+  Namespaces mirror the folder path exactly, including the v1 segment, so a use case's full identity is
+  readable from either. Versioning a contract means adding a v2 sibling tree, never mutating v1.
+invariants:
+  - The path is {BC}/{Aggregate}/v1/{UseCase}/{UseCase}{Command|Query} plus {UseCase}Response, with the aggregate segment omitted for a single-aggregate bounded context.
+  - The namespace equals the folder path with dots, including the v1 segment; no file declares a namespace that differs from its folder.
+  - The facade and cross-use-case items sit at the v1 root; Events/ and Sagas/ are reserved sibling folders; a DTO shared by several use cases goes to a _Shared folder rather than into one use case's folder.
+  - Use-case names are Verb+Noun; queries are Get*/List*/Search* and commands are everything else.
+  - Existing v1 contract types are never renamed or repurposed; a breaking shape change creates a v2 sibling tree.
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/Checkout/CheckoutCommand.cs:1 — the namespace mirrors {BC}/v1/{UseCase} exactly, v1 segment included"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Auth/v1/IAuthFacade.cs:5 — the facade sits at the v1 root of {BC}/"
+examples:
+  correct:
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/v1/_Shared/GetProductResponse.cs:1 — a cross-use-case DTO in the _Shared folder at the v1 root"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/EmailValidation/v1/Validate/ValidateEmailCommand.cs:1 — {BC}/v1/{UseCase}, EmailValidation as its own single-aggregate bounded context"
+  incorrect: []
+exceptions:
+  - A sub-DTO used by both a use case and a saga payload lives in the use-case folder that owns it and is referenced across.
+derives_to:
+  skills:
+    - axis-use-case-cqrs
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The same {BC}/{Aggregate} mirroring runs across the domain and the driven contracts, so a slice traces by
+  folder name across every layer (architecture-one-folder-per-feature); the application slices mirror this
+  tree without the contracts (architecture-vertical-slice-layout). Which contracts belong here is
+  architecture-contracts-location; the shape of each DTO is architecture-contracts-primitive-dtos.

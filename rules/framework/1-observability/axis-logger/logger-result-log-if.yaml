@@ -1,0 +1,53 @@
+id: logger-result-log-if
+title: Log an AxisResult outcome with LogIfFailure/LogIfSuccess, not a manual IsFailure check
+tier: framework
+family: 1-observability
+package: AxisLogger
+concern: package-mechanics
+layer: any
+severity: should
+status: canonical
+description: >
+  Logging an AxisResult outcome is a side effect keyed on IsSuccess/IsFailure — the same shape Tap and
+  TapError already exist for. LogIfFailure/LogIfSuccess are Tap-family extensions on AxisResult/
+  AxisResult<TValue> that take an IAxisLogger<T>, a severity, a message and key/value properties: they
+  log and return the SAME result unchanged, so the call composes into a Then/Match chain instead of a
+  manual `if (result.IsFailure) logger.LogWarning(...)` at every call site. The failure overloads
+  auto-append the error list under the "AxisErrorList" property (the same key IAxisLogger<T>.LogResult
+  already uses), so callers never hand-format error codes into the message.
+invariants:
+  - LogIfFailure logs (Warning or Error, per AxisFailureLogSeverity) only when the result is a failure, and returns the same result unchanged either way.
+  - LogIfSuccess logs (Information or Warning, per AxisSuccessLogSeverity) only when the result is a success, and returns the same result unchanged either way.
+  - The generic AxisResult<TValue> overloads preserve the value on the chain (delegate to Tap/TapError, never touch .Value).
+  - LogIfFailure auto-appends the failure's Errors as the "AxisErrorList" property, in addition to any caller-supplied properties.
+  - The implementation itself never branches on IsSuccess/IsFailure directly — it delegates to Tap/TapError, so it stays analyzer-clean even where AXIS0002 is wired.
+reference:
+  kind: framework-test
+  at:
+    - "src/1-Observability/AxisLogger/AxisLogger/AxisResultLoggingExtensions.cs — the extensions"
+    - "src/1-Observability/AxisLogger/AxisLogger/IAxisLogger.cs:19 — the existing LogResult precedent (fixed severity, handler-tag-coupled) this generalizes"
+    - "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisResultLoggingExtensionsTests.cs — behavior coverage"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-result
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisLogger/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Lives in AxisLogger (1-observability), not AxisResult (0-foundations): AxisResult must stay
+  dependency-free, and AxisLogger already has visibility into AxisResult (proven by the pre-existing
+  LogResult method) — no new package needed, unlike Axis.Testing which specifically had to be usable
+  without dragging in the full observability stack. Severity is a small closed Axis-native enum
+  (AxisFailureLogSeverity: Warning|Error; AxisSuccessLogSeverity: Information|Warning), not
+  Microsoft.Extensions.Logging.LogLevel, to keep IAxisLogger's interface layer decoupled from MEL (it
+  deliberately exposes named methods, not a generic Log(level, ...)) and to make illegal severities
+  unrepresentable. Discovered while reviewing a reference-app background worker
+  (ReconcilerPollLoop) that hand-rolled `if (result.IsFailure) logger.LogWarning(...)` at every poll.

@@ -1,0 +1,42 @@
+id: edge-url-versioning
+title: Version every business route in a URL path segment
+tier: convention
+concern: edge
+layer: driving
+severity: must
+status: canonical
+description: >
+  API versioning places the version in a URL path segment: business routes carry a version segment, a
+  default version is assumed when the caller omits it, and served versions are reported. Controllers are
+  suffixed with the version they serve so a later version can coexist file-by-file, and the driving
+  contracts mirror the version in their namespace.
+invariants:
+  - The API-versioning setup sets a default API version, assumes it when unspecified, reports the served versions, and reads the version from a URL path segment.
+  - The API-explorer setup formats the version group name and substitutes the resolved version back into the URL.
+  - Every controller declares its API version and a route of the form api/v{version}/{resource}, with the version segment following the fixed api prefix.
+  - Controller class names carry the version suffix (e.g. {Aggregate}V1Controller) so a later version coexists as a separate file.
+  - The driving contracts mirror the version in their namespace ({BC}.{Aggregate}.v1.{UseCase}).
+reference:
+  kind: framework-sample
+  at:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Program.cs:26 — AddApiVersioning sets the default version, assumes it when unspecified, and reports served versions"
+examples:
+  correct:
+    - "src/scaffolds/Host/Scaffolds.ECommerce.Host/Controllers/Catalog/CatalogController.cs:15 — each controller declares [ApiVersion(\"1.0\")] and an api/v{version:apiVersion}/{resource} route"
+    - "src/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Customers/v1/EnsureCustomer/EnsureCustomerCommand.cs:1 — driving contracts mirror the version in their namespace (.Customers.v1.)"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-webapi-controllers
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The version segment follows a fixed api prefix (api/v{version}/{resource}), resolved together with the
+  single-shared-host model (architecture-composition-root). The version suffix on the controller class name
+  is the standard that lets two versions coexist. See edge-controller-shape for the attribute stack that
+  declares the version.

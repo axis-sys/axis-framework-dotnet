@@ -1,0 +1,43 @@
+id: saga-stage-handler-shape
+title: A stage handler implements IAxisSagaStageHandler<TPayload> with SagaName, StageName and ExecuteAsync
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Each stage is implemented by exactly one IAxisSagaStageHandler<TPayload> whose SagaName and StageName
+  identify the (saga, stage) pair it serves and whose ExecuteAsync(TPayload) returns Task<AxisResult<TPayload>>.
+  The handler transforms the payload and reports success/failure; it knows nothing about routing, events or
+  persistence — the engine owns those. There is no CancellationToken parameter: cancellation is ambient
+  (the execution lease), never a method argument.
+invariants:
+  - A stage handler implements IAxisSagaStageHandler<TPayload> exposing SagaName, StageName and Task<AxisResult<TPayload>> ExecuteAsync(TPayload payload).
+  - Exactly one handler exists per (SagaName, StageName) pair; SagaName/StageName must match the definition's names exactly (case-sensitive).
+  - ExecuteAsync takes no CancellationToken parameter; a stage's cancellation is the ambient execution lease, not an argument.
+  - The returned AxisResult<TPayload> value is the payload the next stage sees; the engine persists it as the new PAYLOAD_JSON.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/IAxisSagaStageHandler.cs:3 — SagaName, StageName, ExecuteAsync"
+examples:
+  correct:
+    - "src/2-ApplicationFlow/AxisSaga/MySql/AxisSaga.MySql.IntegrationTests/MySqlSagaLifecycleTests.cs:25 — HappyHandler: SagaName/StageName + ExecuteAsync returning Ok(payload)"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md:72 — ReserveStockHandler over a port"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/stage-handlers.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Error/compensation stages use the identical interface; only their position in the definition differs. The
+  payload is a reference type and can be enriched between stages (a token added by ChargeCard, used by Refund).

@@ -1,0 +1,40 @@
+id: cache-repository-l1-bypass-zero-ttl
+title: An L1Ttl of zero bypasses the memory tier — every read hits L2
+tier: framework
+family: 3-infra
+package: AxisCache
+concern: package-mechanics
+layer: driven
+severity: must
+status: canonical
+description: >
+  L1 is enabled only when settings.L1Ttl is greater than TimeSpan.Zero. Setting L1Ttl to zero disables the
+  in-process tier entirely: reads never consult or warm L1 and every read goes to L2 directly. Use it when
+  you need strict cross-instance consistency (no staleness window) and can accept an L2 round-trip per read;
+  it is also how the adapter's own integration tests exercise L2 in isolation.
+invariants:
+  - L1 is active only when L1Ttl > TimeSpan.Zero; an L1Ttl of zero disables reads from and writes to L1.
+  - With L1 disabled, every GetAsync/ExistsAsync consults L2 and no value is memoised in memory.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/RepositoryCacheAdapter.cs:22 — L1Enabled => settings.L1Ttl > TimeSpan.Zero"
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository/AxisCacheRepositorySettings.cs:14 — L1Ttl default 60s; Zero bypasses L1"
+examples:
+  correct:
+    - "src/3-Infra/AxisCache/Repository/AxisCache.Repository.UnitTests/RepositoryCacheAdapterTests.cs:90 — a zero L1 TTL makes every read hit L2"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-cache
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisCache/sql-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The Postgres and MySQL integration tests set L1Ttl = TimeSpan.Zero precisely so every assertion exercises
+  the durable L2 path.

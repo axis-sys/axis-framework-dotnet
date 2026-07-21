@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Axis</RootNamespace>
+    <!-- NuGet Package -->
+    <PackageId>AxisResult.HttpResponse</PackageId>
+    <Description>ASP.NET Core HTTP response helpers for AxisResult. Maps AxisResult and AxisError to IActionResult / ProblemDetails (RFC 7807) with severity-based status selection.</Description>
+    <PackageTags>result;railway;http;aspnetcore;problem-details;error-handling;csharp;dotnet</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../../docs/en-us/4-Edge/AxisResult.HttpResponse/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AxisResult.HttpResponse.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\0-Foundations\AxisResult\AxisResult\AxisResult.csproj" />
+  </ItemGroup>
+</Project>

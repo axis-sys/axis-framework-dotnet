@@ -1,0 +1,45 @@
+id: telemetry-two-ports
+title: Telemetry is two narrow ports — IAxisTelemetry for spans, IAxisMetrics for counters and histograms
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: contracts
+lens: [observability]
+severity: must
+status: canonical
+description: >
+  AxisTelemetry splits instrumentation into two deliberately small interfaces. IAxisTelemetry is the tracing
+  port: StartSpan(operationName, kind) returns an IAxisSpan, plus the read-only CurrentTraceId/CurrentSpanId.
+  IAxisMetrics is the metrics port: RecordHistogram(name, value, tags) and IncrementCounter(name, delta, tags).
+  They are separate ports so a caller can depend on only what it needs, though the in-box adapters implement
+  both. Neither port returns AxisResult — telemetry is fire-and-forget side effect, not a railway step.
+invariants:
+  - IAxisTelemetry declares exactly StartSpan, CurrentTraceId and CurrentSpanId — nothing else.
+  - IAxisMetrics declares exactly RecordHistogram and IncrementCounter — nothing else.
+  - Both metrics methods return void and both telemetry-port members are span or nullable-string; no telemetry member returns AxisResult.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisTelemetry.cs:3 — the tracing port: StartSpan + CurrentTraceId/CurrentSpanId"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/IAxisMetrics.cs:3 — the metrics port: RecordHistogram + IncrementCounter"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:7 — the in-box adapter implementing both ports"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/contracts.md"
+    - "docs/en-us/1-Observability/AxisTelemetry/api-reference.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Keeping metrics and tracing on separate interfaces lets a component ask for IAxisMetrics without pulling in
+  span machinery. The common swappable-infra-port pattern (IAxis* + AddAxis* swaps the adapter via DI) is
+  canonical in axis-dotnet-architect; here telemetry diverges from most ports by NOT returning AxisResult.

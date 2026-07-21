@@ -1,0 +1,39 @@
+id: validator-input-scope
+title: A validator checks input shape only, not domain invariants or database state
+tier: framework
+family: 2-application-flow
+package: AxisValidator
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  AxisValidator guards the shape of an incoming command, query or integration message — presence, format,
+  length, ranges, cross-field consistency. It does not enforce domain invariants (those live in the entity,
+  returning AxisError.BusinessRule) and does not perform checks that need database state (those live in the
+  application layer via Then + a repository port). Keeping the validator input-only preserves the layering.
+invariants:
+  - A validator asserts input shape only — presence, format, length, range and cross-field consistency of the request.
+  - Domain invariants are enforced in the entity as AxisError.BusinessRule, not in a validator.
+  - Checks requiring database state are performed in the application layer via Then plus a repository port, not in a validator.
+reference:
+  kind: framework-source
+  at:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md:28 — 'When not to use': domain invariants -> entity, database state -> application layer"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-validator
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisValidator/validator-base.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the boundary rule that routes stateful and business checks away from the validator; it links to
+  axis-domain-modeling (entity invariants) and axis-use-case-cqrs (application-layer checks).

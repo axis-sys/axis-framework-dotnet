@@ -1,0 +1,32 @@
+{
+  "solution": {
+    "path": "AxisSys.slnx",
+    "projects": [
+      "src/0-Foundations/AxisMediator.Contracts.Analyzers.UnitTests/AxisMediator.Contracts.Analyzers.UnitTests.csproj",
+      "src/0-Foundations/AxisResult/AxisResult.Analyzers.UnitTests/AxisResult.Analyzers.UnitTests.csproj",
+      "src/0-Foundations/AxisResult/AxisUnitTests/AxisUnitTests.csproj",
+      "src/0-Foundations/AxisTypes/AxisTypes.UnitTests/AxisTypes.UnitTests.csproj",
+      "src/0-Foundations/AxisTypes/AxisTypes.Analyzers.UnitTests/AxisTypes.Analyzers.UnitTests.csproj",
+      "src/1-Observability/AxisLogger/AxisLogger.UnitTests/AxisLogger.UnitTests.csproj",
+      "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/AxisTelemetry.UnitTests.csproj",
+      "src/1-Observability/AxisTelemetry/AzureMonitor/AxisTelemetry.AzureMonitor.UnitTests/AxisTelemetry.AzureMonitor.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisBus/AxisBus.Analyzers.UnitTests/AxisBus.Analyzers.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisBus/MemoryBus/AxisMemoryBus.UnitTests/AxisMemoryBus.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisBus/Repository/AxisBus.Repository.UnitTests/AxisBus.Repository.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisMediator/AxisMediator.UnitTests/AxisMediator.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/AxisSaga.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisValidator/FluentValidation/AxisValidator.FluentValidation.UnitTests/AxisValidator.FluentValidation.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Brazil.UnitTests/AxisValidator.Brazil.UnitTests.csproj",
+      "src/2-ApplicationFlow/AxisValidator/Localization/AxisValidator.Usa.UnitTests/AxisValidator.Usa.UnitTests.csproj",
+      "src/3-Infra/AxisCache/MemoryCache/AxisMemoryCache.UnitTests/AxisMemoryCache.UnitTests.csproj",
+      "src/3-Infra/AxisCache/Repository/AxisCache.Repository.UnitTests/AxisCache.Repository.UnitTests.csproj",
+      "src/3-Infra/AxisEmail/MimeKit/AxisEmail.MimeKit.UnitTests/AxisEmail.MimeKit.UnitTests.csproj",
+      "src/3-Infra/AxisRepository/AxisRepository.UnitTests/AxisRepository.UnitTests.csproj",
+      "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/AxisStorage.CloudflareR2.UnitTests.csproj",
+      "src/3-Infra/AxisStorage/AzureBlob/AxisStorage.AzureBlob.UnitTests/AxisStorage.AzureBlob.UnitTests.csproj",
+      "src/3-Infra/AxisStorage/FileSystem/AxisStorage.FileSystem.UnitTests/AxisStorage.FileSystem.UnitTests.csproj",
+      "src/4-Edge/AxisResult.HttpResponse.UnitTests/AxisResult.HttpResponse.UnitTests.csproj",
+      "src/Conventions/Axis.Conventions.Analyzers.UnitTests/Axis.Conventions.Analyzers.UnitTests.csproj"
+    ]
+  }
+}

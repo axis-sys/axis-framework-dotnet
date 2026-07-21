@@ -1,0 +1,45 @@
+id: saga-define-entrypoint
+title: A saga is declared once through AxisSagaDefinitions.Define<TPayload>(name, configure)
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  Every saga topology is authored by calling the static AxisSagaDefinitions.Define<TPayload>(sagaName,
+  configure), which news up an AxisSagaConfigurator<TPayload>, runs the caller's configure delegate and
+  returns the compiled, immutable AxisSagaDefinition. The convention is a static Configure(IAxisSagaConfigurator)
+  method per saga wrapped by Define; the resulting definition is registered as a singleton so the registry
+  and the initializer pick it up. TPayload is constrained to a reference type (class).
+invariants:
+  - A saga topology is produced only by AxisSagaDefinitions.Define<TPayload>(sagaName, configure); it returns a compiled AxisSagaDefinition.
+  - The configure delegate is required; Define calls ArgumentNullException.ThrowIfNull(configure) before building.
+  - TPayload is constrained to class (a reference type), matching every saga surface (configurator, stage builder, handler, instance).
+  - The compiled AxisSagaDefinition is immutable (a record of SagaName, PayloadType, ForwardStages, ErrorStages) and is registered as a singleton so the in-memory registry loads it at startup.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/AxisSagaDefinitions.cs:7 — Define<TPayload>: new configurator, run configure, Build()"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Contracts/Configuration/AxisSagaDefinition.cs:3 — the immutable compiled record"
+examples:
+  correct:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md:92 — AddSingleton(AxisSagaDefinitions.Define<OrderPayload>(Name, Configure))"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga.UnitTests/SagaEngineTransientRetryTests.cs:19 — Define<TestPayload>(name, saga => saga.AddStage(...).FinishOnSuccess())"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/configuration.md"
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The definition is a data-shaped state machine (forward stages, error stages, routes); nothing about
+  it runs — the engine interprets it at execution time.

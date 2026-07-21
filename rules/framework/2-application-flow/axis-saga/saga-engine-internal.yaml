@@ -1,0 +1,41 @@
+id: saga-engine-internal
+title: SagaEngine is internal and driven only through the mediator or the resumer
+tier: framework
+family: 2-application-flow
+package: AxisSaga
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  SagaEngine is an internal class: it orchestrates one saga instance through its forward or compensation chain,
+  is fully dialect-agnostic (it talks only to the store ports and (de)serializes payloads itself), and is
+  resolved from DI only by the mediator's fire-and-forget run and the resumer. Application code never
+  references or invokes it; it starts and resumes sagas through IAxisSagaMediator, and the engine is an
+  implementation detail behind that seam.
+invariants:
+  - SagaEngine is internal; it is not part of the public surface and application code never resolves or calls it.
+  - The engine is driven only by SagaMediator (StartAsync/ResumeAsync fire-and-forget) and the resumer worker.
+  - The engine is dialect-agnostic — it depends only on the store ports and serializes payloads itself, so one engine drives every storage adapter.
+reference:
+  kind: framework-source
+  at:
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaEngine.cs:19 — internal class SagaEngine, dialect-agnostic over the store ports"
+    - "src/2-ApplicationFlow/AxisSaga/AxisSaga/Saga/SagaMediator.cs:100 — the engine is resolved from a fresh scope only inside the fire-and-forget run"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-saga
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisSaga/mediator.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Keeping the engine internal is what lets the mediator be the single control surface — see saga-resume-is-signal
+  and saga-mediator-start.

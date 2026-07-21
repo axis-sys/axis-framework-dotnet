@@ -1,0 +1,45 @@
+id: storage-r2-servable-url-from-config
+title: The R2 adapter decides public-vs-signed from CloudflareR2Settings.PublicUrl
+tier: framework
+family: 3-infra
+package: AxisStorage
+concern: package-mechanics
+layer: driven
+lens: [security]
+severity: should
+status: canonical
+description: >
+  R2's GetServableUrlAsync makes the public-vs-signed decision from configuration, not a live probe. When
+  CloudflareR2Settings.PublicUrl is set, it returns {PublicUrl.TrimEnd('/')}/{key} as a raw public URL
+  (IsPublic true, ExpiresAt null) with no S3 call — R2 serves the object over the CDN/r2.dev domain directly;
+  when PublicUrl is null or blank it returns a presigned URL (IsPublic false, ExpiresAt = now + expiration),
+  the same signing path as GetPresignedUrlAsync. Unlike Azure, there is no public-access probe and therefore
+  no cache or TTL.
+invariants:
+  - When PublicUrl is set, GetServableUrlAsync returns {PublicUrl}/{key} as a raw public URL with no S3 call.
+  - When PublicUrl is null or blank, GetServableUrlAsync returns a presigned URL valid for expiration.
+  - The R2 adapter makes this decision from configuration, with no live public-access probe and no cache.
+reference:
+  kind: framework-source
+  at:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2StorageAdapter.cs:88 — GetServableUrlAsync branches on settings.PublicUrl"
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2/CloudflareR2Settings.cs:9 — the optional PublicUrl property"
+examples:
+  correct:
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:362 — raw public URL when PublicUrl is configured"
+    - "src/3-Infra/AxisStorage/CloudflareR2/AxisStorage.CloudflareR2.UnitTests/CloudflareR2/CloudflareR2StorageAdapterTests.cs:386 — signed URL when PublicUrl is not configured"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-storage
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/3-Infra/AxisStorage/cloudflare-r2.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  This is the R2 realization of storage-servable-url-decides-vs-reports; Azure realizes the same contract with
+  a live, cached probe instead of a config flag.

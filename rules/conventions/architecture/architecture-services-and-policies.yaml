@@ -1,0 +1,42 @@
+id: architecture-services-and-policies
+title: Cross-use-case logic is a named Service (interface + impl + settings); a reusable predicate is a Policy
+tier: convention
+concern: architecture
+layer: application
+severity: should
+status: canonical
+description: >
+  Logic that serves several use cases, a worker or an event handler — orchestration, reconcilers,
+  pipelines, cross-bounded-context locators — is a named application service under {BC}/[{Aggregate}/]Services/,
+  split into I{Service} plus {Service} with an optional {Service}Settings record. A reusable business
+  predicate that guards a single decision is a Policy under Policies/ (I{Name}Policy plus internal sealed
+  {Name}Policy). Neither is a use case: they carry no Command/Response and are reached through DI.
+invariants:
+  - A service is two files in Services/ — I{Service} and {Service} — with the implementation internal sealed (or a public interface plus internal impl when a host driving project consumes it).
+  - Service tunables are a sealed {Service}Settings record with defaulted init properties, registered with a TryAdd so a host can pre-register overrides.
+  - A policy lives in Policies/ as I{Name}Policy plus internal sealed {Name}Policy and returns AxisResult.
+  - Services and policies are registered explicitly as scoped in the composition entry — they are not assembly-scanned.
+  - The implementation name drops the I prefix one-to-one; there is no Impl or redundant Service suffix deviation.
+  - A reconciler-style service exposes a RunOnceAsync(CancellationToken); the hosting loop lives in the worker driving project, not in the application.
+reference:
+  kind: none-yet
+  at: []
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-dotnet-architect
+  hooks: []
+  scaffolds: []
+  docs: []
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  Services and policies are the home for logic that has no aggregate of its own; a reconciler is only its
+  RunOnceAsync, and the schedule that drives it lives in a worker slice (architecture-workers-vertical-slices).
+  A RunOnceAsync takes an explicit CancellationToken because it runs outside the mediator scope — the
+  sanctioned exception in architecture-ambient-context. Placement follows architecture-vertical-slice-layout
+  (sibling folders per aggregate) and both are wired by architecture-di-registration.

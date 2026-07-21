@@ -1,0 +1,45 @@
+id: telemetry-activity-null-safe
+title: An unsampled span is a silent no-op — ActivityAxisSpan tolerates a null Activity
+tier: framework
+family: 1-observability
+package: AxisTelemetry
+concern: package-mechanics
+layer: driven
+lens: [observability, performance]
+severity: must
+status: canonical
+description: >
+  ActivityAxisSpan is the internal Activity-backed IAxisSpan the OpenTelemetry adapter returns. Its Activity
+  can be null — ActivitySource.StartActivity returns null when no listener is attached OR when sampling drops
+  the span — and every member is written to survive that: SetTag/SetStatus/RecordException/AddEvent/Dispose
+  all use `activity?.`, and TraceId/SpanId fall back to string.Empty. So a dropped or unsampled span is a
+  fully silent no-op that still chains and never throws; instrumentation code needs no null checks.
+invariants:
+  - StartActivity returns null when nothing listens or when sampling drops the span; ActivityAxisSpan wraps that null without failing.
+  - Every ActivityAxisSpan member guards the Activity with `activity?.` so all operations are no-ops on a null Activity.
+  - On a null Activity, TraceId and SpanId return string.Empty and the mutators still return the span.
+reference:
+  kind: framework-source
+  at:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/ActivityAxisSpan.cs:5 — the internal Activity? wrapper with null-guarded members and Empty ids"
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry/OpenTelemetry/OpenTelemetryAdapter.cs:17 — StartSpan wraps whatever StartActivity returns, including null"
+examples:
+  correct:
+    - "src/1-Observability/AxisTelemetry/AxisTelemetry.UnitTests/ActivitySpanTests.cs:105 — a null Activity: chained mutators do not throw, ids are empty"
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-telemetry
+  hooks: []
+  scaffolds: []
+  docs:
+    - "docs/en-us/1-Observability/AxisTelemetry/spans.md"
+    - "docs/en-us/1-Observability/AxisTelemetry/opentelemetry-adapter.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The sampling gotcha — because sampling drops produce a null Activity, span tags set on an unsampled request
+  simply vanish rather than erroring, and TraceId/SpanId read as empty strings. ActivityAxisSpan is internal
+  (InternalsVisibleTo the UnitTests project); callers only ever see it through IAxisSpan.

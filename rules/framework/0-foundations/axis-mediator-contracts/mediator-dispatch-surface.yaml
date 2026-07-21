@@ -1,0 +1,45 @@
+id: mediator-dispatch-surface
+title: CQRS dispatch goes through IAxisMediator.Cqrs and is issued only from a Facade
+tier: framework
+family: 0-foundations
+package: AxisMediator.Contracts
+concern: package-mechanics
+layer: application
+severity: must
+status: canonical
+description: >
+  The only way to run a command, query or stream is through IAxisMediator.Cqrs (IAxisMediatorHandler).
+  Its four methods pick the dispatch by message kind, and the stream method deliberately leaves the
+  AxisResult railway. Dispatch is issued from the Facade that exposes the use case, never from inside a
+  handler, so one handler never secretly orchestrates another.
+invariants:
+  - Commands, queries and streams are dispatched only through IAxisMediator.Cqrs, never by resolving a handler instance directly.
+  - A valueless command is dispatched with ExecuteAsync<TCommand> and a valued command with ExecuteAsync<TCommand, TResponse>; the two are overloaded by arity.
+  - A query is dispatched with QueryAsync<TQuery, TResponse> and a streaming query with StreamAsync<TQuery, TItem>.
+  - StreamAsync returns a bare IAsyncEnumerable<TItem> and bypasses both the AxisResult railway and the behavior pipeline.
+  - A handler never calls mediator.Cqrs; cross-use-case dispatch is composed in the Facade, not inside a handler.
+reference:
+  kind: framework-source
+  at:
+    - "src/0-Foundations/AxisMediator.Contracts/CQRS/Handlers/IAxisMediatorHandler.cs:9 — ExecuteAsync arity overloads, QueryAsync, StreamAsync"
+    - "src/0-Foundations/AxisMediator.Contracts/IAxisMediator.cs:16 — Cqrs is the sole dispatch surface on the mediator"
+examples:
+  correct: []
+  incorrect: []
+exceptions: []
+derives_to:
+  skills:
+    - axis-mediator
+  hooks:
+    - AXIS0401
+  scaffolds:
+    - catalog-facade
+  docs:
+    - "docs/en-us/2-ApplicationFlow/AxisMediator/getting-started.md"
+ledger:
+  reviewed_against: 685c311
+  reviewed_on: 2026-07-12
+notes: >
+  The Facade is owned by axis-use-case-cqrs; this rule only states that dispatch lives there. Analyzer AXIS0401 — flag an access to IAxisMediator.Cqrs inside a class that implements an Axis handler
+  interface. The stream path also throws on a missing handler instead of returning a failed AxisResult;
+  that runtime asymmetry is documented in the AxisMediator runtime cluster.
