@@ -1,6 +1,11 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <!-- The conventions analyzers are released from this repository, so the reference application runs them from
+       source; an application references the Axis.Conventions.Analyzers package instead. -->
   <ItemGroup>
-    <PackageReference Include="Axis.Conventions.Analyzers" PrivateAssets="all" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
   </ItemGroup>
 </Project>

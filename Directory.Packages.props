@@ -4,7 +4,6 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Axis">
-    <PackageVersion Include="Axis.Conventions.Analyzers" Version="3.0.0-beta.6" />
     <PackageVersion Include="Axis.Testing" Version="3.0.0-beta.7" />
     <PackageVersion Include="Axis.Testing.XUnit" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisAI" Version="3.0.0-beta.7" />
