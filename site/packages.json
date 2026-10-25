@@ -162,5 +162,9 @@
   {
     "repository": "axis-cache-mysql",
     "packages": ["AxisCache.MySql"]
+  },
+  {
+    "repository": "axis-mediator",
+    "packages": ["AxisMediator"]
   }
 ]
