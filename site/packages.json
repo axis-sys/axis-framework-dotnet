@@ -6,5 +6,9 @@
   {
     "repository": "axis-testing",
     "packages": ["Axis.Testing", "Axis.Testing.XUnit"]
+  },
+  {
+    "repository": "axis-ai",
+    "packages": ["AxisAI"]
   }
 ]
