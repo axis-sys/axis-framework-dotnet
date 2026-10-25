@@ -78,5 +78,9 @@
   {
     "repository": "axis-result-httpresponse",
     "packages": ["AxisResult.HttpResponse"]
+  },
+  {
+    "repository": "axis-storage-filesystem",
+    "packages": ["AxisStorage.FileSystem"]
   }
 ]
