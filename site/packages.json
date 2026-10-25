@@ -50,5 +50,9 @@
   {
     "repository": "axis-validator",
     "packages": ["AxisValidator"]
+  },
+  {
+    "repository": "axis-memory-cache",
+    "packages": ["AxisMemoryCache"]
   }
 ]
