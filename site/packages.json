@@ -146,5 +146,9 @@
   {
     "repository": "axis-validator-fluent-validation",
     "packages": ["AxisValidator.FluentValidation"]
+  },
+  {
+    "repository": "axis-validator-brazil",
+    "packages": ["AxisValidator.Brazil"]
   }
 ]
