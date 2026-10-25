@@ -11,6 +11,9 @@ ties them together:
   five bounded contexts, one host and a four-project test pyramid (architecture, unit, integration and E2E). It
   consumes every Axis package from NuGet, exactly as your application would, so building and testing it proves the
   packages fit together.
+- **The conventions analyzers** ([`src/Axis.Conventions.Analyzers/`](src/Axis.Conventions.Analyzers/README.md)): the
+  `Axis.Conventions.Analyzers` package (`AXIS0600`–`AXIS0608`), which turns the decidable part of the guide into
+  build diagnostics. It is released from here, and the reference application runs it from source.
 - **The documentation site** ([`site/`](site/index.md)): the application guide, the articles of every package and
   the API reference generated from their XML docs, built with DocFX and published to GitHub Pages.
 - **The application guide** ([`site/guide/`](site/guide/index.md)) and its counterpart for coding assistants,
@@ -21,6 +24,12 @@ ties them together:
 
 Install a package with `dotnet add package <id>`; pre-releases are published as `3.0.0-beta.N` (add `--prerelease`).
 Each repository carries the package's code, tests, articles and its own usage agent.
+
+### Conventions
+
+| Repository | Packages | What it is |
+|---|---|---|
+| [`axis-framework-dotnet`](https://github.com/axis-sys/axis-framework-dotnet) (this hub) | `Axis.Conventions.Analyzers` | Opt-in Roslyn analyzers for the conventions of an Axis application: handler, validator, controller and domain record shapes, the composition root, error members and test names ([analyzers page](site/guide/analyzers.md)). |
 
 ### Foundations
 
@@ -107,8 +116,14 @@ dotnet build AxisFramework.slnx -c Release --no-restore -warnaserror
 dotnet test --solution AxisFramework.slnx -c Release --no-build
 ```
 
+The build also compiles the conventions analyzers and the test run includes their unit tests
+(`tests/Axis.Conventions.Analyzers.UnitTests`). `dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts`
+produces the `Axis.Conventions.Analyzers` package; nothing else here is packable.
+
 The version of every Axis package the reference application consumes is pinned in
-[`Directory.Packages.props`](Directory.Packages.props).
+[`Directory.Packages.props`](Directory.Packages.props); the version of the package released from here is in
+[`src/Directory.Build.props`](src/Directory.Build.props). A push to `develop` publishes it to GitHub Packages as a
+pre-release, and a push to `main` publishes it to nuget.org.
 
 ## Documentation site
 
@@ -129,7 +144,8 @@ GitHub Pages.
 ## Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). A change to a package belongs in that
-package's repository; this one takes changes to the reference application, the guide and the site.
+package's repository; this one takes changes to the reference application, the conventions analyzers, the guide and
+the site.
 
 ## License
 

@@ -3,6 +3,8 @@
 A small e-commerce built the Axis way: one host composes the Auth, Authorization, Catalog, Customers and
 EmailValidation bounded contexts over Postgres or MySQL. It consumes every Axis package from NuGet, exactly as
 any application does, and it is the compiled, tested ground truth of the [application guide](../site/guide/index.md).
+Every project builds with the [conventions analyzers](../site/guide/analyzers.md) of this repository, referenced from
+source in [`Directory.Build.props`](Directory.Build.props).
 
 **Domain language: English.** Every domain term — identifiers, error codes, bus topics, seed values — is English.
 

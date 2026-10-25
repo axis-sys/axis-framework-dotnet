@@ -23,7 +23,8 @@ instead of guessing:
   [HTTP edge](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/edge.md),
   [testing](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/testing.md),
   [style](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/style.md),
-  [process](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/process.md).
+  [process](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/process.md),
+  [analyzers](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/analyzers.md).
 - **Each package's own usage agent** — `agents/<repository>.md` in the package repository (for example
   [axis-result](https://github.com/axis-sys/axis-result/blob/main/agents/axis-result.md) for the operators of the
   railway), and the XML docs of every public member in IntelliSense.
@@ -52,6 +53,11 @@ Five sibling solution folders, one project per hexagonal role (`{App}` is the ap
   `SharedKernel/Shared/`.
 - One top-level type per file, named after the type. An interface may share the file of its only implementation
   when both live in the same project (`scaffolds/Core/Scaffolds.ECommerce.Application/Catalog/Products/Aggregates/ProductFactory.cs`).
+- Reference the conventions analyzers once for every project, in the solution's `Directory.Build.props`:
+  `<PackageReference Include="Axis.Conventions.Analyzers" PrivateAssets="all" />`. They are released from the
+  [hub](https://github.com/axis-sys/axis-framework-dotnet), which runs them on the reference application from source
+  (`scaffolds/Directory.Build.props`); each diagnostic has its section in the
+  [analyzers page](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/analyzers.md).
 
 ## Where a new piece goes
 
@@ -231,7 +237,9 @@ Five sibling solution folders, one project per hexagonal role (`{App}` is the ap
 1. `dotnet build <solution> -c Release -warnaserror` — zero warnings. The analyzers shipped with the packages turn
    these conventions into build errors: `AXIS0001`–`AXIS0008` (AxisResult), `AXIS0200`–`AXIS0201` (AxisTypes),
    `AXIS0300` (AxisBus), `AXIS0400`–`AXIS0403` (AxisMediator.Contracts) and `AXIS0600`–`AXIS0608`
-   (`Axis.Conventions.Analyzers`). Fix the code; never suppress them with `#pragma` or `.editorconfig`.
+   (`Axis.Conventions.Analyzers`, explained one by one in the
+   [analyzers page](https://github.com/axis-sys/axis-framework-dotnet/blob/main/site/guide/analyzers.md)). Fix the
+   code; never suppress them with `#pragma` or `.editorconfig`.
 2. `dotnet test --solution <solution> -c Release`, with Docker running for the integration and E2E tests.
 3. Then review the diff for what no analyzer decides: the dependency direction, the folder and namespace layout,
    one commit per use case, events before the commit, no cross-context ports, E2E coverage for every new or changed

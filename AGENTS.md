@@ -9,13 +9,17 @@ belongs in that package's repository (listed in the [README](README.md#packages)
 
 | Path | What lives there |
 |---|---|
-| `AxisFramework.slnx` | The solution: every project of the reference application. |
+| `AxisFramework.slnx` | The solution: the conventions analyzers, their tests and every project of the reference application. |
+| `src/Axis.Conventions.Analyzers/` | The `Axis.Conventions.Analyzers` package (`AXIS0600`–`AXIS0608`), the only package released from the hub. |
+| `src/Directory.Build.props` | Package metadata and version (`3.0.0-beta.7`) of what `src/` releases; everything else stays non-packable. |
+| `tests/Axis.Conventions.Analyzers.UnitTests/` | The analyzers' unit tests: each case compiles a snippet and counts the diagnostics. |
+| `tests/Directory.Build.props` | Marks the analyzer tests (`AxisTestProject=true`) before the root props are read. |
 | `scaffolds/` | The reference application (ECommerce): `Core/`, `Contracts/`, `Adapters/`, `Host/`, `Tests/`. See [`scaffolds/README.md`](scaffolds/README.md). |
 | `scaffolds/Tests/` | The four test projects — architecture, unit, integration, E2E. They are the hub's tests. |
 | `Directory.Build.props` | Compilation settings for every project and the wiring of the test projects (`AxisTestProject`). |
-| `scaffolds/Directory.Build.props` | Adds `Axis.Conventions.Analyzers` to every project of the reference application. |
+| `scaffolds/Directory.Build.props` | Runs the conventions analyzers of `src/` on every project of the reference application (a project reference with `OutputItemType="Analyzer"`). |
 | `scaffolds/Tests/Directory.Build.props` | Marks the test projects (`AxisTestProject=true`) before the root props are read. |
-| `Directory.Packages.props` | The version of every Axis package the application consumes, one line per package, with transitive pinning. |
+| `Directory.Packages.props` | The version of every Axis package the application consumes, one line per package, with transitive pinning, and of the analyzers' build dependencies. |
 | `site/` | The DocFX site: `index.md`, `toc.yml`, `docfx.json`, `packages.json`, `collect-docs.mjs`, `ApiReference/`. |
 | `site/guide/` | The application guide, one page per concern. |
 | `agents/` | `axis-framework-dotnet.md`, the usage agent applications copy into their own assistant. |
@@ -33,8 +37,8 @@ dotnet test --solution AxisFramework.slnx -c Release --no-build
 ```
 
 The build must end with zero warnings. The E2E suite runs against the provider pinned in
-`ECommerceProviderPin.DefaultProvider`; the other provider's collection is reported as skipped. Nothing here is
-packable.
+`ECommerceProviderPin.DefaultProvider`; the other provider's collection is reported as skipped. Only `src/` is
+packable: `dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts` produces `Axis.Conventions.Analyzers`.
 
 ### The documentation site
 
@@ -52,6 +56,26 @@ dotnet docfx site/docfx.json
 out the packages' assemblies and XML docs in `site/ApiReference/out/`; DocFX writes the API reference to `site/api/`
 and the site to `site/_site/` (add `--serve` to browse it). Everything they write is git-ignored. `ApiReference` is
 not part of `AxisFramework.slnx`, because it needs the props file `collect-docs.mjs` writes.
+
+## The conventions analyzers
+
+`src/Axis.Conventions.Analyzers` is a `netstandard2.0` Roslyn component; like every analyzer project, it needs no XML
+docs. Its ids live in `AXIS0600`–`AXIS0799`. A new or changed analyzer comes with:
+
+1. its descriptor in `ConventionsDiagnostics.cs`, with `helpLinkUri: HelpBase + "axisNNNN"`, and a line in
+   `AnalyzerReleases.Unshipped.md`;
+2. its section `## AXISNNNN` in [`site/guide/analyzers.md`](site/guide/analyzers.md) — the anchor the help link
+   opens — and a row in that page's table and in the package [README](src/Axis.Conventions.Analyzers/README.md);
+3. tests in `tests/Axis.Conventions.Analyzers.UnitTests` through `AnalyzerHarness.RunAsync<TAnalyzer>`, with cases
+   that fire and cases that do not;
+4. the reference application still building with `-warnaserror`: it runs the analyzers from source, so a new
+   diagnostic it raises is fixed in the same change (or the convention is wrong);
+5. the guide page of the convention and `agents/axis-framework-dotnet.md` updated when the convention changes.
+
+The package version is in `src/Directory.Build.props`. A push to `develop` publishes a version with a pre-release
+suffix to GitHub Packages ([`prerelease.yml`](.github/workflows/prerelease.yml)); a push to `main` publishes a version
+without one to nuget.org and tags the release ([`release.yml`](.github/workflows/release.yml)). Never reuse a
+version.
 
 ## When a package moves to its own repository
 
@@ -71,7 +95,8 @@ A package's own scenarios belong to its unit tests, in its repository.
   to a convention updates the guide page, `agents/axis-framework-dotnet.md` and the code it links in the same
   change. The guide links files by path: renaming or moving a linked file updates its links.
 - **Consume packages, never source.** Every Axis dependency is a `PackageReference` with its version in
-  `Directory.Packages.props`; no project here references a package's source.
+  `Directory.Packages.props`; no project here references another repository's source. The one project reference
+  into `src/` is the conventions analyzers, which are released from this repository.
 - **No comments that restate the code**, no `#region`, and `///` docs only where they feed the OpenAPI document.
 - **Tests** are named `{WhatItDoes}When{Condition}Async`, follow Arrange-Act-Assert and use xUnit v3,
   `Axis.Testing.XUnit`, Moq and Testcontainers. A test never tags itself with a rule; its name says what it proves.
@@ -83,6 +108,7 @@ A package's own scenarios belong to its unit tests, in its repository.
 A pull request contains:
 
 - a green `dotnet build AxisFramework.slnx -c Release -warnaserror` and `dotnet test --solution AxisFramework.slnx -c Release`;
+- for a new or changed analyzer, its tests and its section in `site/guide/analyzers.md`;
 - the guide pages and the usage agent updated when a convention or a linked file changed;
 - a `CHANGELOG.md` line;
 - commits in [Conventional Commits](https://www.conventionalcommits.org/) style.
