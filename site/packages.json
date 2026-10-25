@@ -98,5 +98,9 @@
   {
     "repository": "axis-telemetry-azure-monitor",
     "packages": ["AxisTelemetry.AzureMonitor"]
+  },
+  {
+    "repository": "axis-email-mimekit",
+    "packages": ["AxisEmail.MimeKit"]
   }
 ]
