@@ -18,5 +18,9 @@
   {
     "repository": "axis-dependency-injections",
     "packages": ["AxisDependencyInjections", "AxisDependencyInjections.Abstractions"]
+  },
+  {
+    "repository": "axis-openapi",
+    "packages": ["AxisOpenApi"]
   }
 ]
