@@ -122,5 +122,9 @@
   {
     "repository": "axis-mcp-client",
     "packages": ["AxisMcp.Client"]
+  },
+  {
+    "repository": "axis-saga",
+    "packages": ["AxisSaga"]
   }
 ]
