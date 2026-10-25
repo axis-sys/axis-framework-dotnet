@@ -38,5 +38,9 @@
   {
     "repository": "axis-mediator-contracts",
     "packages": ["AxisMediator.Contracts", "AxisMediator.Contracts.Analyzers"]
+  },
+  {
+    "repository": "axis-security",
+    "packages": ["AxisSecurity"]
   }
 ]
