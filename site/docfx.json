@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "ApiReference/out/api",
+          "files": ["*.dll"]
+        }
+      ],
+      "references": [
+        {
+          "src": "ApiReference/out/references",
+          "files": ["*.dll"]
+        }
+      ],
+      "dest": "api",
+      "namespaceLayout": "flattened",
+      "memberLayout": "samePage"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": ["index.md", "toc.yml"]
+      },
+      {
+        "files": ["guide/**.md", "guide/toc.yml"]
+      },
+      {
+        "files": ["articles/**.md", "articles/**/toc.yml"]
+      },
+      {
+        "files": ["api/**.yml", "api/index.md"]
+      }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "globalMetadata": {
+      "_appName": "Axis Framework",
+      "_appTitle": "Axis Framework",
+      "_appFooter": "Axis Framework — Apache-2.0",
+      "_enableSearch": true
+    }
+  }
+}

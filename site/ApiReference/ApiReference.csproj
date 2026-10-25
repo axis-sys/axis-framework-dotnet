@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Restores the packages listed in site/packages.json and lays out their assemblies and XML docs for docfx metadata:
+       out/api/ holds the documented packages, out/references/ every assembly they depend on. Run
+       site/collect-docs.mjs first; it writes Packages.g.props. -->
+  <PropertyGroup>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <CopyDocumentationFilesFromPackages>true</CopyDocumentationFilesFromPackages>
+    <ApiReferenceOut>$(MSBuildThisFileDirectory)out/</ApiReferenceOut>
+  </PropertyGroup>
+
+  <Import Project="Packages.g.props" Condition="Exists('Packages.g.props')" />
+
+  <Target Name="RequireSitePackages" BeforeTargets="CollectPackageReferences" Condition="!Exists('Packages.g.props')">
+    <Error Text="Packages.g.props is missing: run 'node site/collect-docs.mjs &lt;root&gt;' first." />
+  </Target>
+
+  <Target Name="LayOutApiReference" AfterTargets="Build">
+    <ItemGroup>
+      <_CopyLocal Include="@(ReferenceCopyLocalPaths)" SourcePath="%(FullPath)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''" />
+      <_CopyLocalByPackage Include="@(_CopyLocal->'%(NuGetPackageId)')" />
+      <_OtherPackageFile Include="@(_CopyLocalByPackage)" Exclude="@(ApiReferencePackage)" />
+      <_ApiPackageFile Include="@(_CopyLocalByPackage)" Exclude="@(_OtherPackageFile)" />
+      <_ApiFile Include="@(_ApiPackageFile->'%(SourcePath)')" />
+      <_OtherFile Include="@(_OtherPackageFile->'%(SourcePath)')" />
+      <_ReferenceFile Include="@(_OtherFile)" Condition="'%(_OtherFile.Extension)' == '.dll'" />
+    </ItemGroup>
+    <RemoveDir Directories="$(ApiReferenceOut)" />
+    <MakeDir Directories="$(ApiReferenceOut)api/;$(ApiReferenceOut)references/" />
+    <Copy SourceFiles="@(_ApiFile)" DestinationFolder="$(ApiReferenceOut)api/" />
+    <Copy SourceFiles="@(_ReferenceFile)" DestinationFolder="$(ApiReferenceOut)references/" />
+    <Message Importance="high" Text="API reference: @(_ApiFile->'%(Filename)%(Extension)', ', ')" />
+  </Target>
+</Project>

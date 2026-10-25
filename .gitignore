@@ -14,3 +14,4 @@ site/api/
 site/_site/
 site/obj/
 site/ApiReference/out/
+site/ApiReference/Packages.g.props

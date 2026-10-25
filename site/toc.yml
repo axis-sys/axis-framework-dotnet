@@ -1,0 +1,8 @@
+- name: Guide
+  href: guide/
+- name: Packages
+  href: articles/
+  topicHref: articles/index.md
+- name: API reference
+  href: api/
+  topicHref: api/index.md

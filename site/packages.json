@@ -1,0 +1,6 @@
+[
+  {
+    "repository": "axis-result",
+    "packages": ["AxisResult", "AxisResult.Analyzers"]
+  }
+]
