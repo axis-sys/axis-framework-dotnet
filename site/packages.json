@@ -174,5 +174,9 @@
   {
     "repository": "axis-bus-mysql",
     "packages": ["AxisBus.MySql"]
+  },
+  {
+    "repository": "axis-memory-bus",
+    "packages": ["AxisMemoryBus"]
   }
 ]

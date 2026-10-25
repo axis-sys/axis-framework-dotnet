@@ -29,7 +29,7 @@
     <PackageVersion Include="AxisMediator" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisMediator.Contracts" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisMediator.Contracts.Analyzers" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisMemoryBus" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMemoryBus" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisMemoryCache" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisOpenApi" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisPay" Version="3.0.0-beta.7" />
