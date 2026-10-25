@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>Axis.Conventions.Analyzers</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- A separate, opt-in package: these conventions govern how an application is built on Axis, so they never ride
+         along with a package that a project references for one primitive. -->
+    <PackageId>Axis.Conventions.Analyzers</PackageId>
+    <Description>Opt-in Roslyn analyzers that enforce the conventions of an Axis application at build time (AXIS0600-AXIS0608): internal sealed handlers, validators and domain properties records, sealed controllers, test method naming, [JsonIgnore] on route-filled command properties, one parameter per line in entity records, a single public DependencyInjection class per project and ready AxisError members.</Description>
+    <PackageTags>roslyn;analyzer;axis;conventions;architecture;hexagonal;cqrs</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- No lib/ output means an auto-generated symbols package would be empty (NU5017) -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,24 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- The packages released from the hub; the reference application in scaffolds/ stays non-packable. -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Version>3.0.0-beta.7</Version>
+    <Authors>Fillippe Prata</Authors>
+    <Company>Fillippe Prata</Company>
+    <Product>Axis Framework</Product>
+    <Copyright>Copyright (c) 2026 Fillippe Prata</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/axis-sys/axis-framework-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/axis-sys/axis-framework-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

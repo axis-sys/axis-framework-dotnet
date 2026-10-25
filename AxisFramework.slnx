@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Axis.Conventions.Analyzers.UnitTests/Axis.Conventions.Analyzers.UnitTests.csproj" />
+  </Folder>
   <Folder Name="/scaffolds/" />
   <Folder Name="/scaffolds/Core/">
     <Project Path="scaffolds/Core/Scaffolds.ECommerce.SharedKernel/Scaffolds.ECommerce.SharedKernel.csproj" />

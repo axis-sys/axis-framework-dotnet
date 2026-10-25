@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ControllerBase (AXIS0602) comes from the ASP.NET Core shared framework. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="AxisResult" />
+    <PackageReference Include="AxisMediator.Contracts" />
+    <PackageReference Include="AxisValidator.FluentValidation" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referenced by the types (to instantiate the analyzers), not applied as an analyzer here. -->
+    <ProjectReference Include="..\..\src\Axis.Conventions.Analyzers\Axis.Conventions.Analyzers.csproj" />
+  </ItemGroup>
+
+</Project>
