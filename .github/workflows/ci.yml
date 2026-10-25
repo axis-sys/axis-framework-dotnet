@@ -24,6 +24,10 @@ jobs:
         with:
           global-json-file: global.json
       - run: dotnet restore AxisFramework.slnx
+      # The conventions analyzers, their tests and the reference application, which runs the analyzers from source.
       - run: dotnet build AxisFramework.slnx -c Release --no-restore -warnaserror
-      # The integration and E2E tests start Postgres and MySQL with Testcontainers; ubuntu-latest runs Docker.
+      # The analyzers' unit tests and the reference application's four test projects. The integration and E2E tests
+      # start Postgres and MySQL with Testcontainers; ubuntu-latest runs Docker.
       - run: dotnet test --solution AxisFramework.slnx -c Release --no-build
+      # Only src/ is packable: this checks that Axis.Conventions.Analyzers packs; publishing is prerelease.yml's.
+      - run: dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts

@@ -1,0 +1,41 @@
+name: Pre-release
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      AXIS_NUGET_USER: ${{ github.actor }}
+      # The Axis packages were first published from another repository, so this repository's GITHUB_TOKEN
+      # cannot read or publish them: the organization secret AXIS_PACKAGES_TOKEN (read:packages and
+      # write:packages) can. Without it, the GITHUB_TOKEN is used.
+      AXIS_NUGET_TOKEN: ${{ secrets.AXIS_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - id: version
+        run: echo "value=$(dotnet msbuild src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -getProperty:Version)" >> "$GITHUB_OUTPUT"
+      # The integration and E2E tests of the reference application start Postgres and MySQL with Testcontainers;
+      # ubuntu-latest runs Docker. Only src/ is packable, so the pack produces Axis.Conventions.Analyzers alone.
+      - name: Build, test and pack
+        if: contains(steps.version.outputs.value, '-')
+        run: |
+          dotnet build AxisFramework.slnx -c Release -warnaserror
+          dotnet test --solution AxisFramework.slnx -c Release --no-build
+          dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts
+      - name: Publish to GitHub Packages
+        if: contains(steps.version.outputs.value, '-')
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --source https://nuget.pkg.github.com/axis-sys/index.json
+          --api-key "${{ secrets.AXIS_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}"
+          --skip-duplicate

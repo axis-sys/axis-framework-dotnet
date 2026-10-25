@@ -28,13 +28,18 @@ How to generate the documentation site is in [`AGENTS.md`](AGENTS.md#the-documen
 - Tests for the behavior it adds or changes, named `{WhatItDoes}When{Condition}Async`; E2E coverage for every new
   or changed controller.
 - The guide pages and `agents/axis-framework-dotnet.md` updated when a convention or a file they link changes.
+- For a new or changed conventions analyzer: its tests and its section in `site/guide/analyzers.md` (see
+  [`AGENTS.md`](AGENTS.md#the-conventions-analyzers)).
 - A line in `CHANGELOG.md`.
 - Commits in [Conventional Commits](https://www.conventionalcommits.org/) style.
 
 ## Branches
 
 - Work happens on `develop`; `main` only receives what is released.
-- A push to `main` publishes the documentation site to GitHub Pages.
+- A push to `develop` publishes the `Axis.Conventions.Analyzers` pre-release (the version in
+  `src/Directory.Build.props`, when it has a suffix) to GitHub Packages.
+- A push to `main` publishes the `Axis.Conventions.Analyzers` release to nuget.org, tags it, and publishes the
+  documentation site to GitHub Pages.
 
 ## License
 
