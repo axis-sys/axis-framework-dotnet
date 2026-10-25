@@ -70,5 +70,9 @@
   {
     "repository": "axis-repository",
     "packages": ["AxisRepository"]
+  },
+  {
+    "repository": "axis-http",
+    "packages": ["AxisHttp"]
   }
 ]
