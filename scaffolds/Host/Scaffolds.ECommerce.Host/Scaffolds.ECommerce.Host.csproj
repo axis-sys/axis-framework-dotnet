@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Asp.Versioning" />
+    <Using Include="Microsoft.AspNetCore.Authorization" />
+    <Using Include="Microsoft.AspNetCore.Mvc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AxisOpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driving.Facade\Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.InMemory\Scaffolds.ECommerce.Adapters.Driven.InMemory.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.AuthProviders\Scaffolds.ECommerce.Adapters.Driven.AuthProviders.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Jwt\Scaffolds.ECommerce.Adapters.Driven.Jwt.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Postgres\Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.MySql\Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <PackageReference Include="AxisBus.Postgres" />
+    <PackageReference Include="AxisBus.MySql" />
+    <PackageReference Include="AxisCache.Postgres" />
+    <PackageReference Include="AxisCache.MySql" />
+    <PackageReference Include="AxisSaga.Postgres" />
+    <PackageReference Include="AxisSaga.MySql" />
+    <PackageReference Include="AxisResult.HttpResponse" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.E2ETests" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <UserSecretsId>scaffolds-ecommerce-host</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Update="secrets.template.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+</Project>

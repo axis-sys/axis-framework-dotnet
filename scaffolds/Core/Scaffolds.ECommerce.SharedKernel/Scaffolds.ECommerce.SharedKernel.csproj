@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="AxisTypes.SourceGenerator" />
+    <Using Include="AxisMediator.Contracts.CQRS.Events" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AxisResult" />
+    <PackageReference Include="AxisTypes" />
+    <PackageReference Include="AxisMediator.Contracts" />
+  </ItemGroup>
+
+</Project>

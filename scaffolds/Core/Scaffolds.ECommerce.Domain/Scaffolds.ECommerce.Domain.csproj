@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Axis" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <PackageReference Include="AxisResult" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.Application" />
+    <InternalsVisibleTo Include="Scaffolds.ECommerce.UnitTests" />
+  </ItemGroup>
+
+</Project>

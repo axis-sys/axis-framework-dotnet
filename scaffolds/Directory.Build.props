@@ -1,0 +1,6 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <ItemGroup>
+    <PackageReference Include="Axis.Conventions.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

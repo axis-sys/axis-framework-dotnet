@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Moq" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisMediator.Contracts.Pipelines" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Shared" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.Products.ValueObjects" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.CartItems.ValueObjects" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.Events.v1" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Domain.EmailValidation.ValidationCodes" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Auth" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.EmailValidation.ValidationCodes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driving.Facade\Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driving\Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <PackageReference Include="AxisResult.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

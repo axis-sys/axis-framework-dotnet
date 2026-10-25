@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="AxisMediator.Contracts" />
+    <Using Include="AxisRepository.Postgres" />
+    <Using Include="AxisRepository.MySql" />
+    <Using Include="Moq" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Shared" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.Products.ValueObjects" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.Orders.ValueObjects" />
+    <Using Include="Scaffolds.ECommerce.SharedKernel.Catalog.CartItems.ValueObjects" />
+    <Using Include="Scaffolds.ECommerce.Domain.Authorization.Members" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Domain.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Domain.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Domain.EmailValidation.ValidationCodes" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Admin" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Authorization.Members" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.Products" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.Orders" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Catalog.CartItems" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.Customers.Customers" />
+    <Using Include="Scaffolds.ECommerce.Contracts.Driven.EmailValidation.ValidationCodes" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.Repository" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.Postgres" />
+    <Using Include="Scaffolds.ECommerce.Adapters.Driven.MySql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Testcontainers.MySql" />
+    <PackageReference Include="Moq" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.SharedKernel\Scaffolds.ECommerce.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Domain\Scaffolds.ECommerce.Domain.csproj" />
+    <ProjectReference Include="..\..\Contracts\Scaffolds.ECommerce.Contracts.Driven\Scaffolds.ECommerce.Contracts.Driven.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Repository\Scaffolds.ECommerce.Adapters.Driven.Repository.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.Postgres\Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.MySql\Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <PackageReference Include="AxisLogger" />
+    <PackageReference Include="AxisTelemetry" />
+    <PackageReference Include="AxisMediator.Contracts" />
+    <ProjectReference Include="..\..\Core\Scaffolds.ECommerce.Application\Scaffolds.ECommerce.Application.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driving.Facade\Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+    <ProjectReference Include="..\..\Adapters\Scaffolds.ECommerce.Adapters.Driven.InMemory\Scaffolds.ECommerce.Adapters.Driven.InMemory.csproj" />
+    <PackageReference Include="AxisBus.Postgres" />
+    <PackageReference Include="AxisBus.MySql" />
+    <PackageReference Include="AxisCache.Postgres" />
+    <PackageReference Include="AxisCache.MySql" />
+    <PackageReference Include="AxisSaga.Postgres" />
+    <PackageReference Include="AxisSaga.MySql" />
+  </ItemGroup>
+
+</Project>

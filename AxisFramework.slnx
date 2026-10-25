@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/scaffolds/" />
+  <Folder Name="/scaffolds/Core/">
+    <Project Path="scaffolds/Core/Scaffolds.ECommerce.SharedKernel/Scaffolds.ECommerce.SharedKernel.csproj" />
+    <Project Path="scaffolds/Core/Scaffolds.ECommerce.Domain/Scaffolds.ECommerce.Domain.csproj" />
+    <Project Path="scaffolds/Core/Scaffolds.ECommerce.Application/Scaffolds.ECommerce.Application.csproj" />
+  </Folder>
+  <Folder Name="/scaffolds/Contracts/">
+    <Project Path="scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Scaffolds.ECommerce.Contracts.Driving.csproj" />
+    <Project Path="scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driven/Scaffolds.ECommerce.Contracts.Driven.csproj" />
+  </Folder>
+  <Folder Name="/scaffolds/Adapters/" />
+  <Folder Name="/scaffolds/Adapters/Driven/">
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.AuthProviders/Scaffolds.ECommerce.Adapters.Driven.AuthProviders.csproj" />
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.InMemory/Scaffolds.ECommerce.Adapters.Driven.InMemory.csproj" />
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Jwt/Scaffolds.ECommerce.Adapters.Driven.Jwt.csproj" />
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.MySql/Scaffolds.ECommerce.Adapters.Driven.MySql.csproj" />
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Postgres/Scaffolds.ECommerce.Adapters.Driven.Postgres.csproj" />
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driven.Repository/Scaffolds.ECommerce.Adapters.Driven.Repository.csproj" />
+  </Folder>
+  <Folder Name="/scaffolds/Adapters/Driving/">
+    <Project Path="scaffolds/Adapters/Scaffolds.ECommerce.Adapters.Driving.Facade/Scaffolds.ECommerce.Adapters.Driving.Facade.csproj" />
+  </Folder>
+  <Folder Name="/scaffolds/Host/">
+    <Project Path="scaffolds/Host/Scaffolds.ECommerce.Host/Scaffolds.ECommerce.Host.csproj" />
+  </Folder>
+  <Folder Name="/scaffolds/Tests/">
+    <Project Path="scaffolds/Tests/Scaffolds.ECommerce.ArchitectureTests/Scaffolds.ECommerce.ArchitectureTests.csproj" />
+    <Project Path="scaffolds/Tests/Scaffolds.ECommerce.UnitTests/Scaffolds.ECommerce.UnitTests.csproj" />
+    <Project Path="scaffolds/Tests/Scaffolds.ECommerce.IntegrationTests/Scaffolds.ECommerce.IntegrationTests.csproj" />
+    <Project Path="scaffolds/Tests/Scaffolds.ECommerce.E2ETests/Scaffolds.ECommerce.E2ETests.csproj" />
+  </Folder>
+</Solution>

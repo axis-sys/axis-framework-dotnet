@@ -1,0 +1,85 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup Label="Axis">
+    <PackageVersion Include="Axis.Conventions.Analyzers" Version="3.0.0-beta.6" />
+    <PackageVersion Include="Axis.Testing" Version="3.0.0-beta.6" />
+    <PackageVersion Include="Axis.Testing.XUnit" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisAI" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisAI.Agents" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisAI.OpenAiCompatible" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisBus" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisBus.Analyzers" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisBus.MySql" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisBus.Postgres" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisBus.Repository" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisCache" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisCache.MySql" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisCache.Postgres" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisCache.Repository" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisDependencyInjections" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisDependencyInjections.Abstractions" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisEmail" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisEmail.MimeKit" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisHttp" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisJwt" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisLogger" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMcp.Client" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMediator" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMediator.Contracts" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMediator.Contracts.Analyzers" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMemoryBus" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisMemoryCache" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisOpenApi" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisPay" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisRepository" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisRepository.MySql" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisResult" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisResult.Analyzers" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisResult.HttpResponse" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisSaga" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisSaga.MySql" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisSaga.Postgres" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisSecurity" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage.AmazonS3" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage.AzureBlob" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage.CloudflareR2" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage.FileSystem" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisTelemetry" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisTelemetry.AzureMonitor" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisTypes" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisTypes.Analyzers" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisValidator" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisValidator.Brazil" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisValidator.FluentValidation" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisValidator.Usa" Version="3.0.0-beta.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="18.12.1" />
+    <PackageVersion Include="MySqlConnector" Version="2.6.2" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Moq" Version="4.21.0" />
+    <PackageVersion Include="Testcontainers.MySql" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+  </ItemGroup>
+</Project>
