@@ -10,5 +10,9 @@
   {
     "repository": "axis-ai",
     "packages": ["AxisAI"]
+  },
+  {
+    "repository": "axis-types",
+    "packages": ["AxisTypes", "AxisTypes.Analyzers"]
   }
 ]
