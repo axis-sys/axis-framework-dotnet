@@ -1,0 +1,20 @@
+name: Guide or reference application proposal
+description: Propose a convention, an example or a page.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What are you trying to build, and what is missing or unclear today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The convention, the example or the page you have in mind.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AXIS_NUGET_USER: ${{ github.actor }}
+      # The Axis packages were first published from another repository, so this repository's GITHUB_TOKEN
+      # cannot read them: the organization secret AXIS_PACKAGES_TOKEN (read:packages) can. Without it, the
+      # GITHUB_TOKEN is used.
+      AXIS_NUGET_TOKEN: ${{ secrets.AXIS_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore AxisFramework.slnx
+      - run: dotnet build AxisFramework.slnx -c Release --no-restore -warnaserror
+      # The integration and E2E tests start Postgres and MySQL with Testcontainers; ubuntu-latest runs Docker.
+      - run: dotnet test --solution AxisFramework.slnx -c Release --no-build

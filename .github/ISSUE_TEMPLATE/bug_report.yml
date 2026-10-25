@@ -1,0 +1,27 @@
+name: Bug report
+description: The reference application, the guide or the site does not behave or read as it should.
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Reference application
+        - Application guide
+        - Documentation site
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: What happens
+      description: The steps, the page or the file, and what you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true

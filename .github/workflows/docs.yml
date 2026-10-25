@@ -1,0 +1,57 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AXIS_NUGET_USER: ${{ github.actor }}
+      # The Axis packages were first published from another repository, so this repository's GITHUB_TOKEN
+      # cannot read them: the organization secret AXIS_PACKAGES_TOKEN (read:packages) can. Without it, the
+      # GITHUB_TOKEN is used.
+      AXIS_NUGET_TOKEN: ${{ secrets.AXIS_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check out the package repositories
+        run: |
+          mkdir -p "$RUNNER_TEMP/repos"
+          for repo in $(node -e "for (const r of require('./site/packages.json')) console.log(r.repository)"); do
+            git clone --depth 1 "https://github.com/axis-sys/$repo.git" "$RUNNER_TEMP/repos/$repo"
+          done
+      - run: node site/collect-docs.mjs "$RUNNER_TEMP/repos"
+      - run: dotnet build site/ApiReference/ApiReference.csproj -c Release
+      - run: dotnet tool restore
+      - run: dotnet docfx site/docfx.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
