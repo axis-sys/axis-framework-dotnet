@@ -166,5 +166,9 @@
   {
     "repository": "axis-mediator",
     "packages": ["AxisMediator"]
+  },
+  {
+    "repository": "axis-saga-mysql",
+    "packages": ["AxisSaga.MySql"]
   }
 ]
