@@ -114,5 +114,9 @@
   {
     "repository": "axis-ai-agents",
     "packages": ["AxisAI.Agents"]
+  },
+  {
+    "repository": "axis-jwt",
+    "packages": ["AxisJwt"]
   }
 ]
