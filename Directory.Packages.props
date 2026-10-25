@@ -9,7 +9,7 @@
     <PackageVersion Include="Axis.Testing.XUnit" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisAI" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisAI.Agents" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisAI.OpenAiCompatible" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisAI.OpenAiCompatible" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisBus" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisBus.Analyzers" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisBus.MySql" Version="3.0.0-beta.6" />
