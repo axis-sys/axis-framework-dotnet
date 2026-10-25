@@ -110,5 +110,9 @@
   {
     "repository": "axis-ai-openai-compatible",
     "packages": ["AxisAI.OpenAiCompatible"]
+  },
+  {
+    "repository": "axis-ai-agents",
+    "packages": ["AxisAI.Agents"]
   }
 ]
