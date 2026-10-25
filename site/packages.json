@@ -142,5 +142,9 @@
   {
     "repository": "axis-repository-mysql",
     "packages": ["AxisRepository.MySql"]
+  },
+  {
+    "repository": "axis-validator-fluent-validation",
+    "packages": ["AxisValidator.FluentValidation"]
   }
 ]
