@@ -94,5 +94,9 @@
   {
     "repository": "axis-storage-azure-blob",
     "packages": ["AxisStorage.AzureBlob"]
+  },
+  {
+    "repository": "axis-telemetry-azure-monitor",
+    "packages": ["AxisTelemetry.AzureMonitor"]
   }
 ]
