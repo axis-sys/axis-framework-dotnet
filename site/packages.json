@@ -22,5 +22,9 @@
   {
     "repository": "axis-openapi",
     "packages": ["AxisOpenApi"]
+  },
+  {
+    "repository": "axis-cache",
+    "packages": ["AxisCache"]
   }
 ]

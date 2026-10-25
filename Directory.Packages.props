@@ -15,7 +15,7 @@
     <PackageVersion Include="AxisBus.MySql" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisBus.Postgres" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisBus.Repository" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisCache" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisCache" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisCache.MySql" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisCache.Postgres" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisCache.Repository" Version="3.0.0-beta.6" />
