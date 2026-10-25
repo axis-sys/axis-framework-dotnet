@@ -9,7 +9,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
         """;
 
     [Fact]
-    public async Task FlagsPublicPropertiesRecordAsync()
+    public async Task FlagsTheRecordWhenAPropertiesRecordIsPublicAsync()
     {
         var source = Prelude +
                      """
@@ -22,7 +22,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsNonSealedInternalPropertiesRecordAsync()
+    public async Task FlagsTheRecordWhenAnInternalPropertiesRecordIsNotSealedAsync()
     {
         var source = Prelude +
                      """
@@ -35,7 +35,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInternalSealedPropertiesRecordAsync()
+    public async Task FlagsNothingWhenThePropertiesRecordIsInternalSealedAsync()
     {
         var source = Prelude +
                      """
@@ -48,7 +48,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresRecordThatImplementsNoPropertiesInterfaceAsync()
+    public async Task IgnoresTheRecordWhenItImplementsNoPropertiesInterfaceAsync()
     {
         var source =
             """
@@ -61,7 +61,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInterfaceWhoseNameDoesNotEndInPropertiesAsync()
+    public async Task IgnoresTheRecordWhenTheInterfaceNameDoesNotEndInPropertiesAsync()
     {
         var source =
             """
@@ -75,7 +75,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInternalNonSealedEntityWithProtectedMemberAsync()
+    public async Task IgnoresTheEntityWhenAnInternalNonSealedEntityDeclaresAProtectedMemberAsync()
     {
         // The AggregateApplication subclass lives in a downstream Application-project assembly the analyzer
         // never sees; the decidable signal, from this compilation alone, is the protected Rules member itself.
@@ -95,7 +95,7 @@ public class DomainPropertiesRecordAccessibilityAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsInternalNonSealedEntityWithNoProtectedMemberAsync()
+    public async Task FlagsTheEntityWhenAnInternalNonSealedEntityDeclaresNoProtectedMemberAsync()
     {
         var source = Prelude +
                      """

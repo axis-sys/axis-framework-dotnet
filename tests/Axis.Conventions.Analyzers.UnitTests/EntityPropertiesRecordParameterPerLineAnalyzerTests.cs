@@ -3,7 +3,7 @@ namespace Axis.Conventions.Analyzers.UnitTests;
 public class EntityPropertiesRecordParameterPerLineAnalyzerTests
 {
     [Fact]
-    public async Task FlagsSingleLineMultiParameterRecordAsync()
+    public async Task FlagsTheRecordWhenAllParametersShareTheDeclarationLineAsync()
     {
         const string source =
             """
@@ -17,7 +17,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsWhenTwoParametersShareALineAsync()
+    public async Task FlagsTheRecordWhenTwoParametersShareALineAsync()
     {
         const string source =
             """
@@ -33,7 +33,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsWhenFirstParameterSharesTheDeclarationLineAsync()
+    public async Task FlagsTheRecordWhenTheFirstParameterSharesTheDeclarationLineAsync()
     {
         const string source =
             """
@@ -49,7 +49,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresOneParameterPerLineRecordAsync()
+    public async Task FlagsNothingWhenEachParameterIsOnItsOwnLineAsync()
     {
         const string source =
             """
@@ -66,7 +66,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresSingleParameterRecordAsync()
+    public async Task IgnoresTheRecordWhenItHasASingleParameterAsync()
     {
         const string source =
             """
@@ -80,7 +80,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresRecordImplementingNoPropertiesInterfaceAsync()
+    public async Task IgnoresTheRecordWhenItImplementsNoPropertiesInterfaceAsync()
     {
         const string source =
             """
@@ -93,7 +93,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInterfaceWhoseNameDoesNotEndInPropertiesAsync()
+    public async Task IgnoresTheRecordWhenTheInterfaceNameDoesNotEndInPropertiesAsync()
     {
         const string source =
             """
@@ -107,7 +107,7 @@ public class EntityPropertiesRecordParameterPerLineAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresRecordStructValueObjectAsync()
+    public async Task IgnoresTheRecordWhenItIsARecordStructAsync()
     {
         // A record struct is a value object, not an entity — SyntaxKind.RecordStructDeclaration is out of scope.
         const string source =

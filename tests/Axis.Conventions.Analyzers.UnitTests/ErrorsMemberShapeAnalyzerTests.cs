@@ -9,7 +9,7 @@ public class ErrorsMemberShapeAnalyzerTests
         """;
 
     [Fact]
-    public async Task FlagsErrorsClassConstBuiltIntoAxisErrorAtTheCallSiteAsync()
+    public async Task FlagsTheCallWhenAnErrorsClassConstIsBuiltIntoAnAxisErrorAtTheCallSiteAsync()
     {
         var source = Prelude +
                      """
@@ -30,7 +30,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsOncePerCallSiteWhenTheSameCodeIsRebuiltRepeatedlyAsync()
+    public async Task FlagsEveryCallSiteWhenTheSameCodeIsRebuiltRepeatedlyAsync()
     {
         var source = Prelude +
                      """
@@ -52,7 +52,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresTheDeclarationInsideTheErrorsClassItselfAsync()
+    public async Task IgnoresTheCallWhenItIsInsideTheErrorsClassItselfAsync()
     {
         var source = Prelude +
                      """
@@ -70,7 +70,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresTheReadyMemberReturnedByACallSiteAsync()
+    public async Task FlagsNothingWhenTheCallSiteReturnsTheReadyMemberAsync()
     {
         var source = Prelude +
                      """
@@ -91,7 +91,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresAConstConsumedAsARawValidationCodeAsync()
+    public async Task IgnoresTheConstWhenItIsConsumedAsARawValidationCodeAsync()
     {
         var source = Prelude +
                      """
@@ -112,7 +112,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresAConstThatDoesNotComeFromAnErrorsClassAsync()
+    public async Task IgnoresTheConstWhenItDoesNotComeFromAnErrorsClassAsync()
     {
         var source = Prelude +
                      """
@@ -133,7 +133,7 @@ public class ErrorsMemberShapeAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresACodeComposedFromRuntimeContextAsync()
+    public async Task IgnoresTheCallWhenTheCodeIsComposedFromRuntimeContextAsync()
     {
         var source = Prelude +
                      """

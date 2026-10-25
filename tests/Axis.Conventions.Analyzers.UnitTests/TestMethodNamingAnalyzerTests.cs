@@ -10,7 +10,7 @@ public class TestMethodNamingAnalyzerTests
         """;
 
     [Fact]
-    public async Task FlagsSnakeCaseTestNameAsync()
+    public async Task FlagsTheMethodWhenATestNameIsSnakeCaseAsync()
     {
         var source = FactDef +
                      """
@@ -26,7 +26,7 @@ public class TestMethodNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsAsyncTestWithoutAsyncSuffixAsync()
+    public async Task FlagsTheMethodWhenAnAsyncTestLacksTheAsyncSuffixAsync()
     {
         var source = FactDef +
                      """
@@ -42,7 +42,7 @@ public class TestMethodNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresPascalCaseTestsAsync()
+    public async Task FlagsNothingWhenTestNamesArePascalCaseWithTheRightSuffixAsync()
     {
         var source = FactDef +
                      """
@@ -59,7 +59,7 @@ public class TestMethodNamingAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresNonTestMethodAsync()
+    public async Task IgnoresTheMethodWhenItIsNotATestAsync()
     {
         var source = FactDef +
                      """

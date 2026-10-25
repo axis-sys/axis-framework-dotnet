@@ -3,7 +3,7 @@ namespace Axis.Conventions.Analyzers.UnitTests;
 public class ControllerSealedAnalyzerTests
 {
     [Fact]
-    public async Task FlagsUnsealedControllerAsync()
+    public async Task FlagsTheClassWhenAControllerIsNotSealedAsync()
     {
         const string source =
             """
@@ -17,7 +17,7 @@ public class ControllerSealedAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsUnsealedViewControllerAsync()
+    public async Task FlagsTheClassWhenAViewControllerIsNotSealedAsync()
     {
         const string source =
             """
@@ -31,7 +31,7 @@ public class ControllerSealedAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresSealedControllerAsync()
+    public async Task FlagsNothingWhenTheControllerIsSealedAsync()
     {
         const string source =
             """
@@ -45,7 +45,7 @@ public class ControllerSealedAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresAbstractBaseControllerAsync()
+    public async Task IgnoresTheClassWhenTheControllerIsAnAbstractBaseAsync()
     {
         const string source =
             """
@@ -59,7 +59,7 @@ public class ControllerSealedAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresNonControllerAsync()
+    public async Task IgnoresTheClassWhenItIsNotAControllerAsync()
     {
         const string source =
             """

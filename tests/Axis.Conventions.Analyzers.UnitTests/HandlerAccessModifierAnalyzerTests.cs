@@ -3,7 +3,7 @@ namespace Axis.Conventions.Analyzers.UnitTests;
 public class HandlerAccessModifierAnalyzerTests
 {
     [Fact]
-    public async Task FlagsPublicHandlerAsync()
+    public async Task FlagsTheClassWhenAHandlerIsPublicAsync()
     {
         const string source =
             """
@@ -27,7 +27,7 @@ public class HandlerAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsNonSealedInternalHandlerAsync()
+    public async Task FlagsTheClassWhenAnInternalHandlerIsNotSealedAsync()
     {
         const string source =
             """
@@ -51,7 +51,7 @@ public class HandlerAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInternalSealedHandlerAsync()
+    public async Task FlagsNothingWhenTheHandlerIsInternalSealedAsync()
     {
         const string source =
             """
@@ -75,7 +75,7 @@ public class HandlerAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresNonHandlerClassAsync()
+    public async Task IgnoresTheClassWhenItImplementsNoHandlerInterfaceAsync()
     {
         const string source =
             """

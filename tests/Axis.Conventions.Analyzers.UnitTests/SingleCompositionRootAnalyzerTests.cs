@@ -3,7 +3,7 @@ namespace Axis.Conventions.Analyzers.UnitTests;
 public class SingleCompositionRootAnalyzerTests
 {
     [Fact]
-    public async Task IgnoresSinglePublicDependencyInjectionAsync()
+    public async Task FlagsNothingWhenTheAssemblyHasASinglePublicDependencyInjectionAsync()
     {
         var source =
             """
@@ -17,7 +17,7 @@ public class SingleCompositionRootAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInternalPerFeatureDependencyInjectionAsync()
+    public async Task FlagsNothingWhenThePerFeatureDependencyInjectionIsInternalAsync()
     {
         var source =
             """
@@ -38,7 +38,7 @@ public class SingleCompositionRootAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsMultiplePublicDependencyInjectionAsync()
+    public async Task FlagsEveryClassWhenTheAssemblyHasTwoPublicDependencyInjectionClassesAsync()
     {
         var source =
             """
@@ -59,7 +59,7 @@ public class SingleCompositionRootAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresUnrelatedPublicClassNamedDifferentlyAsync()
+    public async Task IgnoresTheClassWhenItIsNotNamedDependencyInjectionAsync()
     {
         var source =
             """

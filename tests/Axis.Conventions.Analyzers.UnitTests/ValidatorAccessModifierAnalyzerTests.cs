@@ -10,7 +10,7 @@ public class ValidatorAccessModifierAnalyzerTests
         """;
 
     [Fact]
-    public async Task FlagsPublicValidatorAsync()
+    public async Task FlagsTheClassWhenAValidatorIsPublicAsync()
     {
         var source = Prelude +
                      """
@@ -23,7 +23,7 @@ public class ValidatorAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task FlagsNonSealedValidatorAsync()
+    public async Task FlagsTheClassWhenAnInternalValidatorIsNotSealedAsync()
     {
         var source = Prelude +
                      """
@@ -36,7 +36,7 @@ public class ValidatorAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresInternalSealedValidatorAsync()
+    public async Task FlagsNothingWhenTheValidatorIsInternalSealedAsync()
     {
         var source = Prelude +
                      """
@@ -49,7 +49,7 @@ public class ValidatorAccessModifierAnalyzerTests
     }
 
     [Fact]
-    public async Task IgnoresNonValidatorClassAsync()
+    public async Task IgnoresTheClassWhenItDoesNotDeriveFromAxisValidatorBaseAsync()
     {
         var source = Prelude +
                      """
