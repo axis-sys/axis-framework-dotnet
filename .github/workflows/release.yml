@@ -25,13 +25,14 @@ jobs:
       - id: version
         run: echo "value=$(dotnet msbuild src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -getProperty:Version)" >> "$GITHUB_OUTPUT"
       # The integration and E2E tests of the reference application start Postgres and MySQL with Testcontainers;
-      # ubuntu-latest runs Docker. Only src/ is packable, so the pack produces Axis.Conventions.Analyzers alone.
+      # ubuntu-latest runs Docker. The package packs from its own project: packing the solution would warn on the
+      # web host, which is not packable.
       - name: Build, test and pack
         if: ${{ !contains(steps.version.outputs.value, '-') }}
         run: |
           dotnet build AxisFramework.slnx -c Release -warnaserror
           dotnet test --solution AxisFramework.slnx -c Release --no-build
-          dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts
+          dotnet pack src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -c Release --no-build -o artifacts
       - name: Publish to nuget.org
         if: ${{ !contains(steps.version.outputs.value, '-') }}
         run: >

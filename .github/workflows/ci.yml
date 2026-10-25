@@ -29,5 +29,6 @@ jobs:
       # The analyzers' unit tests and the reference application's four test projects. The integration and E2E tests
       # start Postgres and MySQL with Testcontainers; ubuntu-latest runs Docker.
       - run: dotnet test --solution AxisFramework.slnx -c Release --no-build
-      # Only src/ is packable: this checks that Axis.Conventions.Analyzers packs; publishing is prerelease.yml's.
-      - run: dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts
+      # Checks that Axis.Conventions.Analyzers packs (publishing is prerelease.yml's). It packs from its own project:
+      # packing the solution would warn on the web host, which is not packable.
+      - run: dotnet pack src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -c Release --no-build -o artifacts

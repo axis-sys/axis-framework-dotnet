@@ -38,7 +38,11 @@ dotnet test --solution AxisFramework.slnx -c Release --no-build
 
 The build must end with zero warnings. The E2E suite runs against the provider pinned in
 `ECommerceProviderPin.DefaultProvider`; the other provider's collection is reported as skipped. Only `src/` is
-packable: `dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts` produces `Axis.Conventions.Analyzers`.
+packable; after the build, pack the package from its project (packing the solution warns on the web host):
+
+```bash
+dotnet pack src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -c Release --no-build -o artifacts
+```
 
 ### The documentation site
 

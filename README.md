@@ -117,8 +117,12 @@ dotnet test --solution AxisFramework.slnx -c Release --no-build
 ```
 
 The build also compiles the conventions analyzers and the test run includes their unit tests
-(`tests/Axis.Conventions.Analyzers.UnitTests`). `dotnet pack AxisFramework.slnx -c Release --no-build -o artifacts`
-produces the `Axis.Conventions.Analyzers` package; nothing else here is packable.
+(`tests/Axis.Conventions.Analyzers.UnitTests`). After the build, this produces the `Axis.Conventions.Analyzers`
+package; nothing else here is packable:
+
+```bash
+dotnet pack src/Axis.Conventions.Analyzers/Axis.Conventions.Analyzers.csproj -c Release --no-build -o artifacts
+```
 
 The version of every Axis package the reference application consumes is pinned in
 [`Directory.Packages.props`](Directory.Packages.props); the version of the package released from here is in
