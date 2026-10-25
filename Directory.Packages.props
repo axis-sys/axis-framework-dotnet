@@ -41,7 +41,7 @@
     <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisResult" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisResult.Analyzers" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisResult.HttpResponse" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisResult.HttpResponse" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisSaga" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisSaga.MySql" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisSaga.Postgres" Version="3.0.0-beta.6" />

@@ -74,5 +74,9 @@
   {
     "repository": "axis-http",
     "packages": ["AxisHttp"]
+  },
+  {
+    "repository": "axis-result-httpresponse",
+    "packages": ["AxisResult.HttpResponse"]
   }
 ]
