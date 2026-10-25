@@ -48,7 +48,9 @@ one railway from the caller's identity to the response, with no `try/catch`, no 
 Each package lives in its own repository under [axis-sys](https://github.com/axis-sys), with its code, tests,
 articles and a usage agent, and ships to NuGet with the same id (`AxisResult`, `AxisMediator`, `AxisSaga`...). The
 [hub](https://github.com/axis-sys/axis-framework-dotnet) holds the reference application, which consumes every
-package from NuGet exactly as your application would, and this site.
+package from NuGet exactly as your application would, this site, and the
+[conventions analyzers](guide/analyzers.md) (`Axis.Conventions.Analyzers`), which it releases and runs on the
+reference application.
 
 ## License
 

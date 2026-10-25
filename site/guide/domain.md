@@ -135,8 +135,8 @@ Checklist:
 | `ProductId ProductId { get; }` | `string ProductId { get; }` or a `Guid` id |
 | validate in a value object or a validator | validate or compute inside the Properties record |
 
-The `Axis.Conventions.Analyzers` package that the reference application references reports a concrete
-properties record that is not `internal sealed` (AXIS0604).
+The conventions analyzers (`Axis.Conventions.Analyzers`) report a concrete properties record that is not
+`internal sealed` ([`AXIS0604`](analyzers.md#axis0604)).
 
 ### Exceptions
 

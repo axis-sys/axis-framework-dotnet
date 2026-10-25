@@ -345,9 +345,9 @@ a 400. That is why the errors class declares the finished error.
 - The member is `static readonly`, never a mutable static. `AxisError` is an immutable record, so a shared
   instance stays shared and allocates nothing per call.
 - Call sites return the declared member and never build it again: calling an `AxisError` factory outside an errors
-  class is a violation. The build catches the case it can decide on its own (`AXIS0608`): a factory call outside an
-  errors class that is given one of that class's `const` codes. Review catches the rest, such as a category chosen
-  wrongly or a code that should have been parameterized.
+  class is a violation. The build catches the case it can decide on its own ([`AXIS0608`](analyzers.md#axis0608)): a
+  factory call outside an errors class that is given one of that class's `const` codes. Review catches the rest, such
+  as a category chosen wrongly or a code that should have been parameterized.
 - A test that matches on the raw code reads it from the member's `Code` property, as in
   `ShouldFailWithCode(ProductErrors.InsufficientStock.Code)` from
   [`Axis.Testing`](https://github.com/axis-sys/axis-testing). That does not justify a separate `const string`.
@@ -460,8 +460,8 @@ internal sealed record CartItemDbEntity(
 }
 ```
 
-`AXIS0606`, from the `Axis.Conventions.Analyzers` package, enforces the parameter layout. The reference application
-references that package once for every project, in
+[`AXIS0606`](analyzers.md#axis0606), from the `Axis.Conventions.Analyzers` package, enforces the parameter layout.
+The reference application runs those analyzers on every project, in
 [`Directory.Build.props`](https://github.com/axis-sys/axis-framework-dotnet/blob/main/scaffolds/Directory.Build.props).
 It has to be an analyzer because no `.editorconfig` or formatter setting puts positional-record parameters one per
 line. The closing parenthesis and the `FromReader` layout are a matter of style and are not analyzed.

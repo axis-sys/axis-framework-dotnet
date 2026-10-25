@@ -93,8 +93,8 @@ and its siblings, such as [`OrdersV1Controller.cs`](https://github.com/axis-sys/
   carry `[Authorize(Policy = AuthorizationPolicies.Administrator)]`.
 - A purely diagnostic edge read may expose a synchronous action returning a plain `IActionResult`.
 
-The conventions analyzers the reference application builds with (`Axis.Conventions.Analyzers`) report a controller
-that is not sealed (`AXIS0602`); under `-warnaserror` that breaks the build.
+The conventions analyzers (`Axis.Conventions.Analyzers`) report a controller that is not sealed
+([`AXIS0602`](analyzers.md#axis0602)); under `-warnaserror` that breaks the build.
 
 ## Controllers depend on facades only
 
@@ -461,7 +461,7 @@ public Task<IActionResult> CheckoutProductAsync(string productId, [FromBody] Che
 
 A command whose id only ever travels in the body (no route segment) keeps the property serializable. A query built
 entirely from the route (`new GetOrderQuery { OrderId = orderId }`) has no body to collide with. The conventions
-analyzers report a route-injected property without `[JsonIgnore]` (`AXIS0605`).
+analyzers report a route-injected property without `[JsonIgnore]` ([`AXIS0605`](analyzers.md#axis0605)).
 
 References: [`CheckoutProductCommand.cs`](https://github.com/axis-sys/axis-framework-dotnet/blob/main/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Catalog/Products/v1/CheckoutProduct/CheckoutProductCommand.cs),
 [`UpdateGrantsCommand.cs`](https://github.com/axis-sys/axis-framework-dotnet/blob/main/scaffolds/Contracts/Scaffolds.ECommerce.Contracts.Driving/Authorization/v1/UpdateGrants/UpdateGrantsCommand.cs).

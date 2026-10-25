@@ -87,7 +87,8 @@ loads it by name from its build output. The boundaries themselves are described 
 
 The name reads as the specification of the case: what is asserted, and under which condition. It is the only
 statement of what a test proves — a test carries no comment and no traceability tag. A snake_case sentence is a
-divergence to correct, not an alternative; the conventions analyzers suggest the fix (`AXIS0603`).
+divergence to correct, not an alternative; the conventions analyzers suggest the fix
+([`AXIS0603`](analyzers.md#axis0603)).
 
 ## Arrange-Act-Assert
 

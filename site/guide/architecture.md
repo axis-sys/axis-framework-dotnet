@@ -553,7 +553,7 @@ From the application's
 
 - **A project exposes exactly one public registration extension** — a `public static class DependencyInjection`
   at the project root. Nothing else in the project is public for wiring; a build-time analyzer rejects a second
-  public `DependencyInjection` in the same assembly.
+  public `DependencyInjection` in the same assembly ([`AXIS0607`](analyzers.md#axis0607)).
 - **A project spanning several contexts decomposes** that entry into one `internal static class DependencyInjection`
   per context or feature folder that registers services
   ([`Application/Auth/DependencyInjection`](https://github.com/axis-sys/axis-framework-dotnet/blob/main/scaffolds/Core/Scaffolds.ECommerce.Application/Auth/DependencyInjection.cs),

@@ -399,9 +399,10 @@ already covered, so don't repeat it in the review:
 | `AXIS0200`–`AXIS0201` | `AxisTypes.Analyzers` ([axis-types](https://github.com/axis-sys/axis-types)) | a `[ValueObject]` struct that is not `readonly`; `null` converted through the implicit conversion from string |
 | `AXIS0300` | `AxisBus.Analyzers` ([axis-bus](https://github.com/axis-sys/axis-bus)) | an event published after the unit of work commits |
 | `AXIS0400`–`AXIS0403` | `AxisMediator.Contracts.Analyzers` ([axis-mediator-contracts](https://github.com/axis-sys/axis-mediator-contracts)) | a handler that takes a `CancellationToken` parameter, a CQRS dispatch from inside a handler, an injected context accessor, a string-literal pipeline key |
-| `AXIS0600`–`AXIS0608` | `Axis.Conventions.Analyzers` | handlers and validators that are not `internal sealed`, controllers that are not `sealed`, test method naming, domain properties records that are not `internal sealed`, route-filled properties without `[JsonIgnore]`, entity records with parameters crammed onto shared lines, a second public `DependencyInjection` class, an `AxisError` rebuilt from an errors-class `const` |
+| `AXIS0600`–`AXIS0608` | [`Axis.Conventions.Analyzers`](analyzers.md) (this repository) | handlers and validators that are not `internal sealed`, controllers that are not `sealed`, test method naming, domain properties records that are not `internal sealed`, route-filled properties without `[JsonIgnore]`, entity records with parameters crammed onto shared lines, a second public `DependencyInjection` class, an `AxisError` rebuilt from an errors-class `const` |
 
-The reference application references `Axis.Conventions.Analyzers` once for every project, in
+An application references `Axis.Conventions.Analyzers` once for every project, in its `Directory.Build.props`
+([Analyzers](analyzers.md)); the reference application, which lives beside the analyzers, runs them from source in
 [`Directory.Build.props`](https://github.com/axis-sys/axis-framework-dotnet/blob/main/scaffolds/Directory.Build.props).
 
 ### 2. Judgment on the diff

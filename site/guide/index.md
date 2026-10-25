@@ -21,6 +21,7 @@ report the page.
 | [Testing](testing.md) | decide which test project a test belongs to and write it |
 | [Code style](style.md) | name a project, a type or an error, or pick a visibility |
 | [Process](process.md) | write comments and docs, layer configuration, run migrations, review a change |
+| [Analyzers](analyzers.md) | meet an `AXIS06NN` diagnostic, or add the conventions analyzers to an application |
 
 ## The packages behind it
 
