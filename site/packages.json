@@ -126,5 +126,9 @@
   {
     "repository": "axis-saga",
     "packages": ["AxisSaga"]
+  },
+  {
+    "repository": "axis-cache-repository",
+    "packages": ["AxisCache.Repository"]
   }
 ]
