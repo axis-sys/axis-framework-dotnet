@@ -170,5 +170,9 @@
   {
     "repository": "axis-saga-mysql",
     "packages": ["AxisSaga.MySql"]
+  },
+  {
+    "repository": "axis-bus-mysql",
+    "packages": ["AxisBus.MySql"]
   }
 ]
