@@ -42,5 +42,9 @@
   {
     "repository": "axis-security",
     "packages": ["AxisSecurity"]
+  },
+  {
+    "repository": "axis-pay",
+    "packages": ["AxisPay", "AxisPay.InMemory"]
   }
 ]
