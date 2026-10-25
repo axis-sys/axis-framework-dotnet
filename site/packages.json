@@ -90,5 +90,9 @@
   {
     "repository": "axis-storage-cloudflare-r2",
     "packages": ["AxisStorage.CloudflareR2"]
+  },
+  {
+    "repository": "axis-storage-azure-blob",
+    "packages": ["AxisStorage.AzureBlob"]
   }
 ]
