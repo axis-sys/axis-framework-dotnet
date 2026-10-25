@@ -118,5 +118,9 @@
   {
     "repository": "axis-jwt",
     "packages": ["AxisJwt"]
+  },
+  {
+    "repository": "axis-mcp-client",
+    "packages": ["AxisMcp.Client"]
   }
 ]
