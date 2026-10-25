@@ -38,7 +38,7 @@
     <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisRepository" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisRepository.MySql" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisResult" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisResult.Analyzers" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisResult.HttpResponse" Version="3.0.0-beta.7" />

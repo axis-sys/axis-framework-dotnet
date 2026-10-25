@@ -134,5 +134,9 @@
   {
     "repository": "axis-bus-repository",
     "packages": ["AxisBus.Repository"]
+  },
+  {
+    "repository": "axis-repository-postgres",
+    "packages": ["AxisRepository.Postgres"]
   }
 ]
