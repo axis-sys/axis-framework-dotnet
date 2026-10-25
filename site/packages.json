@@ -178,5 +178,9 @@
   {
     "repository": "axis-memory-bus",
     "packages": ["AxisMemoryBus"]
+  },
+  {
+    "repository": "axis-saga-postgres",
+    "packages": ["AxisSaga.Postgres"]
   }
 ]
