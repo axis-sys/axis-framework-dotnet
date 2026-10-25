@@ -26,5 +26,9 @@
   {
     "repository": "axis-cache",
     "packages": ["AxisCache"]
+  },
+  {
+    "repository": "axis-email",
+    "packages": ["AxisEmail"]
   }
 ]
