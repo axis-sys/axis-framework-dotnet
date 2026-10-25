@@ -82,5 +82,9 @@
   {
     "repository": "axis-storage-filesystem",
     "packages": ["AxisStorage.FileSystem"]
+  },
+  {
+    "repository": "axis-storage-amazon-s3",
+    "packages": ["AxisStorage.AmazonS3"]
   }
 ]
