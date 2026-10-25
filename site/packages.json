@@ -130,5 +130,9 @@
   {
     "repository": "axis-cache-repository",
     "packages": ["AxisCache.Repository"]
+  },
+  {
+    "repository": "axis-bus-repository",
+    "packages": ["AxisBus.Repository"]
   }
 ]
