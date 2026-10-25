@@ -51,7 +51,7 @@
     <PackageVersion Include="AxisStorage.AzureBlob" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisStorage.CloudflareR2" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisStorage.FileSystem" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisTelemetry" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisTelemetry" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTelemetry.AzureMonitor" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisTypes" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTypes.Analyzers" Version="3.0.0-beta.7" />

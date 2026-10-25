@@ -62,5 +62,9 @@
   {
     "repository": "axis-logger",
     "packages": ["AxisLogger"]
+  },
+  {
+    "repository": "axis-telemetry",
+    "packages": ["AxisTelemetry"]
   }
 ]
