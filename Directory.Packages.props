@@ -19,8 +19,8 @@
     <PackageVersion Include="AxisCache.MySql" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisCache.Postgres" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisCache.Repository" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisDependencyInjections" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisDependencyInjections.Abstractions" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisDependencyInjections" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisDependencyInjections.Abstractions" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisEmail" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisEmail.MimeKit" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisHttp" Version="3.0.0-beta.6" />

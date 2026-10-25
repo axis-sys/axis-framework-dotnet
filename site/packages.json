@@ -14,5 +14,9 @@
   {
     "repository": "axis-types",
     "packages": ["AxisTypes", "AxisTypes.Analyzers"]
+  },
+  {
+    "repository": "axis-dependency-injections",
+    "packages": ["AxisDependencyInjections", "AxisDependencyInjections.Abstractions"]
   }
 ]
