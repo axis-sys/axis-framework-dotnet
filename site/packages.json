@@ -158,5 +158,9 @@
   {
     "repository": "axis-cache-postgres",
     "packages": ["AxisCache.Postgres"]
+  },
+  {
+    "repository": "axis-cache-mysql",
+    "packages": ["AxisCache.MySql"]
   }
 ]
