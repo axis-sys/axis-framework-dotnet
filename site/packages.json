@@ -138,5 +138,9 @@
   {
     "repository": "axis-repository-postgres",
     "packages": ["AxisRepository.Postgres"]
+  },
+  {
+    "repository": "axis-repository-mysql",
+    "packages": ["AxisRepository.MySql"]
   }
 ]
