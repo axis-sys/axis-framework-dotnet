@@ -66,5 +66,9 @@
   {
     "repository": "axis-telemetry",
     "packages": ["AxisTelemetry"]
+  },
+  {
+    "repository": "axis-repository",
+    "packages": ["AxisRepository"]
   }
 ]
