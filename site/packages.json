@@ -46,5 +46,9 @@
   {
     "repository": "axis-pay",
     "packages": ["AxisPay", "AxisPay.InMemory"]
+  },
+  {
+    "repository": "axis-validator",
+    "packages": ["AxisValidator"]
   }
 ]
