@@ -46,7 +46,7 @@
     <PackageVersion Include="AxisSaga.MySql" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisSaga.Postgres" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisSecurity" Version="3.0.0-beta.6" />
-    <PackageVersion Include="AxisStorage" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisStorage" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisStorage.AmazonS3" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisStorage.AzureBlob" Version="3.0.0-beta.6" />
     <PackageVersion Include="AxisStorage.CloudflareR2" Version="3.0.0-beta.6" />
