@@ -58,7 +58,7 @@
     <PackageVersion Include="AxisValidator" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisValidator.Brazil" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisValidator.FluentValidation" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisValidator.Usa" Version="3.0.0-beta.6" />
+    <PackageVersion Include="AxisValidator.Usa" Version="3.0.0-beta.7" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
