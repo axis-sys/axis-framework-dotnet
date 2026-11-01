@@ -40,6 +40,7 @@ Each repository carries the package's code, tests, articles and its own usage ag
 | [`axis-types`](https://github.com/axis-sys/axis-types) | `AxisTypes`, `AxisTypes.Analyzers` | Typed value objects for .NET: the `[ValueObject]` source generator, built-in value objects and their analyzers. |
 | [`axis-dependency-injections`](https://github.com/axis-sys/axis-dependency-injections) | `AxisDependencyInjections`, `AxisDependencyInjections.Abstractions` | Axis-owned re-export of the Microsoft dependency injection packages: the abstractions and the container. |
 | [`axis-mediator-contracts`](https://github.com/axis-sys/axis-mediator-contracts) | `AxisMediator.Contracts`, `AxisMediator.Contracts.Analyzers` | The CQRS contracts of Axis: requests, handlers, pipeline behaviors and the ambient mediator context, with analyzers. |
+| [`axis-globalization`](https://github.com/axis-sys/axis-globalization) | `AxisGlobalization` | Country, currency, time zone, money and document types for the Axis Framework. |
 
 ### Observability
 
@@ -59,8 +60,9 @@ Each repository carries the package's code, tests, articles and its own usage ag
 | [`axis-saga`](https://github.com/axis-sys/axis-saga) | `AxisSaga` | Saga orchestration for Axis: stages, compensation, leases, the resumer and the janitor. |
 | [`axis-bus-repository`](https://github.com/axis-sys/axis-bus-repository) | `AxisBus.Repository` | Durable outbox for the Axis bus on the Axis repository: publish, dispatch, retry and backoff. |
 | [`axis-mediator`](https://github.com/axis-sys/axis-mediator) | `AxisMediator` | The Axis mediator runtime: CQRS dispatch, the ambient context and the pipeline behaviors. |
-| [`axis-validator-brazil`](https://github.com/axis-sys/axis-validator-brazil) | `AxisValidator.Brazil` | Brazilian document and format rules for the Axis validator. |
-| [`axis-validator-usa`](https://github.com/axis-sys/axis-validator-usa) | `AxisValidator.Usa` | United States validation rules for the Axis validator. |
+| [`axis-validator-documents`](https://github.com/axis-sys/axis-validator-documents) | `AxisValidator.Documents` | Identity and tax document checks for the Axis validator. |
+| [`axis-validator-brazil`](https://github.com/axis-sys/axis-validator-brazil) | `AxisValidator.Brazil` | Brazilian phone numbers for the Axis validator. |
+| [`axis-validator-usa`](https://github.com/axis-sys/axis-validator-usa) | `AxisValidator.Usa` | United States phone numbers for the Axis validator. |
 | [`axis-saga-mysql`](https://github.com/axis-sys/axis-saga-mysql) | `AxisSaga.MySql` | MySQL storage for Axis sagas. |
 | [`axis-memory-bus`](https://github.com/axis-sys/axis-memory-bus) | `AxisMemoryBus` | In-memory adapter of the Axis bus port. |
 | [`axis-bus-mysql`](https://github.com/axis-sys/axis-bus-mysql) | `AxisBus.MySql` | MySQL storage for the Axis bus outbox. |
