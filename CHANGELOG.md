@@ -22,3 +22,4 @@ All notable changes to this repository are documented here. The format follows
   `3.0.0-beta.6` package.
 - `AxisGlobalization` and `AxisValidator.Documents` join the package list and the documentation site, and the reference
   application moves to the `AxisPay` and `AxisValidator` versions whose document checks live in `AxisValidator.Documents`.
+- The reference application moves to `AxisPay` `3.0.0-beta.9`, whose debtor can name the type of its document.
