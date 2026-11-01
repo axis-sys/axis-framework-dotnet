@@ -34,7 +34,7 @@
     <PackageVersion Include="AxisMemoryCache" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisOpenApi" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisPay" Version="3.0.0-beta.8" />
-    <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisRepository" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisRepository.MySql" Version="3.0.0-beta.7" />
