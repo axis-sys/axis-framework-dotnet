@@ -22,6 +22,7 @@
     <PackageVersion Include="AxisDependencyInjections.Abstractions" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisEmail" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisEmail.MimeKit" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisGlobalization" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisHttp" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisJwt" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisLogger" Version="3.0.0-beta.7" />
@@ -32,9 +33,9 @@
     <PackageVersion Include="AxisMemoryBus" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisMemoryCache" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisOpenApi" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisPay" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisPay" Version="3.0.0-beta.8" />
+    <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.8" />
+    <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisRepository" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisRepository.MySql" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.7" />
@@ -54,10 +55,11 @@
     <PackageVersion Include="AxisTelemetry.AzureMonitor" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTypes" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTypes.Analyzers" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisValidator" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisValidator.Brazil" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisValidator" Version="3.0.0-beta.8" />
+    <PackageVersion Include="AxisValidator.Brazil" Version="3.0.0-beta.8" />
+    <PackageVersion Include="AxisValidator.Documents" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisValidator.FluentValidation" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisValidator.Usa" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisValidator.Usa" Version="3.0.0-beta.8" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="FluentValidation" Version="12.2.0" />

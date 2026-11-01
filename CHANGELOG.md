@@ -20,3 +20,5 @@ All notable changes to this repository are documented here. The format follows
   what each analyzer flags and skips, why, and the fix.
 - The reference application runs the conventions analyzers from source, through a project reference, instead of the
   `3.0.0-beta.6` package.
+- `AxisGlobalization` and `AxisValidator.Documents` join the package list and the documentation site, and the reference
+  application moves to the `AxisPay` and `AxisValidator` versions whose document checks live in `AxisValidator.Documents`.

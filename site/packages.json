@@ -186,5 +186,13 @@
   {
     "repository": "axis-bus-postgres",
     "packages": ["AxisBus.Postgres"]
+  },
+  {
+    "repository": "axis-globalization",
+    "packages": ["AxisGlobalization"]
+  },
+  {
+    "repository": "axis-validator-documents",
+    "packages": ["AxisValidator.Documents"]
   }
 ]
