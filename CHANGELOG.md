@@ -5,6 +5,8 @@ All notable changes to this repository are documented here. The format follows
 
 ## 3.0.0 (unreleased)
 
+- The scaffolds consume `AxisRepository`, `AxisRepository.Postgres` and `AxisRepository.MySql` 3.0.0-beta.8, where
+  `AddJson` binds the provider's JSON type (`jsonb` / `JSON`) and the SQL needs no cast.
 - The repository restarts as the hub of the 3.0 framework; each package now lives in its own repository. The 2.x
   source stays at the `v2.2.0` tag, which the published 2.x packages point to.
 - The ECommerce reference application, in `scaffolds/`, consumes every Axis package from NuGet; its four test
