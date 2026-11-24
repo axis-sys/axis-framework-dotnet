@@ -194,5 +194,29 @@
   {
     "repository": "axis-validator-documents",
     "packages": ["AxisValidator.Documents"]
+  },
+  {
+    "repository": "axis-in-words",
+    "packages": ["AxisInWords"]
+  },
+  {
+    "repository": "axis-pdf",
+    "packages": ["AxisPdf"]
+  },
+  {
+    "repository": "axis-pdf-pdfpig",
+    "packages": ["AxisPdf.PdfPig"]
+  },
+  {
+    "repository": "axis-subject-keys",
+    "packages": ["AxisSubjectKeys"]
+  },
+  {
+    "repository": "axis-subject-keys-postgres",
+    "packages": ["AxisSubjectKeys.Postgres"]
+  },
+  {
+    "repository": "axis-subject-keys-mysql",
+    "packages": ["AxisSubjectKeys.MySql"]
   }
 ]

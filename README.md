@@ -41,6 +41,7 @@ Each repository carries the package's code, tests, articles and its own usage ag
 | [`axis-dependency-injections`](https://github.com/axis-sys/axis-dependency-injections) | `AxisDependencyInjections`, `AxisDependencyInjections.Abstractions` | Axis-owned re-export of the Microsoft dependency injection packages: the abstractions and the container. |
 | [`axis-mediator-contracts`](https://github.com/axis-sys/axis-mediator-contracts) | `AxisMediator.Contracts`, `AxisMediator.Contracts.Analyzers` | The CQRS contracts of Axis: requests, handlers, pipeline behaviors and the ambient mediator context, with analyzers. |
 | [`axis-globalization`](https://github.com/axis-sys/axis-globalization) | `AxisGlobalization` | Country, currency, time zone, money and document types for the Axis Framework. |
+| [`axis-in-words`](https://github.com/axis-sys/axis-in-words) | `AxisInWords` | Money, numbers, ordinals and dates written out in words, by language, on AxisResult. |
 
 ### Observability
 
@@ -97,6 +98,11 @@ Each repository carries the package's code, tests, articles and its own usage ag
 | [`axis-ai-agents`](https://github.com/axis-sys/axis-ai-agents) | `AxisAI.Agents` | An agent loop for the Axis AI chat port: tools, turn limits, compaction and hooks. |
 | [`axis-cache-postgres`](https://github.com/axis-sys/axis-cache-postgres) | `AxisCache.Postgres` | PostgreSQL storage for the Axis two-tier cache. |
 | [`axis-cache-mysql`](https://github.com/axis-sys/axis-cache-mysql) | `AxisCache.MySql` | MySQL storage for the Axis two-tier cache. |
+| [`axis-pdf`](https://github.com/axis-sys/axis-pdf) | `AxisPdf` | A structured document (clauses, items, lists, tables, signatures, annexes), its content hash and the IAxisPdfRenderer port. |
+| [`axis-pdf-pdfpig`](https://github.com/axis-sys/axis-pdf-pdfpig) | `AxisPdf.PdfPig` | PdfPig adapter of the AxisPdf renderer: A4 layout and a deterministic PDF. |
+| [`axis-subject-keys`](https://github.com/axis-sys/axis-subject-keys) | `AxisSubjectKeys` | One encryption key per subject for Axis, erasable by crypto-shredding: encrypt, decrypt and digest under it, on AxisResult. |
+| [`axis-subject-keys-postgres`](https://github.com/axis-sys/axis-subject-keys-postgres) | `AxisSubjectKeys.Postgres` | PostgreSQL storage for the Axis subject keyring. |
+| [`axis-subject-keys-mysql`](https://github.com/axis-sys/axis-subject-keys-mysql) | `AxisSubjectKeys.MySql` | MySQL storage for the Axis subject keyring. |
 
 ### HTTP edge
 

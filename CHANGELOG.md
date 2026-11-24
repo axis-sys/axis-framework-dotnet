@@ -5,6 +5,12 @@ All notable changes to this repository are documented here. The format follows
 
 ## 3.0.0 (unreleased)
 
+- The package table, the documentation site and the pinned versions add `AxisInWords` 3.0.0-beta.9 (amounts, numbers,
+  ordinals and dates in words), `AxisPdf` and `AxisPdf.PdfPig` 3.0.0-beta.9 (a structured document and its PdfPig
+  renderer) and `AxisSubjectKeys`, `AxisSubjectKeys.Postgres` and `AxisSubjectKeys.MySql` 3.0.0-beta.9 (one encryption
+  key per subject, erasable by crypto-shredding).
+- The pinned versions move `AxisGlobalization` to 3.0.0-beta.10 (`AxisLanguage`) and `AxisSecurity` to 3.0.0-beta.8
+  (`IAxisCipher.EncryptBytes` / `DecryptBytes` and `AxisCiphers.Create`).
 - The scaffolds consume `AxisResult`, `AxisResult.Analyzers` and `AxisResult.HttpResponse` 3.0.0-beta.8, with the
   `Gone` error category rendered as `410 Gone`, and `AxisMediator` 3.0.0-beta.8, whose dispatcher logs a refused
   command or query (the 4xx categories) at `Warning` and keeps `Error` for internal and dependency failures, with the

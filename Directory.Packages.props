@@ -22,8 +22,9 @@
     <PackageVersion Include="AxisDependencyInjections.Abstractions" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisEmail" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisEmail.MimeKit" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisGlobalization" Version="3.0.0-beta.9" />
+    <PackageVersion Include="AxisGlobalization" Version="3.0.0-beta.10" />
     <PackageVersion Include="AxisHttp" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisInWords" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisJwt" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisLogger" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisMcp.Client" Version="3.0.0-beta.7" />
@@ -36,6 +37,8 @@
     <PackageVersion Include="AxisPay" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisPay.Efi" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisPay.InMemory" Version="3.0.0-beta.9" />
+    <PackageVersion Include="AxisPdf" Version="3.0.0-beta.9" />
+    <PackageVersion Include="AxisPdf.PdfPig" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisRepository" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisRepository.MySql" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisRepository.Postgres" Version="3.0.0-beta.8" />
@@ -45,12 +48,15 @@
     <PackageVersion Include="AxisSaga" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisSaga.MySql" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisSaga.Postgres" Version="3.0.0-beta.7" />
-    <PackageVersion Include="AxisSecurity" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisSecurity" Version="3.0.0-beta.8" />
     <PackageVersion Include="AxisStorage" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisStorage.AmazonS3" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisStorage.AzureBlob" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisStorage.CloudflareR2" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisStorage.FileSystem" Version="3.0.0-beta.7" />
+    <PackageVersion Include="AxisSubjectKeys" Version="3.0.0-beta.9" />
+    <PackageVersion Include="AxisSubjectKeys.MySql" Version="3.0.0-beta.9" />
+    <PackageVersion Include="AxisSubjectKeys.Postgres" Version="3.0.0-beta.9" />
     <PackageVersion Include="AxisTelemetry" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTelemetry.AzureMonitor" Version="3.0.0-beta.7" />
     <PackageVersion Include="AxisTypes" Version="3.0.0-beta.7" />
