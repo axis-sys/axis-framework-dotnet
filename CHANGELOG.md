@@ -15,6 +15,8 @@ All notable changes to this repository are documented here. The format follows
   `Gone` error category rendered as `410 Gone`, and `AxisMediator` 3.0.0-beta.8, whose dispatcher logs a refused
   command or query (the 4xx categories) at `Warning` and keeps `Error` for internal and dependency failures, with the
   error codes only.
+- The scaffolds consume `AxisRepository`, `AxisRepository.Postgres` and `AxisRepository.MySql` 3.0.0-beta.9, whose
+  dialects render `RenderAlterColumnNullability`: the `ALTER TABLE` that makes an existing column nullable or required.
 - The scaffolds consume `AxisRepository`, `AxisRepository.Postgres` and `AxisRepository.MySql` 3.0.0-beta.8, where
   `AddJson` binds the provider's JSON type (`jsonb` / `JSON`) and the SQL needs no cast.
 - The repository restarts as the hub of the 3.0 framework; each package now lives in its own repository. The 2.x
