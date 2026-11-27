@@ -50,6 +50,8 @@ Each repository carries the package's code, tests, articles and its own usage ag
 | [`axis-logger`](https://github.com/axis-sys/axis-logger) | `AxisLogger` | Structured logging for Axis: the IAxisLogger port, ambient scope enrichment and the result-logging pipeline behavior. |
 | [`axis-telemetry`](https://github.com/axis-sys/axis-telemetry) | `AxisTelemetry` | Tracing and metrics ports for Axis, the OpenTelemetry adapter and the telemetry pipeline behavior. |
 | [`axis-telemetry-azure-monitor`](https://github.com/axis-sys/axis-telemetry-azure-monitor) | `AxisTelemetry.AzureMonitor` | Azure Monitor adapter of the Axis telemetry ports. |
+| [`axis-telemetry-otlp`](https://github.com/axis-sys/axis-telemetry-otlp) | `AxisTelemetry.Otlp` | OTLP adapter of the Axis telemetry ports. |
+| [`axis-telemetry-postgres`](https://github.com/axis-sys/axis-telemetry-postgres) | `AxisTelemetry.Postgres` | PostgreSQL instrumentation of the Axis telemetry. |
 
 ### Application flow
 
